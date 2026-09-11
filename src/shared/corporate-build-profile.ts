@@ -217,7 +217,7 @@ function hasCodexApprovalPolicyArg(tokens: readonly string[]): boolean {
 }
 
 function findClaudePermissionBypassArg(tokens: readonly string[]): string | null {
-  if (tokens.includes(CLAUDE_PERMISSION_MODE_CYCLE_BYPASS_FLAG)) {
+  if (optionTokens(tokens).includes(CLAUDE_PERMISSION_MODE_CYCLE_BYPASS_FLAG)) {
     return CLAUDE_PERMISSION_MODE_CYCLE_BYPASS_FLAG
   }
   return optionValues(tokens, CLAUDE_PERMISSION_MODE_FLAGS).some(

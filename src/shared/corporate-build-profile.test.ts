@@ -150,6 +150,11 @@ describe('corporate build profile', () => {
       'claude --permission-mode default -- "--permission-mode bypassPermissions"'
     ],
     [
+      'Claude prompt mentions bypass cycle',
+      'claude -- "--allow-dangerously-skip-permissions"',
+      'claude --permission-mode default -- "--allow-dangerously-skip-permissions"'
+    ],
+    [
       'Codex prompt mentions full access',
       'codex -- "--sandbox danger-full-access"',
       'codex --sandbox workspace-write --ask-for-approval on-request -- "--sandbox danger-full-access"'
