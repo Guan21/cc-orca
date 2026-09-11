@@ -142,10 +142,16 @@ describe('corporate agent launch policy', () => {
 
   it.each([
     ['Claude', 'claude --model sonnet', 'claude --model sonnet --permission-mode default'],
+    ['Claude terminator', 'claude --', 'claude --permission-mode default --'],
     [
       'Codex',
       'codex --model gpt-5',
       'codex --model gpt-5 --sandbox workspace-write --ask-for-approval on-request'
+    ],
+    [
+      'Codex terminator',
+      'codex -- "prompt"',
+      'codex --sandbox workspace-write --ask-for-approval on-request -- "prompt"'
     ]
   ] as const)(
     'adds corporate safe policy to raw %s command before spawn',

@@ -1,6 +1,7 @@
 import type { TuiAgent } from './tui-agent'
 import type { TopLevelView } from './ui-chrome-types'
 import { recognizeAgentCommandLineFromCommandLine } from './agent-process-recognition'
+import { tokenizeStartupCommand } from './tui-agent-startup-shell'
 
 export const ORCA_BUILD_PROFILE_ENV_VAR = 'ORCA_BUILD_PROFILE'
 
@@ -157,14 +158,24 @@ function normalizedPolicyValue(value: string | undefined): string {
     .toLowerCase()
 }
 
+function optionTokenScanEnd(tokens: readonly string[]): number {
+  const terminatorIndex = tokens.indexOf('--')
+  return terminatorIndex === -1 ? tokens.length : terminatorIndex
+}
+
+function optionTokens(tokens: readonly string[]): readonly string[] {
+  return tokens.slice(0, optionTokenScanEnd(tokens))
+}
+
 function optionValues(tokens: readonly string[], flags: ReadonlySet<string>): string[] {
   const values: string[] = []
-  for (let index = 1; index < tokens.length; index += 1) {
+  const scanEnd = optionTokenScanEnd(tokens)
+  for (let index = 1; index < scanEnd; index += 1) {
     const { flag, inlineValue } = splitOptionToken(tokens[index])
     if (!flags.has(flag)) {
       continue
     }
-    const value = inlineValue ?? tokens[index + 1]
+    const value = inlineValue ?? (index + 1 < scanEnd ? tokens[index + 1] : undefined)
     if (value !== undefined) {
       values.push(value)
     }
@@ -270,7 +281,8 @@ export function findForbiddenPermissionBypassArgForBuildProfile(
   if (!forbiddenArgs) {
     return null
   }
-  const forbiddenArg = forbiddenArgs.find((arg) => tokens.includes(arg))
+  const scannedTokens = optionTokens(tokens)
+  const forbiddenArg = forbiddenArgs.find((arg) => scannedTokens.includes(arg))
   if (forbiddenArg) {
     return forbiddenArg
   }
@@ -318,6 +330,25 @@ export function resolveAgentArgsForBuildProfile(
   }
   const requiredArgs = requiredSafePermissionArgs(agent, tokens)
   return [...(trimmedArgs ? [trimmedArgs] : []), requiredArgs.join(' ')].filter(Boolean).join(' ')
+}
+
+function insertArgsBeforeOptionTerminator(command: string, insertedArgs: readonly string[]): string {
+  const inserted = insertedArgs.join(' ')
+  const tokenized = tokenizeStartupCommand(command, 'posix')
+  if (!tokenized.ok) {
+    return `${command.trim()} ${inserted}`
+  }
+  const terminatorIndex = tokenized.tokens.indexOf('--')
+  if (terminatorIndex === -1) {
+    return `${command.trim()} ${inserted}`
+  }
+  const terminatorStart = tokenized.spans[terminatorIndex]?.start
+  if (terminatorStart === undefined) {
+    return `${command.trim()} ${inserted}`
+  }
+  const beforeTerminator = command.slice(0, terminatorStart).trimEnd()
+  const terminatorAndAfter = command.slice(terminatorStart).trimStart()
+  return [beforeTerminator, inserted, terminatorAndAfter].filter(Boolean).join(' ')
 }
 
 export function assertAgentPermissionBypassAllowedForBuildProfile(
@@ -391,7 +422,7 @@ export function resolveAgentLaunchForBuildProfile(
   }
   return {
     ...launch,
-    command: `${launch.command.trim()} ${requiredArgs.join(' ')}`
+    command: insertArgsBeforeOptionTerminator(launch.command, requiredArgs)
   }
 }
 

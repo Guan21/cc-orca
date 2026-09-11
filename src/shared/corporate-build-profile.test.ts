@@ -137,17 +137,41 @@ describe('corporate build profile', () => {
       'Codex command with args',
       'codex --model gpt-5',
       'codex --model gpt-5 --sandbox workspace-write --ask-for-approval on-request'
+    ],
+    ['Claude command terminator', 'claude --', 'claude --permission-mode default --'],
+    [
+      'Codex command terminator',
+      'codex -- "prompt"',
+      'codex --sandbox workspace-write --ask-for-approval on-request -- "prompt"'
+    ],
+    [
+      'Claude prompt mentions bypass',
+      'claude -- "--permission-mode bypassPermissions"',
+      'claude --permission-mode default -- "--permission-mode bypassPermissions"'
+    ],
+    [
+      'Codex prompt mentions full access',
+      'codex -- "--sandbox danger-full-access"',
+      'codex --sandbox workspace-write --ask-for-approval on-request -- "--sandbox danger-full-access"'
     ]
   ])('adds corporate safe policy to raw %s', (_label, command, expected) => {
     expect(resolveAgentLaunchForBuildProfile({ command }, 'corporate').command).toBe(expected)
     expect(resolveAgentLaunchForBuildProfile({ command }, 'default').command).toBe(command)
+    expect(() =>
+      assertAgentLaunchAllowedForBuildProfile(
+        { command: resolveAgentLaunchForBuildProfile({ command }, 'corporate').command },
+        'corporate'
+      )
+    ).not.toThrow()
   })
 
   it.each([
     'claude',
     'claude --model sonnet',
+    'claude --',
     'codex',
     'codex --model gpt-5',
+    'codex -- "prompt"',
     'bash -lc "claude"',
     'pwsh -Command "codex"'
   ])(
