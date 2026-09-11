@@ -3,6 +3,7 @@ import { basename, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { buildSettingsNavigationMetadata } from './useSettingsNavigationMetadata'
 import type { Repo } from '../../../shared/repo-types'
+import type { OrcaBuildProfile } from '../../../shared/corporate-build-profile'
 
 const repo = {
   id: 'repo-1',
@@ -19,6 +20,7 @@ function ids(
     isWebClient?: boolean
     isDev?: boolean
     isLinearConnected?: boolean
+    buildProfile?: OrcaBuildProfile
   } = {}
 ): string[] {
   return buildSettingsNavigationMetadata({
@@ -27,6 +29,7 @@ function ids(
     isWebClient: args.isWebClient ?? false,
     isDev: args.isDev ?? false,
     isLinearConnected: args.isLinearConnected ?? false,
+    buildProfile: args.buildProfile ?? 'default',
     repos: [repo]
   }).map((section) => section.id)
 }
@@ -404,6 +407,23 @@ describe('settings navigation metadata', () => {
   it('keeps macOS permissions mac-only', () => {
     expect(ids({ isMac: false })).not.toContain('developer-permissions')
     expect(ids({ isMac: true })).toContain('developer-permissions')
+  })
+
+  it('filters disabled capability surfaces from corporate metadata', () => {
+    const corporateIds = ids({ buildProfile: 'corporate', isMac: true })
+
+    expect(corporateIds).toContain('agents')
+    expect(corporateIds).toContain('accounts')
+    expect(corporateIds).toContain('terminal')
+    expect(corporateIds).toContain('git')
+    expect(corporateIds).not.toContain('mobile')
+    expect(corporateIds).not.toContain('computer-use')
+    expect(corporateIds).not.toContain('voice')
+    expect(corporateIds).not.toContain('mobile-emulator')
+    expect(corporateIds).not.toContain('share-skills')
+    expect(corporateIds).not.toContain('ssh')
+    expect(corporateIds).not.toContain('servers')
+    expect(corporateIds).not.toContain('plugins')
   })
 
   it('does not import Settings page or pane UI modules from the metadata hook', () => {

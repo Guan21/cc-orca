@@ -24,6 +24,12 @@ describe('pickTuiAgent', () => {
     expect(pickTuiAgent('codex', ['claude', 'codex'], ['codex'])).toBe('claude')
     expect(pickTuiAgent(null, ['claude', 'codex'], ['claude', 'codex'])).toBeNull()
   })
+
+  it('limits corporate auto-pick and preferences to Claude and Codex', () => {
+    expect(pickTuiAgent(null, ['cursor', 'opencode', 'codex'], null, 'corporate')).toBe('codex')
+    expect(pickTuiAgent('cursor', ['cursor', 'claude'], null, 'corporate')).toBe('claude')
+    expect(pickTuiAgent(null, ['cursor', 'opencode'], null, 'corporate')).toBeNull()
+  })
 })
 
 describe('normalizeDisabledTuiAgents', () => {
