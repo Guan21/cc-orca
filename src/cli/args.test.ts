@@ -303,6 +303,19 @@ describe('validateCommandAndFlags', () => {
     )
   })
 
+  it.each([
+    ['skills list', ['skills', 'list']],
+    ['emulator tap', ['emulator', 'tap', '0.5', '0.5']],
+    ['computer list-apps', ['computer', 'list-apps']],
+    ['serve', ['serve']]
+  ])('rejects corporate-disabled CLI command %s before execution', (_label, argv) => {
+    const parsed = normalizeCommandPositionals(COMMAND_SPECS, parseArgs(argv))
+
+    expect(() => validateCommandAndFlags(COMMAND_SPECS, parsed, 'corporate')).toThrow(
+      `Command unavailable in corporate build: ${parsed.commandPath.join(' ')}`
+    )
+  })
+
   it('enumerates valid flags and suggests a near-miss on unknown-flag errors', () => {
     const flagSpecs: CommandSpec[] = [
       {

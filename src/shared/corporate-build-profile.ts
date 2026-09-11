@@ -40,6 +40,13 @@ const CORPORATE_DISABLED_CAPABILITIES = new Set<CorporateBuildCapability>([
 
 const CORPORATE_DISABLED_TOP_LEVEL_VIEWS = new Set<TopLevelView>(['skills', 'mobile'])
 
+const CORPORATE_CLI_COMMAND_CAPABILITIES = new Map<string, CorporateBuildCapability>([
+  ['computer', 'computer-use'],
+  ['emulator', 'emulator'],
+  ['serve', 'cloud-relay'],
+  ['skills', 'skills']
+])
+
 export function normalizeOrcaBuildProfile(value: unknown): OrcaBuildProfile {
   return value === 'corporate' ? 'corporate' : 'default'
 }
@@ -74,4 +81,12 @@ export function isTuiAgentAllowedForBuildProfile(
   profile: OrcaBuildProfile = getOrcaBuildProfile()
 ): boolean {
   return profile !== 'corporate' || CORPORATE_ALLOWED_TUI_AGENT_SET.has(agent)
+}
+
+export function isCliCommandEnabledForBuildProfile(
+  commandPath: readonly string[],
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): boolean {
+  const capability = CORPORATE_CLI_COMMAND_CAPABILITIES.get(commandPath[0] ?? '')
+  return capability ? isCapabilityEnabledForBuildProfile(capability, profile) : true
 }

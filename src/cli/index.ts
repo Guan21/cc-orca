@@ -17,6 +17,7 @@ import {
 import { listSshTargets } from './host-selector-alternatives'
 import { reportCliError } from './cli-error'
 import { printHelp } from './help'
+import { resolveCliBuildProfile } from './packaged-build-profile'
 import type { RuntimeClient } from './runtime-client'
 import { COMMAND_SPECS } from './specs'
 import { resolveOrchestrationCliExecutable } from './runtime/orchestration-recovery-command'
@@ -106,7 +107,7 @@ export async function main(
     // Why: CLI syntax and flag errors should be reported before any runtime
     // lookup so users do not get misleading "Orca is not running" failures for
     // simple command typos or unsupported flags.
-    validateCommandAndFlags(COMMAND_SPECS, parsed)
+    validateCommandAndFlags(COMMAND_SPECS, parsed, resolveCliBuildProfile())
     const RuntimeClientClass = await loadRuntimeClientClass()
     const ignoreRemoteSelection = shouldIgnoreRemoteSelection(parsed.commandPath)
     const pairingCode = ignoreRemoteSelection ? null : parsed.flags.get('pairing-code')
