@@ -73,8 +73,23 @@ describe('corporate build profile', () => {
 
   it.each([
     ['Claude', 'claude --dangerously-skip-permissions'],
+    ['Claude permission mode', 'claude --permission-mode bypassPermissions'],
+    ['Claude inline permission mode', 'claude --permission-mode=bypassPermissions'],
+    ['Claude mode cycle bypass', 'claude --allow-dangerously-skip-permissions'],
     ['Codex', 'codex --dangerously-bypass-approvals-and-sandbox'],
+    ['Codex sandbox full access', 'codex --sandbox danger-full-access'],
+    ['Codex inline sandbox full access', 'codex --sandbox=danger-full-access'],
+    ['Codex short sandbox full access', 'codex -s danger-full-access'],
+    ['Codex approval never', 'codex --ask-for-approval never'],
+    ['Codex inline approval never', 'codex --ask-for-approval=never'],
+    ['Codex short approval never', 'codex -a never'],
+    ['Codex config sandbox full access', 'codex -c sandbox_mode="danger-full-access"'],
+    ['Codex config approval never', 'codex -c approval_policy=never'],
     ['shell-wrapped Claude', 'bash -lc "claude --dangerously-skip-permissions"'],
+    [
+      'shell-wrapped Claude permission mode',
+      'bash -lc "claude --permission-mode bypassPermissions"'
+    ],
     ['shell-wrapped Codex', 'pwsh -Command "codex --dangerously-bypass-approvals-and-sandbox"']
   ])('rejects corporate %s permission bypass launch args', (_label, command) => {
     expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).toThrow(
@@ -89,6 +104,17 @@ describe('corporate build profile', () => {
       expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
     }
   )
+
+  it.each([
+    'claude --permission-mode default',
+    'claude --permission-mode plan',
+    'codex --sandbox workspace-write',
+    'codex --ask-for-approval on-request',
+    'codex -c sandbox_mode=workspace-write',
+    'codex -c approval_policy=on-request'
+  ])('allows corporate safe permission policy args: %s', (command) => {
+    expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
+  })
 
   it('disables non-P0 corporate capabilities without affecting the default build', () => {
     expect(isCapabilityEnabledForBuildProfile('mobile', 'corporate')).toBe(false)

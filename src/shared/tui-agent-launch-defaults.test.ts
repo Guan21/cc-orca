@@ -9,7 +9,11 @@ describe('tui agent launch defaults', () => {
     'removes corporate permission bypass defaults for %s while preserving default profile behavior',
     (agent, bypassArg) => {
       expect(resolveTuiAgentLaunchArgs(agent, null, 'default')).toBe(bypassArg)
-      expect(resolveTuiAgentLaunchArgs(agent, null, 'corporate')).toBe('')
+      expect(resolveTuiAgentLaunchArgs(agent, null, 'corporate')).toBe(
+        agent === 'codex'
+          ? '--sandbox workspace-write --ask-for-approval on-request'
+          : '--permission-mode default'
+      )
     }
   )
 
@@ -21,5 +25,14 @@ describe('tui agent launch defaults', () => {
         'corporate'
       )
     ).toBe('--dangerously-skip-permissions --model sonnet')
+  })
+
+  it('adds corporate safe permission overrides to explicit safe args', () => {
+    expect(resolveTuiAgentLaunchArgs('claude', { claude: '--model sonnet' }, 'corporate')).toBe(
+      '--model sonnet --permission-mode default'
+    )
+    expect(resolveTuiAgentLaunchArgs('codex', { codex: '--model gpt-5' }, 'corporate')).toBe(
+      '--model gpt-5 --sandbox workspace-write --ask-for-approval on-request'
+    )
   })
 })

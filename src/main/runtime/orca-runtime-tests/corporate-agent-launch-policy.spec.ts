@@ -121,23 +121,44 @@ describe('corporate agent launch policy', () => {
 
     expect(spawn).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ command: 'claude', launchAgent: 'claude' })
+      expect.objectContaining({
+        command: expect.stringContaining('--permission-mode'),
+        launchAgent: 'claude'
+      })
     )
     expect(spawn).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ command: 'codex', launchAgent: 'codex' })
+      expect.objectContaining({
+        command: expect.stringContaining('--ask-for-approval'),
+        launchAgent: 'codex'
+      })
     )
   })
 
   it.each([
     ['Claude default args', 'claude', { claude: '--dangerously-skip-permissions' }],
     ['Codex default args', 'codex', { codex: '--dangerously-bypass-approvals-and-sandbox' }],
+    ['Claude permission mode args', 'claude', { claude: '--permission-mode bypassPermissions' }],
+    ['Codex sandbox args', 'codex', { codex: '--sandbox danger-full-access' }],
+    ['Codex approval args', 'codex', { codex: '--ask-for-approval never' }],
     ['Claude command override', 'claude', {}, { claude: 'claude --dangerously-skip-permissions' }],
     [
       'Codex command override',
       'codex',
       {},
       { codex: 'codex --dangerously-bypass-approvals-and-sandbox' }
+    ],
+    [
+      'Claude permission mode command override',
+      'claude',
+      {},
+      { claude: 'claude --permission-mode bypassPermissions' }
+    ],
+    [
+      'Codex full access command override',
+      'codex',
+      {},
+      { codex: 'codex --sandbox danger-full-access --ask-for-approval never' }
     ]
   ] as const)(
     'rejects corporate %s permission bypass before spawn',
@@ -162,7 +183,10 @@ describe('corporate agent launch policy', () => {
 
   it.each([
     ['Claude', 'claude', ['--dangerously-skip-permissions']],
-    ['Codex', 'codex', ['--dangerously-bypass-approvals-and-sandbox']]
+    ['Claude permission mode', 'claude', ['--permission-mode', 'bypassPermissions']],
+    ['Codex', 'codex', ['--dangerously-bypass-approvals-and-sandbox']],
+    ['Codex sandbox full access', 'codex', ['--sandbox', 'danger-full-access']],
+    ['Codex approval never', 'codex', ['--ask-for-approval', 'never']]
   ] as const)(
     'rejects corporate %s restored session permission bypass args before spawn',
     async (_label, agent, launchArgs) => {

@@ -371,6 +371,28 @@ describe('validateCommandAndFlags', () => {
         '--command',
         'bash -lc "codex --dangerously-bypass-approvals-and-sandbox"'
       ]
+    ],
+    [
+      'Claude permission mode',
+      [
+        'terminal',
+        'create',
+        '--worktree',
+        'active',
+        '--command',
+        'claude --permission-mode bypassPermissions'
+      ]
+    ],
+    [
+      'Codex full-access semantics',
+      [
+        'terminal',
+        'create',
+        '--worktree',
+        'active',
+        '--command',
+        'codex --sandbox danger-full-access --ask-for-approval never'
+      ]
     ]
   ])('rejects corporate permission bypass CLI launch via %s', (_label, argv) => {
     const parsed = normalizeCommandPositionals(COMMAND_SPECS, parseArgs(argv))

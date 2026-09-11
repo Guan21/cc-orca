@@ -4,6 +4,7 @@ import type { TuiAgent } from './tui-agent'
 import {
   areAgentArgsAllowedForBuildProfile,
   getOrcaBuildProfile,
+  resolveAgentArgsForBuildProfile,
   type OrcaBuildProfile
 } from './corporate-build-profile'
 
@@ -94,10 +95,12 @@ export function resolveTuiAgentLaunchArgs(
     Object.hasOwn(configuredArgs, agent) &&
     typeof configuredArgs[agent] === 'string'
   ) {
-    return configuredArgs[agent] ?? ''
+    return resolveAgentArgsForBuildProfile(agent, configuredArgs[agent], profile)
   }
   const defaultArgs = getTuiAgentDefaultArgs(agent)
-  return areAgentArgsAllowedForBuildProfile(agent, defaultArgs, profile) ? defaultArgs : ''
+  return areAgentArgsAllowedForBuildProfile(agent, defaultArgs, profile)
+    ? resolveAgentArgsForBuildProfile(agent, defaultArgs, profile)
+    : resolveAgentArgsForBuildProfile(agent, '', profile)
 }
 
 export function resolveTuiAgentLaunchEnv(
