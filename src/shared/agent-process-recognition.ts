@@ -6,7 +6,10 @@ import { filterHeadlessOneShotAgentCommand } from './agent-headless-command'
 import { getFirstCommandToken } from './command-token-scanner'
 
 export type RecognizedAgentProcess = { agent: TuiAgent; processName: string }
-export type RecognizedAgentCommandLine = RecognizedAgentProcess & { tokens: string[] }
+export type RecognizedAgentCommandLine = RecognizedAgentProcess & {
+  tokens: string[]
+  wrapped: boolean
+}
 
 const PROCESS_EXTENSION_RE = /\.(?:exe|cmd|bat|ps1)$/i
 const INTERPRETER_SCRIPT_EXTENSION_RE = /\.(?:js|mjs|cjs)$/i
@@ -389,9 +392,10 @@ export function recognizeAgentCommandLineFromCommandLine(
 
 function recognizedCommandLine(
   recognized: RecognizedAgentProcess | null,
-  tokens: string[]
+  tokens: string[],
+  wrapped: boolean
 ): RecognizedAgentCommandLine | null {
-  return recognized ? { ...recognized, tokens } : null
+  return recognized ? { ...recognized, tokens, wrapped } : null
 }
 
 function recognizeAgentCommandLineFromCommandLineAtDepth(
@@ -412,7 +416,7 @@ function recognizeAgentCommandLineFromCommandLineAtDepth(
   }
   const directRecognition = keep ? direct : filterHeadlessOneShotAgentCommand(direct, tokens)
   if (directRecognition) {
-    return recognizedCommandLine(directRecognition, tokens)
+    return recognizedCommandLine(directRecognition, tokens, false)
   }
   const wrappedCommand =
     depth < MAX_WRAPPED_COMMAND_DEPTH ? findWrappedInlineCommand(tokens, firstNormalized) : null
@@ -423,7 +427,7 @@ function recognizeAgentCommandLineFromCommandLineAtDepth(
       depth + 1
     )
     if (wrappedRecognition) {
-      return wrappedRecognition
+      return { ...wrappedRecognition, wrapped: true }
     }
   }
   const entrypoint = findInterpreterEntrypointToken(tokens, firstNormalized)
@@ -442,7 +446,7 @@ function recognizeAgentCommandLineFromCommandLineAtDepth(
   const entrypointRecognition = keep
     ? viaEntrypoint
     : filterHeadlessOneShotAgentCommand(viaEntrypoint, tokens)
-  return recognizedCommandLine(entrypointRecognition, tokens)
+  return recognizedCommandLine(entrypointRecognition, tokens, false)
 }
 export function isAgentForegroundWrapperProcess(processName: string | null | undefined): boolean {
   const normalized = normalizeProcessName(processName)

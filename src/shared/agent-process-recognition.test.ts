@@ -283,7 +283,8 @@ describe('agent process recognition', () => {
     ).toEqual({
       agent: 'codex',
       processName: 'codex',
-      tokens: ['codex', '--dangerously-bypass-approvals-and-sandbox']
+      tokens: ['codex', '--dangerously-bypass-approvals-and-sandbox'],
+      wrapped: true
     })
   })
 

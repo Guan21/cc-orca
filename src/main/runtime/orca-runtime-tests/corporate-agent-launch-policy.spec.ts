@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AGENT_NOT_ALLOWED_BY_ORG_POLICY } from '../../../shared/corporate-build-profile'
-import { OrcaRuntimeService } from '../orca-runtime-test-mocks.spec'
+import {
+  OrcaRuntimeService,
+  ipcMain,
+  setRuntimeDesktopSurface
+} from '../orca-runtime-test-mocks.spec'
 import { TEST_WORKTREE_ID, TEST_WORKTREE_PATH, store } from '../orca-runtime-test-fixtures.spec'
 
 const ORIGINAL_ORCA_BUILD_PROFILE = process.env.ORCA_BUILD_PROFILE
@@ -55,6 +59,7 @@ function createRuntime(
 }
 
 afterEach(() => {
+  setRuntimeDesktopSurface(null)
   delete (globalThis as { __ORCA_BUILD_PROFILE__?: string }).__ORCA_BUILD_PROFILE__
   if (ORIGINAL_ORCA_BUILD_PROFILE === undefined) {
     delete process.env.ORCA_BUILD_PROFILE
@@ -134,6 +139,105 @@ describe('corporate agent launch policy', () => {
       })
     )
   })
+
+  it.each([
+    ['Claude', 'claude --model sonnet', 'claude --model sonnet --permission-mode default'],
+    [
+      'Codex',
+      'codex --model gpt-5',
+      'codex --model gpt-5 --sandbox workspace-write --ask-for-approval on-request'
+    ]
+  ] as const)(
+    'adds corporate safe policy to raw %s command before spawn',
+    async (_label, command, expectedCommand) => {
+      enableCorporateBuildProfile()
+      const { runtime, spawn } = createRuntime()
+
+      await runtime.createTerminal(`id:${TEST_WORKTREE_ID}`, { command })
+
+      expect(spawn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          command: expectedCommand
+        })
+      )
+    }
+  )
+
+  it.each([
+    ['Claude', 'claude --model sonnet', 'claude --model sonnet --permission-mode default'],
+    [
+      'Codex',
+      'codex --model gpt-5',
+      'codex --model gpt-5 --sandbox workspace-write --ask-for-approval on-request'
+    ]
+  ] as const)(
+    'adds corporate safe policy to renderer-backed raw %s command before tab creation',
+    async (_label, command, expectedCommand) => {
+      enableCorporateBuildProfile()
+      const { runtime, spawn } = createRuntime()
+      const webContents = { send: vi.fn() }
+      const rendererWindow = {
+        isDestroyed: () => false,
+        webContents
+      }
+      webContents.send.mockImplementation((_channel: string, payload: { requestId: string }) => {
+        runtime.syncWindowGraph(1, {
+          tabs: [],
+          leaves: [
+            {
+              tabId: 'tab-renderer',
+              worktreeId: TEST_WORKTREE_ID,
+              leafId: 'pane:1',
+              paneRuntimeId: 1,
+              ptyId: 'pty-renderer',
+              paneTitle: null
+            }
+          ]
+        })
+        ipcMain.emit(
+          'terminal:tabCreateReply',
+          { sender: webContents },
+          { requestId: payload.requestId, tabId: 'tab-renderer', title: 'Agent' }
+        )
+      })
+      runtime.attachWindow(1)
+      runtime.syncWindowGraph(1, { tabs: [], leaves: [] })
+      setRuntimeDesktopSurface({
+        showNotification: () => false,
+        findWindowById: () => rendererWindow as never,
+        onIpc: (channel, listener) => ipcMain.on(channel, listener as never),
+        removeIpcListener: (channel, listener) => ipcMain.removeListener(channel, listener as never)
+      })
+      const runtimeWithWaiter = runtime as unknown as {
+        waitForTerminalHandle: () => Promise<string>
+      }
+      runtimeWithWaiter.waitForTerminalHandle = vi.fn(async () => 'renderer-handle')
+
+      await runtime.createTerminal(`id:${TEST_WORKTREE_ID}`, { command, rendererBacked: true })
+
+      expect(webContents.send).toHaveBeenCalledWith(
+        'terminal:requestTabCreate',
+        expect.objectContaining({ command: expectedCommand })
+      )
+      expect(spawn).not.toHaveBeenCalled()
+    }
+  )
+
+  it.each([
+    ['Claude', 'bash -lc "claude"'],
+    ['Codex', 'pwsh -Command "codex"']
+  ] as const)(
+    'rejects shell-wrapped corporate raw %s command before spawn',
+    async (_label, command) => {
+      enableCorporateBuildProfile()
+      const { runtime, spawn } = createRuntime()
+
+      await expect(runtime.createTerminal(`id:${TEST_WORKTREE_ID}`, { command })).rejects.toThrow(
+        PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY
+      )
+      expect(spawn).not.toHaveBeenCalled()
+    }
+  )
 
   it.each([
     ['Claude default args', 'claude', { claude: '--dangerously-skip-permissions' }],

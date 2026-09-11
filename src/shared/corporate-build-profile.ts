@@ -241,6 +241,23 @@ function findCodexPermissionBypassArg(tokens: readonly string[]): string | null 
   return dangerousConfig ? `-c ${dangerousConfig.key}=${dangerousConfig.value}` : null
 }
 
+function requiredSafePermissionArgs(agent: TuiAgent, tokens: readonly string[]): string[] {
+  if (agent === 'claude') {
+    return hasClaudePermissionModeArg(tokens) ? [] : [...CLAUDE_SAFE_PERMISSION_ARGS]
+  }
+  if (agent !== 'codex') {
+    return []
+  }
+  const requiredArgs: string[] = []
+  if (!hasCodexSandboxPolicyArg(tokens)) {
+    requiredArgs.push(...CODEX_SAFE_PERMISSION_ARGS.slice(0, 2))
+  }
+  if (!hasCodexApprovalPolicyArg(tokens)) {
+    requiredArgs.push(...CODEX_SAFE_PERMISSION_ARGS.slice(2))
+  }
+  return requiredArgs
+}
+
 export function findForbiddenPermissionBypassArgForBuildProfile(
   agent: TuiAgent,
   tokens: readonly string[],
@@ -299,18 +316,7 @@ export function resolveAgentArgsForBuildProfile(
   ) {
     return trimmedArgs
   }
-  const requiredArgs: string[] = []
-  if (agent === 'claude' && !hasClaudePermissionModeArg(tokens)) {
-    requiredArgs.push(...CLAUDE_SAFE_PERMISSION_ARGS)
-  }
-  if (agent === 'codex') {
-    if (!hasCodexSandboxPolicyArg(tokens)) {
-      requiredArgs.push(...CODEX_SAFE_PERMISSION_ARGS.slice(0, 2))
-    }
-    if (!hasCodexApprovalPolicyArg(tokens)) {
-      requiredArgs.push(...CODEX_SAFE_PERMISSION_ARGS.slice(2))
-    }
-  }
+  const requiredArgs = requiredSafePermissionArgs(agent, tokens)
   return [...(trimmedArgs ? [trimmedArgs] : []), requiredArgs.join(' ')].filter(Boolean).join(' ')
 }
 
@@ -325,10 +331,10 @@ export function assertAgentPermissionBypassAllowedForBuildProfile(
   }
 }
 
-export function assertAgentLaunchAllowedForBuildProfile(
+function recognizeAndValidateAgentLaunchForBuildProfile(
   launch: { launchAgent?: TuiAgent; command?: string | null | undefined },
   profile: OrcaBuildProfile = getOrcaBuildProfile()
-): void {
+): ReturnType<typeof recognizeAgentCommandLineFromCommandLine> {
   if (launch.launchAgent) {
     assertAgentAllowedForBuildProfile(launch.launchAgent, profile)
   }
@@ -338,6 +344,54 @@ export function assertAgentLaunchAllowedForBuildProfile(
   if (recognized) {
     assertAgentAllowedForBuildProfile(recognized.agent, profile)
     assertAgentPermissionBypassAllowedForBuildProfile(recognized.agent, recognized.tokens, profile)
+  }
+  return recognized
+}
+
+export function assertAgentLaunchAllowedForBuildProfile(
+  launch: { launchAgent?: TuiAgent; command?: string | null | undefined },
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): void {
+  const recognized = recognizeAndValidateAgentLaunchForBuildProfile(launch, profile)
+  if (recognized) {
+    if (
+      profile === 'corporate' &&
+      requiredSafePermissionArgs(recognized.agent, recognized.tokens).length
+    ) {
+      throw new CorporatePermissionBypassPolicyError(
+        recognized.agent,
+        profile,
+        'missing corporate safe permission policy'
+      )
+    }
+  }
+}
+
+export function resolveAgentLaunchForBuildProfile(
+  launch: { launchAgent?: TuiAgent; command?: string | null | undefined },
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): { launchAgent?: TuiAgent; command?: string | null | undefined } {
+  const recognized = recognizeAndValidateAgentLaunchForBuildProfile(launch, profile)
+  if (profile !== 'corporate' || !launch.command) {
+    return launch
+  }
+  if (!recognized || recognized.wrapped) {
+    if (recognized && requiredSafePermissionArgs(recognized.agent, recognized.tokens).length) {
+      throw new CorporatePermissionBypassPolicyError(
+        recognized.agent,
+        profile,
+        'missing corporate safe permission policy'
+      )
+    }
+    return launch
+  }
+  const requiredArgs = requiredSafePermissionArgs(recognized.agent, recognized.tokens)
+  if (requiredArgs.length === 0) {
+    return launch
+  }
+  return {
+    ...launch,
+    command: `${launch.command.trim()} ${requiredArgs.join(' ')}`
   }
 }
 

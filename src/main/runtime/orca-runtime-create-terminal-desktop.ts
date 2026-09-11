@@ -2,6 +2,7 @@
 import * as dependencies from './orca-runtime-create-terminal-dependencies'
 import type { OrcaRuntimeWithCreateTerminal } from './orca-runtime-create-terminal'
 import type { RuntimeTerminalPresentation } from '../../shared/runtime-types'
+import { resolveAgentLaunchForBuildProfile } from '../../shared/corporate-build-profile'
 
 export async function createDesktopTerminal(
   runtime: OrcaRuntimeWithCreateTerminal,
@@ -18,6 +19,10 @@ export async function createDesktopTerminal(
   const launchOpts = workspace
     ? await runtime.resolveAgentTerminalCreateOptions(workspace, opts)
     : opts
+  const corporateLaunch = resolveAgentLaunchForBuildProfile({
+    command: launchOpts.command,
+    launchAgent: launchOpts.launchAgent
+  })
   const worktreeId = workspace?.id
   const cwd = workspace
     ? runtime.resolveWorkspaceTerminalStartupCwd(workspace, launchOpts.cwd)
@@ -52,7 +57,7 @@ export async function createDesktopTerminal(
     win.webContents.send('terminal:requestTabCreate', {
       requestId,
       worktreeId,
-      command: launchOpts.command,
+      command: corporateLaunch.command,
       cwd,
       ...(launchOpts.env ? { env: launchOpts.env } : {}),
       ...(launchOpts.launchConfig ? { launchConfig: launchOpts.launchConfig } : {}),

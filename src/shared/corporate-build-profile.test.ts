@@ -7,7 +7,8 @@ import {
   isCapabilityEnabledForBuildProfile,
   isCliCommandEnabledForBuildProfile,
   isTuiAgentAllowedForBuildProfile,
-  normalizeOrcaBuildProfile
+  normalizeOrcaBuildProfile,
+  resolveAgentLaunchForBuildProfile
 } from './corporate-build-profile'
 
 const PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY = 'PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY'
@@ -44,7 +45,10 @@ describe('corporate build profile', () => {
       assertAgentLaunchAllowedForBuildProfile({ command: 'opencode --session old' }, 'corporate')
     ).toThrow(AGENT_NOT_ALLOWED_BY_ORG_POLICY)
     expect(() =>
-      assertAgentLaunchAllowedForBuildProfile({ command: 'claude --resume old' }, 'corporate')
+      assertAgentLaunchAllowedForBuildProfile(
+        { command: 'claude --resume old --permission-mode default' },
+        'corporate'
+      )
     ).not.toThrow()
     expect(() =>
       assertAgentLaunchAllowedForBuildProfile({ command: 'opencode --session old' }, 'default')
@@ -64,12 +68,12 @@ describe('corporate build profile', () => {
     expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'default')).not.toThrow()
   })
 
-  it.each(['bash -lc "claude --resume old"', 'pwsh -Command "codex"'])(
-    'allows shell-wrapped approved corporate agent launch: %s',
-    (command) => {
-      expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
-    }
-  )
+  it.each([
+    'bash -lc "claude --resume old --permission-mode default"',
+    'pwsh -Command "codex --sandbox workspace-write --ask-for-approval on-request"'
+  ])('allows shell-wrapped approved corporate agent launch: %s', (command) => {
+    expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
+  })
 
   it.each([
     ['Claude', 'claude --dangerously-skip-permissions'],
@@ -98,7 +102,10 @@ describe('corporate build profile', () => {
     expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'default')).not.toThrow()
   })
 
-  it.each(['claude --model sonnet', 'codex --sandbox workspace-write'])(
+  it.each([
+    'claude --model sonnet --permission-mode default',
+    'codex --sandbox workspace-write --ask-for-approval on-request'
+  ])(
     'allows corporate native permission-preserving launch args: %s',
     (command) => {
       expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
@@ -108,13 +115,49 @@ describe('corporate build profile', () => {
   it.each([
     'claude --permission-mode default',
     'claude --permission-mode plan',
-    'codex --sandbox workspace-write',
-    'codex --ask-for-approval on-request',
-    'codex -c sandbox_mode=workspace-write',
-    'codex -c approval_policy=on-request'
+    'codex --sandbox workspace-write --ask-for-approval on-request',
+    'codex -c sandbox_mode=workspace-write -c approval_policy=on-request'
   ])('allows corporate safe permission policy args: %s', (command) => {
     expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
   })
+
+  it.each([
+    ['Claude bare command', 'claude', 'claude --permission-mode default'],
+    [
+      'Claude command with args',
+      'claude --model sonnet',
+      'claude --model sonnet --permission-mode default'
+    ],
+    [
+      'Codex bare command',
+      'codex',
+      'codex --sandbox workspace-write --ask-for-approval on-request'
+    ],
+    [
+      'Codex command with args',
+      'codex --model gpt-5',
+      'codex --model gpt-5 --sandbox workspace-write --ask-for-approval on-request'
+    ]
+  ])('adds corporate safe policy to raw %s', (_label, command, expected) => {
+    expect(resolveAgentLaunchForBuildProfile({ command }, 'corporate').command).toBe(expected)
+    expect(resolveAgentLaunchForBuildProfile({ command }, 'default').command).toBe(command)
+  })
+
+  it.each([
+    'claude',
+    'claude --model sonnet',
+    'codex',
+    'codex --model gpt-5',
+    'bash -lc "claude"',
+    'pwsh -Command "codex"'
+  ])(
+    'rejects final corporate agent commands without explicit safe policy: %s',
+    (command) => {
+      expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).toThrow(
+        PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY
+      )
+    }
+  )
 
   it('disables non-P0 corporate capabilities without affecting the default build', () => {
     expect(isCapabilityEnabledForBuildProfile('mobile', 'corporate')).toBe(false)
