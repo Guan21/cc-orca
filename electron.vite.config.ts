@@ -57,10 +57,14 @@ const ORCA_DIAGNOSTICS_TOKEN_URL_LITERAL =
   typeof orcaDiagnosticsTokenUrl === 'string' && orcaDiagnosticsTokenUrl.length > 0
     ? JSON.stringify(orcaDiagnosticsTokenUrl)
     : 'null'
-const ORCA_BUILD_PROFILE_LITERAL =
-  process.env.ORCA_BUILD_PROFILE === 'corporate'
+export function resolveOrcaBuildProfileLiteral(
+  env: { ORCA_BUILD_PROFILE?: string } = process.env
+): string {
+  return env.ORCA_BUILD_PROFILE === 'corporate'
     ? JSON.stringify('corporate')
     : JSON.stringify('default')
+}
+const ORCA_BUILD_PROFILE_LITERAL = resolveOrcaBuildProfileLiteral()
 
 function createStartupDiagnosticsBanner(chunkName: string): string {
   return `

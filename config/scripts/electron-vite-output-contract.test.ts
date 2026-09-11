@@ -17,7 +17,7 @@ import {
   createBootstrapFatalExitBanner
 } from '../build-plugins/bootstrap-fatal-exit-banner'
 import { createRequire } from 'node:module'
-import { electronViteConfig } from '../../electron.vite.config'
+import { electronViteConfig, resolveOrcaBuildProfileLiteral } from '../../electron.vite.config'
 import { BOOTSTRAP_FATAL_EXIT_GUARD_KEY } from '../../src/main/startup/bootstrap-fatal-exit-guard'
 
 const targetConfig = readFileSync('config/electron-vite-target.config.cts', 'utf8')
@@ -124,6 +124,15 @@ describe('Electron Vite output contract', () => {
 
   it('bundles validation dependencies used by the sandboxed preload', () => {
     expect(electronViteConfig.preload?.build?.externalizeDeps?.exclude).toContain('zod')
+  })
+
+  it('pins the corporate build profile into every Electron bundle target', () => {
+    expect(resolveOrcaBuildProfileLiteral({ ORCA_BUILD_PROFILE: 'corporate' })).toBe('"corporate"')
+    expect(resolveOrcaBuildProfileLiteral({ ORCA_BUILD_PROFILE: 'default' })).toBe('"default"')
+    expect(resolveOrcaBuildProfileLiteral({})).toBe('"default"')
+    expect(electronViteConfig.main?.define).toHaveProperty('globalThis.__ORCA_BUILD_PROFILE__')
+    expect(electronViteConfig.preload?.define).toHaveProperty('globalThis.__ORCA_BUILD_PROFILE__')
+    expect(electronViteConfig.renderer?.define).toHaveProperty('globalThis.__ORCA_BUILD_PROFILE__')
   })
 
   it('exits when a static import fails before source error guards load', () => {

@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { PreloadApi } from './api-types'
+import { filterPreloadApiForBuildProfile } from './corporate-preload-api-filter'
 import {
   installBrowserFindListener,
   installNativeFileDropHandlers
@@ -97,7 +98,7 @@ const telemetryAcknowledgeBannerApi: PreloadApi['telemetryAcknowledgeBanner'] = 
 const telemetryGetConsentStateApi: PreloadApi['telemetryGetConsentState'] = () =>
   ipcRenderer.invoke('telemetry:getConsentState')
 
-const api = {
+const rawApi = {
   app: appApi,
   orcaProfiles: orcaProfilesApi,
   platform: platformApi,
@@ -182,6 +183,7 @@ const api = {
   agentStatus: agentStatusApi,
   speech: speechApi
 } satisfies PreloadApi
+const api = filterPreloadApiForBuildProfile(rawApi)
 
 if (process.contextIsolated) {
   try {

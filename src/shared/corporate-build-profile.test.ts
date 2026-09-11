@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   CORPORATE_ALLOWED_TUI_AGENTS,
   isCapabilityEnabledForBuildProfile,
+  isCliCommandEnabledForBuildProfile,
   isTuiAgentAllowedForBuildProfile,
   normalizeOrcaBuildProfile
 } from './corporate-build-profile'
@@ -28,5 +29,14 @@ describe('corporate build profile', () => {
     expect(isCapabilityEnabledForBuildProfile('ssh-remote', 'corporate')).toBe(false)
     expect(isCapabilityEnabledForBuildProfile('plugins', 'corporate')).toBe(false)
     expect(isCapabilityEnabledForBuildProfile('mobile', 'default')).toBe(true)
+  })
+
+  it('maps obvious CLI command groups to disabled corporate capabilities', () => {
+    expect(isCliCommandEnabledForBuildProfile(['skills', 'list'], 'corporate')).toBe(false)
+    expect(isCliCommandEnabledForBuildProfile(['emulator', 'tap'], 'corporate')).toBe(false)
+    expect(isCliCommandEnabledForBuildProfile(['computer', 'list-apps'], 'corporate')).toBe(false)
+    expect(isCliCommandEnabledForBuildProfile(['serve'], 'corporate')).toBe(false)
+    expect(isCliCommandEnabledForBuildProfile(['worktree', 'list'], 'corporate')).toBe(true)
+    expect(isCliCommandEnabledForBuildProfile(['skills', 'list'], 'default')).toBe(true)
   })
 })

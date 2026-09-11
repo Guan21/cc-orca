@@ -38,6 +38,7 @@ const isWinAdhoc = process.env.ORCA_WIN_ADHOC === '1'
 const isWinDevChannel = isWinHourly || isWinDaily || isWinAdhoc
 const isMacRelease = process.env.ORCA_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
 const isLinuxArm64Release = process.env.ORCA_LINUX_ARM64_RELEASE === '1'
+const orcaBuildProfile = process.env.ORCA_BUILD_PROFILE === 'corporate' ? 'corporate' : 'default'
 const localBuildVersion =
   isMacRelease || isWinDevChannel ? undefined : process.env.ORCA_LOCAL_BUILD_VERSION
 const isHourlyChannel = isMacHourly || isWinHourly
@@ -324,7 +325,7 @@ module.exports = {
       }
       writeMacBuildCompatibility(resourcesDir, { version, commit, architecture })
     }
-    stampPackagedCliVersion(resourcesDir, context.packager.appInfo.version)
+    stampPackagedCliMetadata(resourcesDir, context.packager.appInfo.version)
     prunePackagedRuntimeNodeModules(resourcesDir, context.electronPlatformName, context.arch)
     verifyPackagedMainRuntimeDeps(resourcesDir)
     // Why: boot the packaged daemon-entry under plain Node, but only for the
@@ -646,14 +647,17 @@ module.exports = {
   }
 }
 
-// Stamp the effective channel version where node-mode CLI code can read it.
-function stampPackagedCliVersion(resourcesDir, version) {
+// Stamp metadata where node-mode CLI code can read it outside Electron's Vite define path.
+function stampPackagedCliMetadata(resourcesDir, version) {
   const packageJsonPath = join(resourcesDir, 'app.asar.unpacked', 'out', 'package.json')
   if (!existsSync(packageJsonPath)) {
     throw new Error(`Missing unpacked CLI package boundary: ${packageJsonPath}`)
   }
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
-  writeFileSync(packageJsonPath, `${JSON.stringify({ ...packageJson, version }, null, 2)}\n`)
+  writeFileSync(
+    packageJsonPath,
+    `${JSON.stringify({ ...packageJson, version, orcaBuildProfile }, null, 2)}\n`
+  )
 }
 
 function chmodUnixCliLaunchers(resourcesDir, electronPlatformName) {

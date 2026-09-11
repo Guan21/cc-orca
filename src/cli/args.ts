@@ -7,6 +7,11 @@ import {
   CLI_GLOBAL_VALUE_FLAGS,
   findCliCommandIndex
 } from '../shared/cli-argument-boundary'
+import {
+  getOrcaBuildProfile,
+  isCliCommandEnabledForBuildProfile,
+  type OrcaBuildProfile
+} from '../shared/corporate-build-profile'
 
 export { specPaths }
 export type { CommandSpec }
@@ -227,13 +232,23 @@ export function findCommandSpec(
   return specs.find((spec) => specPaths(spec).some((candidate) => matches(candidate, commandPath)))
 }
 
-export function validateCommandAndFlags(specs: CommandSpec[], parsed: ParsedArgs): void {
+export function validateCommandAndFlags(
+  specs: CommandSpec[],
+  parsed: ParsedArgs,
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): void {
   const spec = findCommandSpec(specs, parsed.commandPath)
   if (!spec) {
     throw new RuntimeClientError(
       'invalid_argument',
       `Unknown command: ${parsed.commandPath.join(' ')}`,
       unknownCommandData(specs, parsed.commandPath)
+    )
+  }
+  if (!isCliCommandEnabledForBuildProfile(spec.path, profile)) {
+    throw new RuntimeClientError(
+      'invalid_argument',
+      `Command unavailable in corporate build: ${spec.path.join(' ')}`
     )
   }
 
