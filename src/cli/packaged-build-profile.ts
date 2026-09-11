@@ -25,8 +25,12 @@ export function resolveCliBuildProfile(
   env: Record<string, string | undefined> = process.env,
   packageJsonPath = join(__dirname, '..', 'package.json')
 ): OrcaBuildProfile {
+  const packagedProfile = readPackagedBuildProfile(packageJsonPath)
+  if (packagedProfile === 'corporate') {
+    return 'corporate'
+  }
   if (env.ORCA_BUILD_PROFILE !== undefined) {
     return normalizeOrcaBuildProfile(env.ORCA_BUILD_PROFILE)
   }
-  return readPackagedBuildProfile(packageJsonPath) ?? getOrcaBuildProfile()
+  return packagedProfile ?? getOrcaBuildProfile()
 }

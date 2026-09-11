@@ -20,7 +20,27 @@ describe('packaged CLI build profile', () => {
     }
   })
 
-  it('keeps explicit runtime profile selection ahead of the packaged marker', () => {
+  it.each(['default', 'whatever', 'corporate'])(
+    'does not let ORCA_BUILD_PROFILE=%s downgrade a corporate package marker',
+    (envProfile) => {
+      const dir = mkdtempSync(join(tmpdir(), 'orca-cli-profile-'))
+      const packageJsonPath = join(dir, 'package.json')
+      try {
+        writeFileSync(
+          packageJsonPath,
+          JSON.stringify({ type: 'commonjs', orcaBuildProfile: 'corporate' })
+        )
+
+        expect(resolveCliBuildProfile({ ORCA_BUILD_PROFILE: envProfile }, packageJsonPath)).toBe(
+          'corporate'
+        )
+      } finally {
+        rmSync(dir, { recursive: true, force: true })
+      }
+    }
+  )
+
+  it('allows explicit runtime profile selection to upgrade a default package marker', () => {
     const dir = mkdtempSync(join(tmpdir(), 'orca-cli-profile-'))
     const packageJsonPath = join(dir, 'package.json')
     try {
