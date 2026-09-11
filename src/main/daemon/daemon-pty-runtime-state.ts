@@ -31,6 +31,10 @@ import { HistoryReader } from './history-reader'
 import type { PtyBackgroundStreamEvent } from '../providers/types'
 import type { PtyIncarnationId } from '../../shared/pty-incarnation'
 import type { TerminalExitCause } from '../../shared/terminal-exit-cause'
+import {
+  disposePreparedAgentExecutionRuntime,
+  type PreparedAgentExecutionRuntime
+} from '../agent-execution-boundary/agent-execution-boundary'
 
 export type PendingDaemonSpawnOperation = {
   exitsBySessionId: Map<string, { code: number; incarnationId?: string }[]>
@@ -124,6 +128,7 @@ export abstract class DaemonPtyRuntimeState {
   protected getSizeUnsupported = false
   protected sessionsAwaitingDaemonRecovery = new Set<string>()
   protected sessionIncarnations = new Map<string, string>()
+  protected agentExecutionBoundaryRuntimes = new Map<string, PreparedAgentExecutionRuntime>()
   protected pendingSpawnOperationsBySessionId = new Map<string, Set<PendingDaemonSpawnOperation>>()
   protected pendingClaimSpawnOperations = new Set<PendingDaemonSpawnOperation>()
   protected historySpawnLocks = new Map<string, Promise<void>>()
@@ -198,6 +203,28 @@ export abstract class DaemonPtyRuntimeState {
     this.initialCwds.delete(sessionId)
     this.wslDistrosBySessionId.delete(sessionId)
     this.sessionIncarnations.delete(sessionId)
+    void this.disposeAgentExecutionBoundaryRuntime(sessionId)
+  }
+
+  protected registerAgentExecutionBoundaryRuntime(
+    sessionId: string,
+    runtime: PreparedAgentExecutionRuntime | null
+  ): void {
+    if (!runtime?.dispose) {
+      return
+    }
+    this.agentExecutionBoundaryRuntimes.set(sessionId, runtime)
+  }
+
+  protected async disposeAgentExecutionBoundaryRuntime(sessionId: string): Promise<void> {
+    const runtime = this.agentExecutionBoundaryRuntimes.get(sessionId)
+    if (!runtime) {
+      return
+    }
+    this.agentExecutionBoundaryRuntimes.delete(sessionId)
+    await disposePreparedAgentExecutionRuntime(runtime).catch((error) => {
+      console.warn('[agent-execution-boundary] daemon dispose failed:', sessionId, error)
+    })
   }
 
   constructor(opts: DaemonPtyAdapterOptions) {
