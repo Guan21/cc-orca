@@ -120,9 +120,10 @@ export function normalizeOrcaBuildProfile(value: unknown): OrcaBuildProfile {
 }
 
 export function getOrcaBuildProfile(): OrcaBuildProfile {
-  const buildProfileGlobal = globalThis as { __ORCA_BUILD_PROFILE__?: OrcaBuildProfile }
-  if (buildProfileGlobal.__ORCA_BUILD_PROFILE__ !== undefined) {
-    return normalizeOrcaBuildProfile(buildProfileGlobal.__ORCA_BUILD_PROFILE__)
+  const buildProfile = (globalThis as { __ORCA_BUILD_PROFILE__?: OrcaBuildProfile })
+    .__ORCA_BUILD_PROFILE__
+  if (buildProfile !== undefined) {
+    return normalizeOrcaBuildProfile(buildProfile)
   }
   const processLike = globalThis as {
     process?: { env?: Record<string, string | undefined> }
