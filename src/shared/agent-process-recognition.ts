@@ -39,6 +39,12 @@ const STATIC_INTERPRETER_PROCESS_NAMES = new Set([
   'powershell'
 ])
 
+const POSIX_INLINE_SHELL_PROCESS_NAMES = new Set(['bash', 'sh', 'zsh'])
+const POWERSHELL_INLINE_SHELL_PROCESS_NAMES = new Set(['pwsh', 'powershell'])
+const WINDOWS_CMD_INLINE_SHELL_PROCESS_NAMES = new Set(['cmd'])
+const ENV_LAUNCHER_PROCESS_NAMES = new Set(['env'])
+const MAX_WRAPPED_COMMAND_DEPTH = 4
+
 const FOREGROUND_AGENT_WRAPPER_PROCESS_NAMES = new Set(['node', 'python', 'python3'])
 const PYTHON_PROCESS_RE = /^python(?:\d+(?:\.\d+)*)?$/
 const INTERPRETER_OPTIONS_WITH_VALUE = new Set([
@@ -165,6 +171,89 @@ const isPythonProcessName = (normalized: string): boolean => PYTHON_PROCESS_RE.t
 
 const optionName = (token: string): string => token.split('=', 1)[0] ?? ''
 
+function isPosixInlineCommandFlag(token: string): boolean {
+  return token.startsWith('-') && !token.startsWith('--') && token.slice(1).includes('c')
+}
+
+function findPosixShellInlineCommand(tokens: string[]): string | null {
+  for (let index = 1; index < tokens.length; index += 1) {
+    const token = tokens[index]
+    if (isPosixInlineCommandFlag(token)) {
+      return tokens[index + 1] ?? null
+    }
+    if (!token.startsWith('-')) {
+      return null
+    }
+  }
+  return null
+}
+
+function findPowerShellInlineCommand(tokens: string[]): string | null {
+  for (let index = 1; index < tokens.length; index += 1) {
+    const token = tokens[index]
+    const normalized = token.toLowerCase()
+    if (normalized === '-command' || normalized === '-c' || normalized === '/command') {
+      return tokens[index + 1] ?? null
+    }
+    for (const prefix of ['-command:', '-command=']) {
+      if (normalized.startsWith(prefix)) {
+        return token.slice(prefix.length)
+      }
+    }
+    if (!token.startsWith('-') && !token.startsWith('/')) {
+      return null
+    }
+  }
+  return null
+}
+
+function findWindowsCmdInlineCommand(tokens: string[]): string | null {
+  for (let index = 1; index < tokens.length; index += 1) {
+    const normalized = tokens[index].toLowerCase()
+    if (normalized === '/c' || normalized === '/k') {
+      return tokens[index + 1] ?? null
+    }
+    if (!normalized.startsWith('/')) {
+      return null
+    }
+  }
+  return null
+}
+
+function isEnvAssignment(token: string): boolean {
+  return /^[A-Za-z_][A-Za-z0-9_]*=/.test(token)
+}
+
+function findEnvLauncherCommand(tokens: string[]): string | null {
+  let index = 1
+  while (index < tokens.length && isEnvAssignment(tokens[index])) {
+    index += 1
+  }
+  if (tokens[index] === '--') {
+    index += 1
+  }
+  if (index >= tokens.length || tokens[index].startsWith('-')) {
+    return null
+  }
+  return tokens.slice(index).join(' ')
+}
+
+function findWrappedInlineCommand(tokens: string[], firstNormalized: string): string | null {
+  if (POSIX_INLINE_SHELL_PROCESS_NAMES.has(firstNormalized)) {
+    return findPosixShellInlineCommand(tokens)
+  }
+  if (POWERSHELL_INLINE_SHELL_PROCESS_NAMES.has(firstNormalized)) {
+    return findPowerShellInlineCommand(tokens)
+  }
+  if (WINDOWS_CMD_INLINE_SHELL_PROCESS_NAMES.has(firstNormalized)) {
+    return findWindowsCmdInlineCommand(tokens)
+  }
+  if (ENV_LAUNCHER_PROCESS_NAMES.has(firstNormalized)) {
+    return findEnvLauncherCommand(tokens)
+  }
+  return null
+}
+
 function findInterpreterEntrypointToken(tokens: string[], firstNormalized: string): string | null {
   if (!isInterpreterProcessName(firstNormalized)) {
     return null
@@ -283,6 +372,14 @@ export function recognizeAgentProcessFromCommandLine(
   // one-shot agent can't answer a prompt either.
   options?: { includeHeadlessOneShot?: boolean }
 ): RecognizedAgentProcess | null {
+  return recognizeAgentProcessFromCommandLineAtDepth(commandLine, options, 0)
+}
+
+function recognizeAgentProcessFromCommandLineAtDepth(
+  commandLine: string | null | undefined,
+  options: { includeHeadlessOneShot?: boolean } | undefined,
+  depth: number
+): RecognizedAgentProcess | null {
   if (!commandLine) {
     return null
   }
@@ -297,6 +394,18 @@ export function recognizeAgentProcessFromCommandLine(
   const directRecognition = keep ? direct : filterHeadlessOneShotAgentCommand(direct, tokens)
   if (directRecognition) {
     return directRecognition
+  }
+  const wrappedCommand =
+    depth < MAX_WRAPPED_COMMAND_DEPTH ? findWrappedInlineCommand(tokens, firstNormalized) : null
+  if (wrappedCommand) {
+    const wrappedRecognition = recognizeAgentProcessFromCommandLineAtDepth(
+      wrappedCommand,
+      options,
+      depth + 1
+    )
+    if (wrappedRecognition) {
+      return wrappedRecognition
+    }
   }
   const entrypoint = findInterpreterEntrypointToken(tokens, firstNormalized)
   if (!entrypoint) {

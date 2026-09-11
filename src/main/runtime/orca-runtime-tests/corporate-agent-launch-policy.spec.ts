@@ -81,6 +81,18 @@ describe('corporate agent launch policy', () => {
     expect(spawn).not.toHaveBeenCalled()
   })
 
+  it('rejects unsupported shell-wrapped agent commands before spawn', async () => {
+    enableCorporateBuildProfile()
+    const { runtime, spawn } = createRuntime()
+
+    await expect(
+      runtime.createTerminal(`id:${TEST_WORKTREE_ID}`, {
+        command: 'bash -lc "opencode --session old"'
+      })
+    ).rejects.toThrow(AGENT_NOT_ALLOWED_BY_ORG_POLICY)
+    expect(spawn).not.toHaveBeenCalled()
+  })
+
   it('allows corporate startupAgent launches for Claude and Codex', async () => {
     enableCorporateBuildProfile()
     const { runtime, spawn } = createRuntime()

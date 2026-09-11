@@ -49,6 +49,26 @@ describe('corporate build profile', () => {
     ).not.toThrow()
   })
 
+  it.each([
+    'bash -lc "opencode --session old"',
+    'sh -c "cursor-agent --resume old"',
+    'pwsh -Command "opencode --session old"',
+    'cmd /c "cursor-agent --resume old"',
+    'env FOO=bar opencode --session old'
+  ])('rejects shell-wrapped unsupported corporate agent launch: %s', (command) => {
+    expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).toThrow(
+      AGENT_NOT_ALLOWED_BY_ORG_POLICY
+    )
+    expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'default')).not.toThrow()
+  })
+
+  it.each(['bash -lc "claude --resume old"', 'pwsh -Command "codex"'])(
+    'allows shell-wrapped approved corporate agent launch: %s',
+    (command) => {
+      expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
+    }
+  )
+
   it('disables non-P0 corporate capabilities without affecting the default build', () => {
     expect(isCapabilityEnabledForBuildProfile('mobile', 'corporate')).toBe(false)
     expect(isCapabilityEnabledForBuildProfile('computer-use', 'corporate')).toBe(false)
