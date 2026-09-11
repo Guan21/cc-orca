@@ -6,6 +6,10 @@ import { filterHeadlessOneShotAgentCommand } from './agent-headless-command'
 import { getFirstCommandToken } from './command-token-scanner'
 
 export type RecognizedAgentProcess = { agent: TuiAgent; processName: string }
+export type RecognizedAgentCommandLine = RecognizedAgentProcess & {
+  tokens: string[]
+  wrapped: boolean
+}
 
 const PROCESS_EXTENSION_RE = /\.(?:exe|cmd|bat|ps1)$/i
 const INTERPRETER_SCRIPT_EXTENSION_RE = /\.(?:js|mjs|cjs)$/i
@@ -372,14 +376,33 @@ export function recognizeAgentProcessFromCommandLine(
   // one-shot agent can't answer a prompt either.
   options?: { includeHeadlessOneShot?: boolean }
 ): RecognizedAgentProcess | null {
-  return recognizeAgentProcessFromCommandLineAtDepth(commandLine, options, 0)
+  const recognized = recognizeAgentCommandLineFromCommandLine(commandLine, options)
+  if (!recognized) {
+    return null
+  }
+  return { agent: recognized.agent, processName: recognized.processName }
 }
 
-function recognizeAgentProcessFromCommandLineAtDepth(
+export function recognizeAgentCommandLineFromCommandLine(
+  commandLine: string | null | undefined,
+  options?: { includeHeadlessOneShot?: boolean }
+): RecognizedAgentCommandLine | null {
+  return recognizeAgentCommandLineFromCommandLineAtDepth(commandLine, options, 0)
+}
+
+function recognizedCommandLine(
+  recognized: RecognizedAgentProcess | null,
+  tokens: string[],
+  wrapped: boolean
+): RecognizedAgentCommandLine | null {
+  return recognized ? { ...recognized, tokens, wrapped } : null
+}
+
+function recognizeAgentCommandLineFromCommandLineAtDepth(
   commandLine: string | null | undefined,
   options: { includeHeadlessOneShot?: boolean } | undefined,
   depth: number
-): RecognizedAgentProcess | null {
+): RecognizedAgentCommandLine | null {
   if (!commandLine) {
     return null
   }
@@ -393,18 +416,18 @@ function recognizeAgentProcessFromCommandLineAtDepth(
   }
   const directRecognition = keep ? direct : filterHeadlessOneShotAgentCommand(direct, tokens)
   if (directRecognition) {
-    return directRecognition
+    return recognizedCommandLine(directRecognition, tokens, false)
   }
   const wrappedCommand =
     depth < MAX_WRAPPED_COMMAND_DEPTH ? findWrappedInlineCommand(tokens, firstNormalized) : null
   if (wrappedCommand) {
-    const wrappedRecognition = recognizeAgentProcessFromCommandLineAtDepth(
+    const wrappedRecognition = recognizeAgentCommandLineFromCommandLineAtDepth(
       wrappedCommand,
       options,
       depth + 1
     )
     if (wrappedRecognition) {
-      return wrappedRecognition
+      return { ...wrappedRecognition, wrapped: true }
     }
   }
   const entrypoint = findInterpreterEntrypointToken(tokens, firstNormalized)
@@ -420,7 +443,10 @@ function recognizeAgentProcessFromCommandLineAtDepth(
   ) {
     return null
   }
-  return keep ? viaEntrypoint : filterHeadlessOneShotAgentCommand(viaEntrypoint, tokens)
+  const entrypointRecognition = keep
+    ? viaEntrypoint
+    : filterHeadlessOneShotAgentCommand(viaEntrypoint, tokens)
+  return recognizedCommandLine(entrypointRecognition, tokens, false)
 }
 export function isAgentForegroundWrapperProcess(processName: string | null | undefined): boolean {
   const normalized = normalizeProcessName(processName)

@@ -11,6 +11,7 @@ import {
   type AgentStartupShell
 } from './tui-agent-startup-shell'
 import type { TuiAgent } from './tui-agent'
+import { resolveAgentArgsForBuildProfile } from './corporate-build-profile'
 
 export type ResolvedAgentLaunchCommand =
   | {
@@ -37,12 +38,13 @@ export function resolveAgentLaunchCommand(args: {
     getTuiAgentLaunchCommand(TUI_AGENT_CONFIG[args.agent], args.platform, {
       isRemote: args.isRemote
     })
-  const suffix = planAgentCliArgsSuffix(args.agentArgs, args.shell)
+  const agentArgs = resolveAgentArgsForBuildProfile(args.agent, args.agentArgs)
+  const suffix = planAgentCliArgsSuffix(agentArgs, args.shell)
   if (!suffix.ok) {
     return suffix
   }
-  const trailingTokens = args.agentArgs?.trim()
-    ? tokenizeStartupCommand(args.agentArgs.trim(), args.shell)
+  const trailingTokens = agentArgs
+    ? tokenizeStartupCommand(agentArgs, args.shell)
     : { ok: true as const, tokens: [], spans: [] }
   if (!trailingTokens.ok) {
     return { ok: false, error: `CLI arguments are invalid: ${trailingTokens.error}` }

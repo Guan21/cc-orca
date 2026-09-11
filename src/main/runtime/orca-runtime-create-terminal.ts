@@ -4,7 +4,7 @@ import * as dependencies from './orca-runtime-create-terminal-dependencies'
 import { createDesktopTerminal } from './orca-runtime-create-terminal-desktop'
 import { buildRuntimeAgentTeamsLaunchPlan } from './orca-runtime-agent-teams-launch-plan'
 import { createPtySpawnCommitReporter } from './orca-runtime-report-pty-spawn-commit'
-import { assertAgentLaunchAllowedForBuildProfile } from '../../shared/corporate-build-profile'
+import { resolveAgentLaunchForBuildProfile } from '../../shared/corporate-build-profile'
 
 export class OrcaRuntimeWithCreateTerminal extends OrcaRuntimeWithTerminalCreateDeduplication {
   async createTerminal(
@@ -123,13 +123,14 @@ export class OrcaRuntimeWithCreateTerminal extends OrcaRuntimeWithTerminalCreate
         if (launchOpts.signal?.aborted) {
           throw new Error('client_disconnected')
         }
-        const command = sequencedStartupCommand
+        const commandBeforeCorporatePolicy = sequencedStartupCommand
           ? launchOpts.command
           : (agentTeamsPlan?.command ?? launchOpts.command)
-        assertAgentLaunchAllowedForBuildProfile({
-          command,
+        const corporateLaunch = resolveAgentLaunchForBuildProfile({
+          command: commandBeforeCorporatePolicy,
           launchAgent: launchOpts.launchAgent
         })
+        const command = corporateLaunch.command
         let result: Awaited<ReturnType<NonNullable<dependencies.RuntimePtyController['spawn']>>>
         try {
           result = await this.ptyController.spawn({

@@ -3,6 +3,7 @@ import {
   isAgentForegroundWrapperProcess,
   isExpectedAgentProcess,
   isRecognizedAgentType,
+  recognizeAgentCommandLineFromCommandLine,
   recognizeAgentProcess,
   recognizeAgentProcessFromCommandLine
 } from './agent-process-recognition'
@@ -272,6 +273,25 @@ describe('agent process recognition', () => {
       recognizeAgentProcessFromCommandLine('bash -lc "echo compare opencode vs orca"')
     ).toBeNull()
     expect(recognizeAgentProcessFromCommandLine('pwsh -Command "Write-Output codex.js"')).toBeNull()
+  })
+
+  it('returns tokens from the recognized wrapped agent command', () => {
+    expect(
+      recognizeAgentCommandLineFromCommandLine(
+        'bash -lc "codex --dangerously-bypass-approvals-and-sandbox"'
+      )
+    ).toEqual({
+      agent: 'codex',
+      processName: 'codex',
+      tokens: ['codex', '--dangerously-bypass-approvals-and-sandbox'],
+      wrapped: true
+    })
+  })
+
+  it('does not return tokens for prompt text that mentions agent names', () => {
+    expect(
+      recognizeAgentCommandLineFromCommandLine('bash -lc "echo compare opencode vs orca"')
+    ).toBeNull()
   })
 
   it.each(['earendil-works', 'mariozechner'])('recognizes the @%s Pi npm entrypoint', (scope) => {

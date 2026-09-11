@@ -1,6 +1,12 @@
 import { isTuiAgent } from './tui-agent-config'
 import { YOLO_TUI_AGENT_ARGS, YOLO_TUI_AGENT_ENV } from './tui-agent-permissions'
 import type { TuiAgent } from './tui-agent'
+import {
+  areAgentArgsAllowedForBuildProfile,
+  getOrcaBuildProfile,
+  resolveAgentArgsForBuildProfile,
+  type OrcaBuildProfile
+} from './corporate-build-profile'
 
 const UNSUPPORTED_TUI_AGENT_ARGS: Partial<Record<TuiAgent, readonly string[]>> = {
   opencode: ['--dangerously-skip-permissions'],
@@ -81,16 +87,20 @@ export function getTuiAgentDefaultEnv(agent: TuiAgent): Record<string, string> {
 
 export function resolveTuiAgentLaunchArgs(
   agent: TuiAgent,
-  configuredArgs: Partial<Record<TuiAgent, string>> | null | undefined
+  configuredArgs: Partial<Record<TuiAgent, string>> | null | undefined,
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
 ): string {
   if (
     configuredArgs &&
     Object.hasOwn(configuredArgs, agent) &&
     typeof configuredArgs[agent] === 'string'
   ) {
-    return configuredArgs[agent] ?? ''
+    return resolveAgentArgsForBuildProfile(agent, configuredArgs[agent], profile)
   }
-  return getTuiAgentDefaultArgs(agent)
+  const defaultArgs = getTuiAgentDefaultArgs(agent)
+  return areAgentArgsAllowedForBuildProfile(agent, defaultArgs, profile)
+    ? resolveAgentArgsForBuildProfile(agent, defaultArgs, profile)
+    : resolveAgentArgsForBuildProfile(agent, '', profile)
 }
 
 export function resolveTuiAgentLaunchEnv(
