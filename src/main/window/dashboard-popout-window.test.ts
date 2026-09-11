@@ -206,6 +206,8 @@ describe('createOrFocusDashboardPopout', () => {
     expect(opts.titleBarStyle).toBeUndefined()
     expect(opts.frame).toBeUndefined()
     expect(opts.backgroundColor).toBe('#0a0a0a') // dark theme mock
+    expect(opts.webPreferences?.contextIsolation).toBe(true)
+    expect(opts.webPreferences?.nodeIntegration).toBe(false)
     expect(opts.webPreferences?.sandbox).toBe(true)
     expect(opts.webPreferences?.partition).toBe('orca-dashboard-popout')
     expect(opts.webPreferences?.webviewTag).toBe(false)

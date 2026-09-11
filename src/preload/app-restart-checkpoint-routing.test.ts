@@ -26,8 +26,6 @@ vi.mock('electron', () => ({
   webUtils: { getPathForFile: vi.fn(() => '') }
 }))
 
-vi.mock('@electron-toolkit/preload', () => ({ electronAPI: {} }))
-
 describe('native preload destructive app actions', () => {
   const originalContextIsolated = Object.getOwnPropertyDescriptor(process, 'contextIsolated')
   let eventTarget: EventTarget
@@ -59,6 +57,13 @@ describe('native preload destructive app actions', () => {
     await import('./index')
     return exposeInMainWorld.mock.calls.find(([name]) => name === 'api')?.[1] as PreloadApi
   }
+
+  it('exposes only the typed Orca preload API to the renderer', async () => {
+    const api = await loadApi()
+
+    expect(api.app).toBeDefined()
+    expect(exposeInMainWorld).not.toHaveBeenCalledWith('electron', expect.anything())
+  })
 
   for (const action of ['reload', 'relaunch'] as const) {
     it(`prepares and awaits durability before ${action}`, async () => {

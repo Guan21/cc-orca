@@ -165,12 +165,13 @@ describe('registerWorkspacePortHandlers', () => {
 
   it('stops a process only after the current scan proves the pid owns a workspace port', async () => {
     const store = makeStore()
+    const audit = vi.fn()
     const port = workspacePort({ pid: 1234, port: 5173 })
     scanWorkspacePortsMock.mockResolvedValue({
       ...EMPTY_SCAN,
       ports: [port]
     })
-    registerWorkspacePortHandlers(store as never)
+    registerWorkspacePortHandlers(store as never, { securityAudit: audit } as never)
 
     const result = await handlers.get('workspacePorts:kill')?.(null, {
       repoId: 'local-repo',
@@ -180,6 +181,41 @@ describe('registerWorkspacePortHandlers', () => {
 
     expect(result).toEqual({ ok: true })
     expect(processKillMock).toHaveBeenCalledWith(1234, 'SIGTERM')
+    expect(audit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channel: 'workspacePorts:kill',
+        decision: 'allowed',
+        operation: 'terminate-workspace-port'
+      })
+    )
+  })
+
+  it('fails closed when a renderer asks to stop a process with extra command fields', async () => {
+    const store = makeStore()
+    const audit = vi.fn()
+    scanWorkspacePortsMock.mockResolvedValue({
+      ...EMPTY_SCAN,
+      ports: [workspacePort({ pid: 1234, port: 5173 })]
+    })
+    registerWorkspacePortHandlers(store as never, { securityAudit: audit } as never)
+
+    const result = await handlers.get('workspacePorts:kill')?.(null, {
+      pid: 1234,
+      port: 5173,
+      signal: 'SIGKILL'
+    })
+
+    expect(result).toEqual({ ok: false, reason: 'Invalid process or port.' })
+    expect(scanWorkspacePortsMock).not.toHaveBeenCalled()
+    expect(processKillMock).not.toHaveBeenCalled()
+    expect(audit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channel: 'workspacePorts:kill',
+        decision: 'denied',
+        operation: 'terminate-workspace-port',
+        reason: 'invalid-params'
+      })
+    )
   })
 
   it('refuses to stop external ports', async () => {

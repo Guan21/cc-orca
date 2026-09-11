@@ -176,6 +176,8 @@ export function createOrFocusDashboardPopout(
     // no such chrome yet, so a native frame is the correct default here.
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
       sandbox: true,
       // Why: Chromium shares zoom by origin; a separate in-memory session keeps pop-out zoom window-local.
       partition: DASHBOARD_POPOUT_PARTITION,

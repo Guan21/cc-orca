@@ -131,6 +131,8 @@ export function createMainWindow(
     ...platformBlurOptions,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
       sandbox: true,
       webviewTag: true,
       // Why an argument and not an IPC read: this is the window whose webviews host browser guests,
