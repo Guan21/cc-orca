@@ -1,5 +1,9 @@
 import type { Automation, AutomationRun } from '../../shared/automations-types'
 import { buildAutomationWorkspaceProvenance } from '../../shared/automation-workspace-provenance'
+import {
+  assertAgentAllowedForBuildProfile,
+  type OrcaBuildProfile
+} from '../../shared/corporate-build-profile'
 import type { Repo } from '../../shared/repo-types'
 import type { OrcaRuntimeService } from '../runtime/orca-runtime'
 
@@ -25,13 +29,16 @@ export function buildHeadlessAutomationWorktreeCreateArgs({
   automation,
   run,
   repo,
-  createdAt = Date.now()
+  createdAt = Date.now(),
+  buildProfile
 }: {
   automation: Automation
   run: HeadlessAutomationRunForWorkspace
   repo: Repo
   createdAt?: number
+  buildProfile?: OrcaBuildProfile
 }): RuntimeCreateManagedWorktreeArgs {
+  assertAgentAllowedForBuildProfile(automation.agentId, buildProfile)
   return {
     repoSelector: repo.id,
     name: buildHeadlessAutomationWorkspaceName(run.title, run.scheduledFor),

@@ -1,5 +1,6 @@
 import type { TuiAgent } from './tui-agent'
 import type { TopLevelView } from './ui-chrome-types'
+import { recognizeAgentProcessFromCommandLine } from './agent-process-recognition'
 
 export const ORCA_BUILD_PROFILE_ENV_VAR = 'ORCA_BUILD_PROFILE'
 
@@ -23,6 +24,21 @@ export const CORPORATE_ALLOWED_TUI_AGENTS = [
   'codex'
 ] as const satisfies readonly TuiAgent[]
 const CORPORATE_ALLOWED_TUI_AGENT_SET = new Set<TuiAgent>(CORPORATE_ALLOWED_TUI_AGENTS)
+
+export const AGENT_NOT_ALLOWED_BY_ORG_POLICY = 'AGENT_NOT_ALLOWED_BY_ORG_POLICY'
+
+export class CorporateAgentPolicyError extends Error {
+  readonly code = AGENT_NOT_ALLOWED_BY_ORG_POLICY
+  readonly agent: TuiAgent
+  readonly profile: OrcaBuildProfile
+
+  constructor(agent: TuiAgent, profile: OrcaBuildProfile) {
+    super(AGENT_NOT_ALLOWED_BY_ORG_POLICY)
+    this.name = 'CorporateAgentPolicyError'
+    this.agent = agent
+    this.profile = profile
+  }
+}
 
 const CORPORATE_DISABLED_CAPABILITIES = new Set<CorporateBuildCapability>([
   'ai-vault',
@@ -81,6 +97,30 @@ export function isTuiAgentAllowedForBuildProfile(
   profile: OrcaBuildProfile = getOrcaBuildProfile()
 ): boolean {
   return profile !== 'corporate' || CORPORATE_ALLOWED_TUI_AGENT_SET.has(agent)
+}
+
+export function assertAgentAllowedForBuildProfile(
+  agent: TuiAgent,
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): void {
+  if (!isTuiAgentAllowedForBuildProfile(agent, profile)) {
+    throw new CorporateAgentPolicyError(agent, profile)
+  }
+}
+
+export function assertAgentLaunchAllowedForBuildProfile(
+  launch: { launchAgent?: TuiAgent; command?: string | null | undefined },
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): void {
+  if (launch.launchAgent) {
+    assertAgentAllowedForBuildProfile(launch.launchAgent, profile)
+  }
+  const recognized = recognizeAgentProcessFromCommandLine(launch.command, {
+    includeHeadlessOneShot: true
+  })
+  if (recognized) {
+    assertAgentAllowedForBuildProfile(recognized.agent, profile)
+  }
 }
 
 export function isCliCommandEnabledForBuildProfile(

@@ -31,6 +31,7 @@ import {
   deterministicAgentSessionUuid,
   isAgentSessionOperationOutcomeUnknown
 } from './runtime-agent-launch-resolution'
+import { assertAgentAllowedForBuildProfile } from '../../shared/corporate-build-profile'
 
 export class OrcaRuntimeWithCreateAgentSession extends OrcaRuntimeWithGetAgentSessionExecutionNamespace {
   async createAgentSession(
@@ -40,6 +41,7 @@ export class OrcaRuntimeWithCreateAgentSession extends OrcaRuntimeWithGetAgentSe
     if (!this.store) {
       throw new Error('runtime_unavailable')
     }
+    assertAgentAllowedForBuildProfile(request.agent)
     const now = Date.now()
     const operationTimestamp = parseAgentSessionOperationTimestamp(request.clientOperationId)
     if (
