@@ -79,7 +79,7 @@ describe('web preload API composition', () => {
     ])
     expect(Object.keys(globals.window.api.projects)).toEqual([])
     expect(Reflect.get(globals.window.api.projects, 'then')).toBeUndefined()
-    expect(Object.keys(globals.window.electron)).toEqual([])
+    expect(Object.keys((globals.window as unknown as { electron: object }).electron)).toEqual([])
   })
 
   it('snapshots E2E config before runtime storage initialization', async () => {

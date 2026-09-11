@@ -3,7 +3,6 @@ import type { Store } from '../persistence'
 import { advertisedUrlWatcher, type AdvertisedUrlWatcher } from '../ports/advertised-url-watcher'
 import type {
   WorkspacePortAdvertisedUrlChangedEvent,
-  WorkspacePortKillRequest,
   WorkspacePortKillResult,
   WorkspacePortScanRequest,
   WorkspacePortScanResult
@@ -13,10 +12,15 @@ import {
   killWorkspacePort,
   scanWorkspacePortProbes
 } from '../ports/workspace-port-ownership'
+import {
+  authorizeWorkspacePortKillIpc,
+  type RendererPrivilegedIpcAuditSink
+} from './renderer-privileged-ipc-policy'
 
 type WorkspacePortHandlersOptions = {
   advertisedUrlEvents?: Pick<AdvertisedUrlWatcher, 'onDidChange'>
   getWindows?: () => BrowserWindow[]
+  securityAudit?: RendererPrivilegedIpcAuditSink
 }
 
 let unsubscribeAdvertisedUrlChanges: (() => void) | null = null
@@ -68,10 +72,11 @@ export function registerWorkspacePortHandlers(
   ipcMain.handle(
     'workspacePorts:kill',
     async (_event, rawArgs?: unknown): Promise<WorkspacePortKillResult> => {
-      const args = parseKillRequest(rawArgs)
-      if (!args) {
+      const admission = authorizeWorkspacePortKillIpc(rawArgs, options.securityAudit)
+      if (!admission.ok) {
         return { ok: false, reason: 'Invalid process or port.' }
       }
+      const args = admission.params
       const worktrees = getStoreWorkspacePortProbes(store, args.repoId)
       return killWorkspacePort(worktrees, args)
     }
@@ -100,21 +105,4 @@ function parseScanRequest(value: unknown): WorkspacePortScanRequest | undefined 
   }
   const repoId = (value as { repoId?: unknown }).repoId
   return typeof repoId === 'string' && repoId.length > 0 ? { repoId } : undefined
-}
-
-function parseKillRequest(value: unknown): WorkspacePortKillRequest | null {
-  if (!value || typeof value !== 'object') {
-    return null
-  }
-  const args = value as { repoId?: unknown; pid?: unknown; port?: unknown }
-  if (!Number.isSafeInteger(args.pid) || !Number.isSafeInteger(args.port)) {
-    return null
-  }
-  const pid = args.pid as number
-  const port = args.port as number
-  return {
-    ...(typeof args.repoId === 'string' && args.repoId.length > 0 ? { repoId: args.repoId } : {}),
-    pid,
-    port
-  }
 }
