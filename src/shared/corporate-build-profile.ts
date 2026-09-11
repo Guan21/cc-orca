@@ -29,6 +29,9 @@ const CORPORATE_ALLOWED_TUI_AGENT_SET = new Set<TuiAgent>(CORPORATE_ALLOWED_TUI_
 export const AGENT_NOT_ALLOWED_BY_ORG_POLICY = 'AGENT_NOT_ALLOWED_BY_ORG_POLICY'
 export const PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY =
   'PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY'
+export const MERGE_NOT_ALLOWED_BY_ORG_POLICY = 'MERGE_NOT_ALLOWED_BY_ORG_POLICY'
+
+export type HostedMergePolicyAction = 'direct-merge' | 'auto-merge'
 
 export class CorporateAgentPolicyError extends Error {
   readonly code = AGENT_NOT_ALLOWED_BY_ORG_POLICY
@@ -55,6 +58,19 @@ export class CorporatePermissionBypassPolicyError extends Error {
     this.agent = agent
     this.profile = profile
     this.flag = flag
+  }
+}
+
+export class CorporateHostedMergePolicyError extends Error {
+  readonly code = MERGE_NOT_ALLOWED_BY_ORG_POLICY
+  readonly action: HostedMergePolicyAction
+  readonly profile: OrcaBuildProfile
+
+  constructor(action: HostedMergePolicyAction, profile: OrcaBuildProfile) {
+    super(MERGE_NOT_ALLOWED_BY_ORG_POLICY)
+    this.name = 'CorporateHostedMergePolicyError'
+    this.action = action
+    this.profile = profile
   }
 }
 
@@ -135,12 +151,29 @@ export function isTuiAgentAllowedForBuildProfile(
   return profile !== 'corporate' || CORPORATE_ALLOWED_TUI_AGENT_SET.has(agent)
 }
 
+export function hostedMergePolicyFailureForBuildProfile(
+  action: HostedMergePolicyAction,
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): CorporateHostedMergePolicyError | null {
+  return profile === 'corporate' ? new CorporateHostedMergePolicyError(action, profile) : null
+}
+
 export function assertAgentAllowedForBuildProfile(
   agent: TuiAgent,
   profile: OrcaBuildProfile = getOrcaBuildProfile()
 ): void {
   if (!isTuiAgentAllowedForBuildProfile(agent, profile)) {
     throw new CorporateAgentPolicyError(agent, profile)
+  }
+}
+
+export function assertHostedMergeAllowedForBuildProfile(
+  action: HostedMergePolicyAction,
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): void {
+  const failure = hostedMergePolicyFailureForBuildProfile(action, profile)
+  if (failure) {
+    throw failure
   }
 }
 

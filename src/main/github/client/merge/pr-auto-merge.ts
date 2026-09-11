@@ -1,5 +1,9 @@
 import type { GitHubPRMergeMethod } from '../../../../shared/github/pull-request-types'
 import {
+  MERGE_NOT_ALLOWED_BY_ORG_POLICY,
+  hostedMergePolicyFailureForBuildProfile
+} from '../../../../shared/corporate-build-profile'
+import {
   ghExecFileAsync,
   acquire,
   release,
@@ -153,6 +157,11 @@ export async function setPRAutoMerge(
   prRepo?: GitHubApiRepository | null,
   localGitOptions: LocalGitExecOptions = {}
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const policyFailure = enabled ? hostedMergePolicyFailureForBuildProfile('auto-merge') : null
+  if (policyFailure) {
+    return { ok: false, error: MERGE_NOT_ALLOWED_BY_ORG_POLICY }
+  }
+
   const { ownerRepo, ghOptions } = await resolveGitHubRepoExecution(
     repoPath,
     prRepo,

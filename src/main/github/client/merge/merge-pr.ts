@@ -1,4 +1,8 @@
 import type { PRConflictSummary } from '../../../../shared/github/pull-request-types'
+import {
+  MERGE_NOT_ALLOWED_BY_ORG_POLICY,
+  hostedMergePolicyFailureForBuildProfile
+} from '../../../../shared/corporate-build-profile'
 import { getPRConflictSummary } from '../../conflict-summary'
 import { ghExecFileAsync, acquire, release, type LocalGitExecOptions } from '../../gh-utils'
 import { resolveGitHubRepoExecution, type GitHubApiRepository } from '../../github-api-repository'
@@ -20,6 +24,11 @@ export async function mergePR(
   prRepo?: GitHubApiRepository | null,
   localGitOptions: LocalGitExecOptions = {}
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const policyFailure = hostedMergePolicyFailureForBuildProfile('direct-merge')
+  if (policyFailure) {
+    return { ok: false, error: MERGE_NOT_ALLOWED_BY_ORG_POLICY }
+  }
+
   const { ownerRepo, ghOptions } = await resolveGitHubRepoExecution(
     repoPath,
     prRepo,

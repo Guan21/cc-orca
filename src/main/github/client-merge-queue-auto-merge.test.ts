@@ -36,6 +36,7 @@ import {
   _getMergeQueueCacheSizeForTests
 } from './client'
 import { resetGraphQLRateLimitGuardMocks } from './client-test-harness'
+import { MERGE_NOT_ALLOWED_BY_ORG_POLICY } from '../../shared/corporate-build-profile'
 
 const {
   ghExecFileAsyncMock,
@@ -50,9 +51,61 @@ const {
 describe('GitHub GraphQL rate-limit guard', () => {
   beforeEach(() => {
     resetGraphQLRateLimitGuardMocks(clientMocks)
+    delete process.env.ORCA_BUILD_PROFILE
   })
 
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => {
+    delete process.env.ORCA_BUILD_PROFILE
+    vi.restoreAllMocks()
+  })
+
+  it('denies corporate direct PR merge before spawning gh', async () => {
+    process.env.ORCA_BUILD_PROFILE = 'corporate'
+
+    await expect(
+      mergePR('/repo-root', 7, 'squash', undefined, {
+        owner: 'stablyai',
+        repo: 'orca',
+        host: 'github.com'
+      })
+    ).resolves.toEqual({ ok: false, error: MERGE_NOT_ALLOWED_BY_ORG_POLICY })
+
+    expect(acquireMock).not.toHaveBeenCalled()
+    expect(ghExecFileAsyncMock).not.toHaveBeenCalled()
+  })
+
+  it('denies corporate PR auto-merge enablement before spawning gh', async () => {
+    process.env.ORCA_BUILD_PROFILE = 'corporate'
+
+    await expect(
+      setPRAutoMerge('/repo-root', 7, true, 'squash', undefined, {
+        owner: 'stablyai',
+        repo: 'orca',
+        host: 'github.com'
+      })
+    ).resolves.toEqual({ ok: false, error: MERGE_NOT_ALLOWED_BY_ORG_POLICY })
+
+    expect(acquireMock).not.toHaveBeenCalled()
+    expect(ghExecFileAsyncMock).not.toHaveBeenCalled()
+  })
+
+  it('allows corporate PR updates to keep review workflow available', async () => {
+    process.env.ORCA_BUILD_PROFILE = 'corporate'
+    ghExecFileAsyncMock.mockResolvedValueOnce({ stdout: '', stderr: '' })
+
+    await expect(
+      updatePRTitle('/repo-root', 7, 'New title', undefined, {
+        owner: 'stablyai',
+        repo: 'orca',
+        host: 'github.com'
+      })
+    ).resolves.toBe(true)
+
+    expect(ghExecFileAsyncMock).toHaveBeenCalledWith(
+      ['pr', 'edit', '7', '--title', 'New title', '--repo', 'stablyai/orca'],
+      { cwd: '/repo-root', host: 'github.com' }
+    )
+  })
 
   it('uses explicit PR repo for merge and title mutations', async () => {
     ghExecFileAsyncMock

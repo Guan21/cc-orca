@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   AGENT_NOT_ALLOWED_BY_ORG_POLICY,
   CORPORATE_ALLOWED_TUI_AGENTS,
+  MERGE_NOT_ALLOWED_BY_ORG_POLICY,
   assertAgentAllowedForBuildProfile,
   assertAgentLaunchAllowedForBuildProfile,
+  assertHostedMergeAllowedForBuildProfile,
   isCapabilityEnabledForBuildProfile,
   isCliCommandEnabledForBuildProfile,
   isTuiAgentAllowedForBuildProfile,
@@ -35,6 +37,16 @@ describe('corporate build profile', () => {
     )
     expect(() => assertAgentAllowedForBuildProfile('claude', 'corporate')).not.toThrow()
     expect(() => assertAgentAllowedForBuildProfile('opencode', 'default')).not.toThrow()
+  })
+
+  it('throws a stable org-policy error for corporate hosted merge attempts', () => {
+    expect(() => assertHostedMergeAllowedForBuildProfile('direct-merge', 'corporate')).toThrow(
+      MERGE_NOT_ALLOWED_BY_ORG_POLICY
+    )
+    expect(() => assertHostedMergeAllowedForBuildProfile('auto-merge', 'corporate')).toThrow(
+      MERGE_NOT_ALLOWED_BY_ORG_POLICY
+    )
+    expect(() => assertHostedMergeAllowedForBuildProfile('direct-merge', 'default')).not.toThrow()
   })
 
   it('applies corporate agent policy to launch metadata and recognized commands', () => {

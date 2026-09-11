@@ -73,6 +73,7 @@ beforeEach(() => {
 
 describe('createGitHubPullRequest', () => {
   beforeEach(() => {
+    delete process.env.ORCA_BUILD_PROFILE
     ghExecFileAsyncMock.mockReset()
     getOwnerRepoMock.mockReset()
     getOwnerRepoForRemoteMock.mockReset()
@@ -90,6 +91,36 @@ describe('createGitHubPullRequest', () => {
     releaseMock.mockReset()
     getSshFilesystemProviderMock.mockReset()
     acquireMock.mockResolvedValue(undefined)
+  })
+
+  it('allows corporate GitHub pull request creation', async () => {
+    process.env.ORCA_BUILD_PROFILE = 'corporate'
+    getOwnerRepoMock.mockResolvedValueOnce({ owner: 'acme', repo: 'widgets' })
+    ghExecFileAsyncMock.mockResolvedValueOnce({
+      stdout: JSON.stringify({
+        number: 42,
+        url: 'https://github.com/acme/widgets/pull/42'
+      })
+    })
+
+    await expect(
+      createGitHubPullRequest(
+        '/repo-root',
+        {
+          provider: 'github',
+          base: 'origin/main',
+          head: 'feature/create-pr',
+          title: 'Create PR',
+          body: 'Body text',
+          draft: false
+        },
+        'local'
+      )
+    ).resolves.toMatchObject({ ok: true, number: 42 })
+
+    expect(ghExecFileAsyncMock.mock.calls[0]?.[0]).toEqual(
+      expect.arrayContaining(['pr', 'create'])
+    )
   })
 
   it('creates a GitHub pull request with normalized refs and a body file', async () => {
