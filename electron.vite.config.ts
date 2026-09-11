@@ -57,6 +57,10 @@ const ORCA_DIAGNOSTICS_TOKEN_URL_LITERAL =
   typeof orcaDiagnosticsTokenUrl === 'string' && orcaDiagnosticsTokenUrl.length > 0
     ? JSON.stringify(orcaDiagnosticsTokenUrl)
     : 'null'
+const ORCA_BUILD_PROFILE_LITERAL =
+  process.env.ORCA_BUILD_PROFILE === 'corporate'
+    ? JSON.stringify('corporate')
+    : JSON.stringify('default')
 
 function createStartupDiagnosticsBanner(chunkName: string): string {
   return `
@@ -273,6 +277,7 @@ export const electronViteConfig: UserConfig = {
     // above for the full rationale.
     define: {
       ORCA_BUILD_IDENTITY: ORCA_BUILD_IDENTITY_LITERAL,
+      'globalThis.__ORCA_BUILD_PROFILE__': ORCA_BUILD_PROFILE_LITERAL,
       ORCA_POSTHOG_WRITE_KEY: ORCA_POSTHOG_WRITE_KEY_LITERAL,
       ORCA_DIAGNOSTICS_TOKEN_URL: ORCA_DIAGNOSTICS_TOKEN_URL_LITERAL
     },
@@ -289,6 +294,9 @@ export const electronViteConfig: UserConfig = {
     }
   },
   preload: {
+    define: {
+      'globalThis.__ORCA_BUILD_PROFILE__': ORCA_BUILD_PROFILE_LITERAL
+    },
     build: {
       externalizeDeps: {
         exclude: ['@electron-toolkit/preload', 'zod']
@@ -296,6 +304,9 @@ export const electronViteConfig: UserConfig = {
     }
   },
   renderer: {
+    define: {
+      'globalThis.__ORCA_BUILD_PROFILE__': ORCA_BUILD_PROFILE_LITERAL
+    },
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),

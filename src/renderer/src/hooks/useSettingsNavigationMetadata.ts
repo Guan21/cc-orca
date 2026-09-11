@@ -13,6 +13,12 @@ import { isMacUserAgent, isWindowsUserAgent } from '@/components/terminal-pane/p
 import { useLinearProviderConnected } from '@/hooks/useLinearProviderConnected'
 import { getClientCreationActionPolicy } from '@/lib/client-creation-action-policy'
 import type { SettingsNavSection } from '@/lib/settings-navigation-types'
+import {
+  getOrcaBuildProfile,
+  isCapabilityEnabledForBuildProfile,
+  type CorporateBuildCapability,
+  type OrcaBuildProfile
+} from '../../../shared/corporate-build-profile'
 import { isWebClientLocation } from '@/lib/web-client-location'
 import {
   isWindowsTerminalCapabilityHost,
@@ -41,6 +47,7 @@ export function buildSettingsNavigationMetadata({
   isWebClient,
   managedBrowserCreationEnabled = !isWebClient,
   mobileEmulatorCreationEnabled = !isWebClient,
+  buildProfile = getOrcaBuildProfile(),
   isDev = import.meta.env.DEV,
   isLinearConnected = false,
   repos
@@ -52,6 +59,7 @@ export function buildSettingsNavigationMetadata({
   isWebClient: boolean
   managedBrowserCreationEnabled?: boolean
   mobileEmulatorCreationEnabled?: boolean
+  buildProfile?: OrcaBuildProfile
   isDev?: boolean
   isLinearConnected?: boolean
   repos: readonly Repo[]
@@ -78,6 +86,7 @@ export function buildSettingsNavigationMetadata({
     isWebClient,
     managedBrowserCreationEnabled,
     mobileEmulatorCreationEnabled,
+    buildProfile,
     isDev,
     isLinearConnected,
     repos
@@ -86,13 +95,35 @@ export function buildSettingsNavigationMetadata({
   // Why: this array's order must mirror SETTINGS_NAV_GROUPS so the Settings
   // sidebar and the Cmd+J palette both read top-to-bottom in the same grouped
   // order — keep each new entry beside its group's siblings.
-  return [
+  const sections = [
     ...buildCapabilitySettingsSections(options),
     ...buildSetupSettingsSections(options),
     ...buildWorkflowSettingsSections(options, terminalPaneSearchEntries),
     ...buildInterfaceSettingsSections(options),
     ...buildRemoteSettingsSections(options, runtimeEnvironmentsSearchEntry, reposById)
   ]
+  return filterSettingsNavigationSectionsForBuildProfile(sections, buildProfile)
+}
+
+const SETTINGS_SECTION_CAPABILITY = {
+  'computer-use': 'computer-use',
+  'mobile-emulator': 'emulator',
+  mobile: 'mobile',
+  plugins: 'plugins',
+  servers: 'cloud-relay',
+  'share-skills': 'skills',
+  ssh: 'ssh-remote',
+  voice: 'speech'
+} as const satisfies Partial<Record<string, CorporateBuildCapability>>
+
+function filterSettingsNavigationSectionsForBuildProfile(
+  sections: readonly SettingsNavSection[],
+  buildProfile: OrcaBuildProfile
+): SettingsNavSection[] {
+  return sections.filter((section) => {
+    const capability = SETTINGS_SECTION_CAPABILITY[section.id]
+    return capability === undefined || isCapabilityEnabledForBuildProfile(capability, buildProfile)
+  })
 }
 
 export function useSettingsNavigationMetadata(): SettingsNavSection[] {
@@ -157,6 +188,7 @@ export function useSettingsNavigationMetadata(): SettingsNavSection[] {
         isWebClient,
         managedBrowserCreationEnabled,
         mobileEmulatorCreationEnabled,
+        buildProfile: getOrcaBuildProfile(),
         isDev: import.meta.env.DEV,
         isLinearConnected,
         repos

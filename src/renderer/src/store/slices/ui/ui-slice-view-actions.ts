@@ -1,5 +1,6 @@
 import type { UISlice, UISliceGet, UISliceSet } from './ui-slice-contract'
 import { rewindHistoryIndexPastView } from '../worktree-nav-history'
+import { isTopLevelViewEnabledForBuildProfile } from '../../../../../shared/corporate-build-profile'
 
 export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<UISlice> {
   return {
@@ -47,6 +48,9 @@ export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<U
         activeView: state.previousViewBeforeSpace
       })),
     openSkillsPage: () => {
+      if (!isTopLevelViewEnabledForBuildProfile('skills')) {
+        return
+      }
       get().recordViewVisit('skills')
       set((state) => ({
         activeView: 'skills',
@@ -60,6 +64,9 @@ export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<U
         worktreeNavHistoryIndex: rewindHistoryIndexPastView(state, 'skills')
       })),
     openSkillShare: (shareId) => {
+      if (!isTopLevelViewEnabledForBuildProfile('skills')) {
+        return
+      }
       get().recordViewVisit('skills')
       set((state) => ({
         activeView: 'skills',
@@ -70,6 +77,9 @@ export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<U
     },
     clearPendingSkillShare: () => set({ pendingSkillShareId: null }),
     openSkillsSharedLinks: () => {
+      if (!isTopLevelViewEnabledForBuildProfile('skills')) {
+        return
+      }
       get().recordViewVisit('skills')
       set((state) => ({
         activeView: 'skills',
@@ -92,12 +102,16 @@ export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<U
         activeView: state.previousViewBeforeArtifacts,
         worktreeNavHistoryIndex: rewindHistoryIndexPastView(state, 'artifacts')
       })),
-    openMobilePage: () =>
+    openMobilePage: () => {
+      if (!isTopLevelViewEnabledForBuildProfile('mobile')) {
+        return
+      }
       set((state) => ({
         activeView: 'mobile',
         previousViewBeforeMobile:
           state.activeView === 'mobile' ? state.previousViewBeforeMobile : state.activeView
-      })),
+      }))
+    },
     closeMobilePage: () =>
       set((state) => ({
         activeView: state.previousViewBeforeMobile

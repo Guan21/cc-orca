@@ -1,4 +1,9 @@
 import type { TuiAgent } from './tui-agent'
+import {
+  getOrcaBuildProfile,
+  isTuiAgentAllowedForBuildProfile,
+  type OrcaBuildProfile
+} from './corporate-build-profile'
 import { isTuiAgent } from './tui-agent-config'
 
 // Keep this order in sync with the desktop agent catalog. It defines the
@@ -49,18 +54,28 @@ export const DEFAULT_DISABLED_TUI_AGENTS = [] as const satisfies readonly TuiAge
 export function pickTuiAgent(
   preferred: TuiAgent | 'blank' | null | undefined,
   detected: Iterable<TuiAgent>,
-  disabled?: Iterable<unknown> | null
+  disabled?: Iterable<unknown> | null,
+  buildProfile: OrcaBuildProfile = getOrcaBuildProfile()
 ): TuiAgent | null {
   if (preferred === 'blank') {
     return null
   }
   const disabledSet = new Set(normalizeDisabledTuiAgents(disabled))
   const detectedSet = detected instanceof Set ? detected : new Set(detected)
-  if (preferred && detectedSet.has(preferred) && !disabledSet.has(preferred)) {
+  if (
+    preferred &&
+    detectedSet.has(preferred) &&
+    !disabledSet.has(preferred) &&
+    isTuiAgentAllowedForBuildProfile(preferred, buildProfile)
+  ) {
     return preferred
   }
   for (const agent of TUI_AGENT_AUTO_PICK_ORDER) {
-    if (detectedSet.has(agent) && !disabledSet.has(agent)) {
+    if (
+      detectedSet.has(agent) &&
+      !disabledSet.has(agent) &&
+      isTuiAgentAllowedForBuildProfile(agent, buildProfile)
+    ) {
       return agent
     }
   }
@@ -86,14 +101,24 @@ export function haveSameDisabledTuiAgents(left: unknown, right: unknown): boolea
   return leftSet.size === rightSet.size && [...leftSet].every((agent) => rightSet.has(agent))
 }
 
-export function isTuiAgentEnabled(agent: TuiAgent, disabled?: Iterable<unknown> | null): boolean {
-  return !normalizeDisabledTuiAgents(disabled).includes(agent)
+export function isTuiAgentEnabled(
+  agent: TuiAgent,
+  disabled?: Iterable<unknown> | null,
+  buildProfile: OrcaBuildProfile = getOrcaBuildProfile()
+): boolean {
+  return (
+    !normalizeDisabledTuiAgents(disabled).includes(agent) &&
+    isTuiAgentAllowedForBuildProfile(agent, buildProfile)
+  )
 }
 
 export function filterEnabledTuiAgents<T extends TuiAgent>(
   agents: Iterable<T>,
-  disabled?: Iterable<unknown> | null
+  disabled?: Iterable<unknown> | null,
+  buildProfile: OrcaBuildProfile = getOrcaBuildProfile()
 ): T[] {
   const disabledSet = new Set(normalizeDisabledTuiAgents(disabled))
-  return [...agents].filter((agent) => !disabledSet.has(agent))
+  return [...agents].filter(
+    (agent) => !disabledSet.has(agent) && isTuiAgentAllowedForBuildProfile(agent, buildProfile)
+  )
 }
