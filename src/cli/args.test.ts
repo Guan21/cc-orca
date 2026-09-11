@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import type { CommandSpec } from './args'
 import { COMMAND_SPECS } from './specs'
-import { AGENT_NOT_ALLOWED_BY_ORG_POLICY } from '../shared/corporate-build-profile'
+import {
+  AGENT_NOT_ALLOWED_BY_ORG_POLICY,
+  PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY
+} from '../shared/corporate-build-profile'
 import {
   REPEATED_FLAG_SEPARATOR,
   findCommandSpec,
@@ -344,6 +347,38 @@ describe('validateCommandAndFlags', () => {
     expect(() => validateCommandAndFlags(COMMAND_SPECS, parsed, 'corporate')).toThrow(
       AGENT_NOT_ALLOWED_BY_ORG_POLICY
     )
+  })
+
+  it.each([
+    [
+      'Claude raw command',
+      [
+        'terminal',
+        'create',
+        '--worktree',
+        'active',
+        '--command',
+        'claude --dangerously-skip-permissions'
+      ]
+    ],
+    [
+      'Codex shell-wrapped command',
+      [
+        'terminal',
+        'create',
+        '--worktree',
+        'active',
+        '--command',
+        'bash -lc "codex --dangerously-bypass-approvals-and-sandbox"'
+      ]
+    ]
+  ])('rejects corporate permission bypass CLI launch via %s', (_label, argv) => {
+    const parsed = normalizeCommandPositionals(COMMAND_SPECS, parseArgs(argv))
+
+    expect(() => validateCommandAndFlags(COMMAND_SPECS, parsed, 'corporate')).toThrow(
+      PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY
+    )
+    expect(() => validateCommandAndFlags(COMMAND_SPECS, parsed, 'default')).not.toThrow()
   })
 
   it('enumerates valid flags and suggests a near-miss on unknown-flag errors', () => {

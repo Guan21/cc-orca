@@ -10,6 +10,8 @@ import {
 import {
   AGENT_NOT_ALLOWED_BY_ORG_POLICY,
   CorporateAgentPolicyError,
+  CorporatePermissionBypassPolicyError,
+  PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY,
   assertAgentAllowedForBuildProfile,
   assertAgentLaunchAllowedForBuildProfile,
   getOrcaBuildProfile,
@@ -240,6 +242,12 @@ export function findCommandSpec(
 function rethrowCliAgentPolicyError(error: unknown): never {
   if (error instanceof CorporateAgentPolicyError) {
     throw new RuntimeClientError(AGENT_NOT_ALLOWED_BY_ORG_POLICY, AGENT_NOT_ALLOWED_BY_ORG_POLICY)
+  }
+  if (error instanceof CorporatePermissionBypassPolicyError) {
+    throw new RuntimeClientError(
+      PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY,
+      PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY
+    )
   }
   throw error
 }

@@ -10,6 +10,8 @@ import {
   normalizeOrcaBuildProfile
 } from './corporate-build-profile'
 
+const PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY = 'PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY'
+
 describe('corporate build profile', () => {
   it('normalizes only the explicit corporate profile opt-in', () => {
     expect(normalizeOrcaBuildProfile('corporate')).toBe('corporate')
@@ -64,6 +66,25 @@ describe('corporate build profile', () => {
 
   it.each(['bash -lc "claude --resume old"', 'pwsh -Command "codex"'])(
     'allows shell-wrapped approved corporate agent launch: %s',
+    (command) => {
+      expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
+    }
+  )
+
+  it.each([
+    ['Claude', 'claude --dangerously-skip-permissions'],
+    ['Codex', 'codex --dangerously-bypass-approvals-and-sandbox'],
+    ['shell-wrapped Claude', 'bash -lc "claude --dangerously-skip-permissions"'],
+    ['shell-wrapped Codex', 'pwsh -Command "codex --dangerously-bypass-approvals-and-sandbox"']
+  ])('rejects corporate %s permission bypass launch args', (_label, command) => {
+    expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).toThrow(
+      PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY
+    )
+    expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'default')).not.toThrow()
+  })
+
+  it.each(['claude --model sonnet', 'codex --sandbox workspace-write'])(
+    'allows corporate native permission-preserving launch args: %s',
     (command) => {
       expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
     }

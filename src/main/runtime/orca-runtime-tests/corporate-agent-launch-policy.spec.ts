@@ -4,13 +4,17 @@ import { OrcaRuntimeService } from '../orca-runtime-test-mocks.spec'
 import { TEST_WORKTREE_ID, TEST_WORKTREE_PATH, store } from '../orca-runtime-test-fixtures.spec'
 
 const ORIGINAL_ORCA_BUILD_PROFILE = process.env.ORCA_BUILD_PROFILE
+const PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY = 'PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY'
 
 function enableCorporateBuildProfile(): void {
   delete (globalThis as { __ORCA_BUILD_PROFILE__?: string }).__ORCA_BUILD_PROFILE__
   process.env.ORCA_BUILD_PROFILE = 'corporate'
 }
 
-function createRuntime(spawn = vi.fn().mockResolvedValue({ id: 'pty-bg' })): {
+function createRuntime(
+  spawn = vi.fn().mockResolvedValue({ id: 'pty-bg' }),
+  settings: Record<string, unknown> = {}
+): {
   runtime: OrcaRuntimeService
   spawn: typeof spawn
 } {
@@ -21,7 +25,8 @@ function createRuntime(spawn = vi.fn().mockResolvedValue({ id: 'pty-bg' })): {
       disabledTuiAgents: [],
       agentCmdOverrides: {},
       agentDefaultArgs: { claude: '', codex: '' },
-      agentDefaultEnv: {}
+      agentDefaultEnv: {},
+      ...settings
     })
   })
   const runtimeInternals = runtime as unknown as {
@@ -104,6 +109,86 @@ describe('corporate agent launch policy', () => {
     expect(spawn).toHaveBeenNthCalledWith(1, expect.objectContaining({ launchAgent: 'claude' }))
     expect(spawn).toHaveBeenNthCalledWith(2, expect.objectContaining({ launchAgent: 'codex' }))
   })
+
+  it('does not inject permission bypass defaults into corporate Claude and Codex launches', async () => {
+    enableCorporateBuildProfile()
+    const { runtime, spawn } = createRuntime(vi.fn().mockResolvedValue({ id: 'pty-bg' }), {
+      agentDefaultArgs: {}
+    })
+
+    await runtime.createTerminal(`id:${TEST_WORKTREE_ID}`, { startupAgent: 'claude' })
+    await runtime.createTerminal(`id:${TEST_WORKTREE_ID}`, { startupAgent: 'codex' })
+
+    expect(spawn).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ command: 'claude', launchAgent: 'claude' })
+    )
+    expect(spawn).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ command: 'codex', launchAgent: 'codex' })
+    )
+  })
+
+  it.each([
+    ['Claude default args', 'claude', { claude: '--dangerously-skip-permissions' }],
+    ['Codex default args', 'codex', { codex: '--dangerously-bypass-approvals-and-sandbox' }],
+    ['Claude command override', 'claude', {}, { claude: 'claude --dangerously-skip-permissions' }],
+    [
+      'Codex command override',
+      'codex',
+      {},
+      { codex: 'codex --dangerously-bypass-approvals-and-sandbox' }
+    ]
+  ] as const)(
+    'rejects corporate %s permission bypass before spawn',
+    async (
+      _label,
+      startupAgent,
+      agentDefaultArgs: Record<string, string>,
+      agentCmdOverrides: Record<string, string> = {}
+    ) => {
+      enableCorporateBuildProfile()
+      const { runtime, spawn } = createRuntime(vi.fn().mockResolvedValue({ id: 'pty-bg' }), {
+        agentDefaultArgs,
+        agentCmdOverrides
+      })
+
+      await expect(
+        runtime.createTerminal(`id:${TEST_WORKTREE_ID}`, { startupAgent })
+      ).rejects.toThrow(PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY)
+      expect(spawn).not.toHaveBeenCalled()
+    }
+  )
+
+  it.each([
+    ['Claude', 'claude', ['--dangerously-skip-permissions']],
+    ['Codex', 'codex', ['--dangerously-bypass-approvals-and-sandbox']]
+  ] as const)(
+    'rejects corporate %s restored session permission bypass args before spawn',
+    async (_label, agent, launchArgs) => {
+      enableCorporateBuildProfile()
+      const { runtime, spawn } = createRuntime()
+
+      await expect(
+        runtime.ensureAgentSession(
+          {
+            kind: 'explicit',
+            worktree: `id:${TEST_WORKTREE_ID}`,
+            agent,
+            providerSession: { key: 'session_id', id: 'old-session' }
+          },
+          {},
+          {
+            spawnToken: 'spawn-token',
+            providerRoot: `/tmp/${agent}-root`,
+            sessionId: `${agent}-session`,
+            launchArgs: [...launchArgs]
+          }
+        )
+      ).rejects.toThrow(PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY)
+      expect(spawn).not.toHaveBeenCalled()
+    }
+  )
 
   it('rejects structured create and resume for unsupported corporate agents before spawn', async () => {
     enableCorporateBuildProfile()
