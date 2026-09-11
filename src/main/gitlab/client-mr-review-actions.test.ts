@@ -55,6 +55,7 @@ import {
 } from './client'
 import { resetGitLabMrMocks } from './client-mr-test-harness'
 import { stripGitLabDraftTitlePrefix } from './merge-request-draft-title'
+import { MERGE_NOT_ALLOWED_BY_ORG_POLICY } from '../../shared/corporate-build-profile'
 
 describe('stripGitLabDraftTitlePrefix', () => {
   it.each([
@@ -74,6 +75,7 @@ describe('stripGitLabDraftTitlePrefix', () => {
 
 describe('gitlab client — MR operations', () => {
   beforeEach(() => {
+    delete process.env.ORCA_BUILD_PROFILE
     resetGitLabMrMocks({
       glabExecFileAsyncMock,
       glabApiWithHeadersMock,
@@ -84,6 +86,18 @@ describe('gitlab client — MR operations', () => {
       releaseMock,
       gitExecFileAsyncMock
     })
+  })
+
+  it('denies corporate MR merge before spawning glab', async () => {
+    process.env.ORCA_BUILD_PROFILE = 'corporate'
+
+    await expect(mergeMR('/repo', 12, 'squash')).resolves.toEqual({
+      ok: false,
+      error: MERGE_NOT_ALLOWED_BY_ORG_POLICY
+    })
+
+    expect(acquireMock).not.toHaveBeenCalled()
+    expect(glabExecFileAsyncMock).not.toHaveBeenCalled()
   })
 
   it('routes local WSL MR review-management and job actions through project resolution and glab options', async () => {

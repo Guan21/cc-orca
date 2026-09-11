@@ -1,5 +1,9 @@
 import type { IssueSourcePreference } from '../../shared/repo-types'
 import {
+  MERGE_NOT_ALLOWED_BY_ORG_POLICY,
+  hostedMergePolicyFailureForBuildProfile
+} from '../../shared/corporate-build-profile'
+import {
   acquire,
   glabHostnameArgs,
   glabRepoExecOptions,
@@ -106,6 +110,11 @@ export async function mergeMR(
   projectRef?: ProjectRef | null,
   localGitOptions: LocalGitExecOptions = {}
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const policyFailure = hostedMergePolicyFailureForBuildProfile('direct-merge')
+  if (policyFailure) {
+    return { ok: false, error: MERGE_NOT_ALLOWED_BY_ORG_POLICY }
+  }
+
   return withProjectRef<{ ok: true } | { ok: false; error: string }>(
     repoPath,
     preference,
