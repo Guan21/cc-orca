@@ -247,6 +247,33 @@ describe('agent process recognition', () => {
     ).toEqual({ agent: 'gemini', processName: 'gemini' })
   })
 
+  it.each([
+    ['bash login shell', 'bash -lc "opencode --session old"', 'opencode', 'opencode'],
+    ['sh command shell', 'sh -c "cursor-agent --resume old"', 'cursor', 'cursor-agent'],
+    ['zsh command shell', 'zsh -c "opencode --session old"', 'opencode', 'opencode'],
+    ['PowerShell command shell', 'pwsh -Command "opencode --session old"', 'opencode', 'opencode'],
+    [
+      'Windows PowerShell command shell',
+      'powershell -Command "cursor-agent --resume old"',
+      'cursor',
+      'cursor-agent'
+    ],
+    ['Windows cmd shell', 'cmd /c "cursor-agent --resume old"', 'cursor', 'cursor-agent'],
+    ['env launcher', 'env FOO=bar ORCA_TEST=1 opencode --session old', 'opencode', 'opencode']
+  ])('recognizes agent CLIs launched through %s', (_label, commandLine, agent, processName) => {
+    expect(recognizeAgentProcessFromCommandLine(commandLine)).toEqual({
+      agent,
+      processName
+    })
+  })
+
+  it('does not classify prompt text inside shell wrappers as an agent command', () => {
+    expect(
+      recognizeAgentProcessFromCommandLine('bash -lc "echo compare opencode vs orca"')
+    ).toBeNull()
+    expect(recognizeAgentProcessFromCommandLine('pwsh -Command "Write-Output codex.js"')).toBeNull()
+  })
+
   it.each(['earendil-works', 'mariozechner'])('recognizes the @%s Pi npm entrypoint', (scope) => {
     expect(
       recognizeAgentProcessFromCommandLine(

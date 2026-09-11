@@ -1,4 +1,5 @@
 import { recognizeAgentProcessFromCommandLine } from '../../shared/agent-process-recognition'
+import { assertAgentLaunchAllowedForBuildProfile } from '../../shared/corporate-build-profile'
 import { shouldUseShellReadyStartupDelivery } from '../../shared/codex-startup-delivery'
 import { CODEX_SHELL_READY_TIMEOUT_MS } from './session-shell-ready-barrier'
 import type {
@@ -114,6 +115,12 @@ export abstract class DaemonPtySessionSpawn extends DaemonPtySpawnResult {
     const requestedSessionId = opts.sessionId!
     // Why: v30 daemons survive upgrades; reject their accidental create result before publication.
     const attachOnly = opts.attachOnly === true
+    if (!attachOnly) {
+      assertAgentLaunchAllowedForBuildProfile({
+        command: opts.command,
+        launchAgent: opts.launchAgent
+      })
+    }
     const emulateLegacyAttachOnly =
       attachOnly && this.protocolVersion < STABLE_PANE_ATTACH_ONLY_DAEMON_PROTOCOL_VERSION
     let sessionId = requestedSessionId

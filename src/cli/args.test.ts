@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { CommandSpec } from './args'
 import { COMMAND_SPECS } from './specs'
+import { AGENT_NOT_ALLOWED_BY_ORG_POLICY } from '../shared/corporate-build-profile'
 import {
   REPEATED_FLAG_SEPARATOR,
   findCommandSpec,
@@ -313,6 +314,35 @@ describe('validateCommandAndFlags', () => {
 
     expect(() => validateCommandAndFlags(COMMAND_SPECS, parsed, 'corporate')).toThrow(
       `Command unavailable in corporate build: ${parsed.commandPath.join(' ')}`
+    )
+  })
+
+  it.each([
+    ['worktree agent', ['worktree', 'create', '--name', 'feature', '--agent', 'cursor']],
+    [
+      'automation provider',
+      [
+        'automations',
+        'create',
+        '--name',
+        'Daily',
+        '--trigger',
+        'daily',
+        '--prompt',
+        'Review',
+        '--provider',
+        'opencode'
+      ]
+    ],
+    [
+      'terminal raw agent command',
+      ['terminal', 'create', '--worktree', 'active', '--command', 'opencode --session old']
+    ]
+  ])('rejects corporate unsupported CLI agent launch via %s', (_label, argv) => {
+    const parsed = normalizeCommandPositionals(COMMAND_SPECS, parseArgs(argv))
+
+    expect(() => validateCommandAndFlags(COMMAND_SPECS, parsed, 'corporate')).toThrow(
+      AGENT_NOT_ALLOWED_BY_ORG_POLICY
     )
   })
 

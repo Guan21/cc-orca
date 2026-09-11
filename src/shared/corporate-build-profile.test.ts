@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  AGENT_NOT_ALLOWED_BY_ORG_POLICY,
   CORPORATE_ALLOWED_TUI_AGENTS,
+  assertAgentAllowedForBuildProfile,
+  assertAgentLaunchAllowedForBuildProfile,
   isCapabilityEnabledForBuildProfile,
   isCliCommandEnabledForBuildProfile,
   isTuiAgentAllowedForBuildProfile,
@@ -22,6 +25,49 @@ describe('corporate build profile', () => {
     expect(isTuiAgentAllowedForBuildProfile('cursor', 'corporate')).toBe(false)
     expect(isTuiAgentAllowedForBuildProfile('opencode', 'corporate')).toBe(false)
   })
+
+  it('throws a stable org-policy error for unsupported corporate agents', () => {
+    expect(() => assertAgentAllowedForBuildProfile('cursor', 'corporate')).toThrow(
+      AGENT_NOT_ALLOWED_BY_ORG_POLICY
+    )
+    expect(() => assertAgentAllowedForBuildProfile('claude', 'corporate')).not.toThrow()
+    expect(() => assertAgentAllowedForBuildProfile('opencode', 'default')).not.toThrow()
+  })
+
+  it('applies corporate agent policy to launch metadata and recognized commands', () => {
+    expect(() =>
+      assertAgentLaunchAllowedForBuildProfile({ launchAgent: 'cursor' }, 'corporate')
+    ).toThrow(AGENT_NOT_ALLOWED_BY_ORG_POLICY)
+    expect(() =>
+      assertAgentLaunchAllowedForBuildProfile({ command: 'opencode --session old' }, 'corporate')
+    ).toThrow(AGENT_NOT_ALLOWED_BY_ORG_POLICY)
+    expect(() =>
+      assertAgentLaunchAllowedForBuildProfile({ command: 'claude --resume old' }, 'corporate')
+    ).not.toThrow()
+    expect(() =>
+      assertAgentLaunchAllowedForBuildProfile({ command: 'opencode --session old' }, 'default')
+    ).not.toThrow()
+  })
+
+  it.each([
+    'bash -lc "opencode --session old"',
+    'sh -c "cursor-agent --resume old"',
+    'pwsh -Command "opencode --session old"',
+    'cmd /c "cursor-agent --resume old"',
+    'env FOO=bar opencode --session old'
+  ])('rejects shell-wrapped unsupported corporate agent launch: %s', (command) => {
+    expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).toThrow(
+      AGENT_NOT_ALLOWED_BY_ORG_POLICY
+    )
+    expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'default')).not.toThrow()
+  })
+
+  it.each(['bash -lc "claude --resume old"', 'pwsh -Command "codex"'])(
+    'allows shell-wrapped approved corporate agent launch: %s',
+    (command) => {
+      expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
+    }
+  )
 
   it('disables non-P0 corporate capabilities without affecting the default build', () => {
     expect(isCapabilityEnabledForBuildProfile('mobile', 'corporate')).toBe(false)

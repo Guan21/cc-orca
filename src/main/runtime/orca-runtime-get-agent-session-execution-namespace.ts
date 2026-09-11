@@ -20,6 +20,7 @@ import {
 import type { AgentSessionLaunchArgs } from '../../shared/agent-session-record'
 import { resolveStartupShell } from '../../shared/tui-agent-startup-shell'
 import { resolveAgentSessionResumeArgs } from './agent-session-resume-args'
+import { assertAgentAllowedForBuildProfile } from '../../shared/corporate-build-profile'
 
 export class OrcaRuntimeWithGetAgentSessionExecutionNamespace extends OrcaRuntimeWithResolveWorktreeRemovalTarget {
   protected getAgentSessionExecutionNamespace(
@@ -105,6 +106,7 @@ export class OrcaRuntimeWithGetAgentSessionExecutionNamespace extends OrcaRuntim
     if (!this.store) {
       throw new Error('runtime_unavailable')
     }
+    assertAgentAllowedForBuildProfile(request.agent)
     const workspace = await this.resolveTerminalWorkspaceLaunchScope(request.worktree)
     const resolvedNamespace = this.getAgentSessionExecutionNamespace(workspace, request.agent)
     const namespace =

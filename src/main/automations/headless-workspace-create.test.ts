@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { Automation } from '../../shared/automations-types'
+import { AGENT_NOT_ALLOWED_BY_ORG_POLICY } from '../../shared/corporate-build-profile'
 import type { Repo } from '../../shared/repo-types'
 import { buildHeadlessAutomationWorktreeCreateArgs } from './headless-workspace-create'
 
@@ -102,5 +103,20 @@ describe('headless automation workspace create args', () => {
     })
 
     expect(args.setupDecision).toBe('skip')
+  })
+
+  it('rejects unsupported corporate automation agents before creating startup args', () => {
+    expect(() =>
+      buildHeadlessAutomationWorktreeCreateArgs({
+        automation: { ...automation, agentId: 'opencode' },
+        run: {
+          id: 'run-1',
+          title: 'Nightly review run',
+          scheduledFor: Date.UTC(2026, 0, 2, 3, 4, 5)
+        },
+        repo,
+        buildProfile: 'corporate'
+      })
+    ).toThrow(AGENT_NOT_ALLOWED_BY_ORG_POLICY)
   })
 })

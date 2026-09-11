@@ -58,7 +58,7 @@ const ORCA_DIAGNOSTICS_TOKEN_URL_LITERAL =
     ? JSON.stringify(orcaDiagnosticsTokenUrl)
     : 'null'
 export function resolveOrcaBuildProfileLiteral(
-  env: { ORCA_BUILD_PROFILE?: string } = process.env
+  env: Record<string, string | undefined> = process.env
 ): string {
   return env.ORCA_BUILD_PROFILE === 'corporate'
     ? JSON.stringify('corporate')

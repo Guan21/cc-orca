@@ -17,6 +17,7 @@ import { awaitCancelableLocalPtySpawn, reattachLocalPty } from './local-pty-spaw
 import { spawnShellWithFallback } from './local-pty-utils'
 import { updateHistoryEnvForFallback, type HistoryInjectionResult } from '../terminal-history'
 import type { PtySpawnOptions, PtySpawnResult } from './types'
+import { assertAgentLaunchAllowedForBuildProfile } from '../../shared/corporate-build-profile'
 
 export async function spawnLocalPty(
   args: PtySpawnOptions,
@@ -36,6 +37,10 @@ export async function spawnLocalPty(
   if (args.attachOnly) {
     throw new SessionNotFoundError(args.sessionId ?? '')
   }
+  assertAgentLaunchAllowedForBuildProfile({
+    command: args.command,
+    launchAgent: args.launchAgent
+  })
   const id = allocatePtyId(reattachId ?? undefined)
   const incarnationId = randomUUID()
   const planResult = createLocalPtyLaunchPlan(args, getOptions)

@@ -22,6 +22,7 @@ import {
   resolveTuiAgentLaunchArgs,
   resolveTuiAgentLaunchEnv
 } from '../../shared/tui-agent-launch-defaults'
+import { assertAgentAllowedForBuildProfile } from '../../shared/corporate-build-profile'
 
 export class OrcaRuntimeWithResolveWorktreeRemovalTarget extends OrcaRuntimeWithRemoveManagedWorktree {
   protected async resolveWorktreeRemovalTarget(
@@ -168,6 +169,7 @@ export class OrcaRuntimeWithResolveWorktreeRemovalTarget extends OrcaRuntimeWith
       if (!store) {
         throw new Error('runtime_unavailable')
       }
+      assertAgentAllowedForBuildProfile(opts.startupAgent)
     } else if (callerSuppliedLaunch || !store || !opts.command || !workspace.repo) {
       return opts
     }
