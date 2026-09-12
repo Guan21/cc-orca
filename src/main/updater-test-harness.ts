@@ -63,6 +63,10 @@ type UpdaterModuleFactories = {
   }
   localBuildSwitch: () => { chooseLocalBuild: UpdaterSpy }
   localBuildFeedServer: () => { startLocalBuildFeed: UpdaterSpy }
+  updaterReleaseBuilds: () => {
+    listReleaseBuilds: UpdaterSpy
+    resolveTargetBuild: UpdaterSpy
+  }
 }
 
 export type UpdaterMocks = {
@@ -86,6 +90,8 @@ export type UpdaterMocks = {
   chooseLocalBuildMock: UpdaterSpy
   startLocalBuildFeedMock: UpdaterSpy
   closeLocalBuildFeedMock: UpdaterSpy
+  listReleaseBuildsMock: UpdaterSpy
+  resolveTargetBuildMock: UpdaterSpy
   moduleFactories: UpdaterModuleFactories
   resetUpdaterMocks: () => void
 }
@@ -227,6 +233,8 @@ export function createUpdaterMocks(): UpdaterMocks {
   const chooseLocalBuildMock = vi.fn()
   const startLocalBuildFeedMock = vi.fn()
   const closeLocalBuildFeedMock = vi.fn()
+  const listReleaseBuildsMock = vi.fn()
+  const resolveTargetBuildMock = vi.fn()
 
   /** One factory per module `updater.ts` pulls in; test files pass these to their own `vi.mock`. */
   const moduleFactories: UpdaterModuleFactories = {
@@ -266,7 +274,11 @@ export function createUpdaterMocks(): UpdaterMocks {
         `https://github.com/stablyai/orca/releases/download/${tag}`
     }),
     localBuildSwitch: () => ({ chooseLocalBuild: chooseLocalBuildMock }),
-    localBuildFeedServer: () => ({ startLocalBuildFeed: startLocalBuildFeedMock })
+    localBuildFeedServer: () => ({ startLocalBuildFeed: startLocalBuildFeedMock }),
+    updaterReleaseBuilds: () => ({
+      listReleaseBuilds: listReleaseBuildsMock,
+      resolveTargetBuild: resolveTargetBuildMock
+    })
   }
 
   /** Shared `beforeEach` body: fresh module registry plus every mock back to its default. */
@@ -301,6 +313,8 @@ export function createUpdaterMocks(): UpdaterMocks {
     fetchChangelogMock.mockReset().mockResolvedValue(null)
     fetchNewerReleaseTagsMock.mockReset().mockResolvedValue([])
     chooseLocalBuildMock.mockReset()
+    listReleaseBuildsMock.mockReset().mockResolvedValue([])
+    resolveTargetBuildMock.mockReset()
     closeLocalBuildFeedMock.mockReset()
     startLocalBuildFeedMock.mockReset().mockResolvedValue({
       url: 'http://127.0.0.1:1234/token/',
@@ -338,6 +352,8 @@ export function createUpdaterMocks(): UpdaterMocks {
     chooseLocalBuildMock,
     startLocalBuildFeedMock,
     closeLocalBuildFeedMock,
+    listReleaseBuildsMock,
+    resolveTargetBuildMock,
     moduleFactories,
     resetUpdaterMocks
   }

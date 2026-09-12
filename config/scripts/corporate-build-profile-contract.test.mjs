@@ -91,6 +91,12 @@ describe('corporate build profile package contract', () => {
       expect(config.appId).toBe('com.stablyai.orca')
       expect(config.nsis.artifactName).toBe('orca-windows-setup.${ext}')
       expect(config.dmg.artifactName).toBe('orca-macos-${arch}.${ext}')
+      expect(config.publish).toEqual({
+        provider: 'github',
+        owner: 'stablyai',
+        repo: 'orca',
+        releaseType: 'release'
+      })
     })
   })
 
@@ -100,6 +106,7 @@ describe('corporate build profile package contract', () => {
       expect(config.appId).toBe('dev.orca.secure-lite')
       expect(config.nsis.artifactName).toBe('secure-orca-lite-windows-setup.${ext}')
       expect(config.dmg.artifactName).toBe('secure-orca-lite-macos-${arch}.${ext}')
+      expect(config.publish).toBeNull()
     })
   })
 

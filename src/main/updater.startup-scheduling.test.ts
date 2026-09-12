@@ -7,6 +7,7 @@ const {
   isMock,
   powerMonitorOnMock,
   fetchNudgeMock,
+  listReleaseBuildsMock,
   shouldApplyNudgeMock,
   moduleFactories,
   resetUpdaterMocks
@@ -25,6 +26,7 @@ vi.mock('./update-install-exit-watchdog', () => moduleFactories.updateInstallExi
 vi.mock('./updater-prerelease-feed', () => moduleFactories.updaterPrereleaseFeed())
 vi.mock('./local-builds/local-build-switch', () => moduleFactories.localBuildSwitch())
 vi.mock('./local-builds/local-build-feed-server', () => moduleFactories.localBuildFeedServer())
+vi.mock('./updater-release-builds', () => moduleFactories.updaterReleaseBuilds())
 
 warmUpdaterModule()
 
@@ -64,6 +66,61 @@ describe('updater', () => {
       expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     })
     expect(setLastUpdateCheckAt).not.toHaveBeenCalled()
+  })
+
+  it('does not initialize or call electron-updater when a packaged corporate profile is pinned', async () => {
+    const originalProfile = process.env.ORCA_BUILD_PROFILE
+    const buildProfileGlobal = globalThis as { __ORCA_BUILD_PROFILE__?: string }
+    const originalGlobalProfile = buildProfileGlobal.__ORCA_BUILD_PROFILE__
+    buildProfileGlobal.__ORCA_BUILD_PROFILE__ = 'corporate'
+    process.env.ORCA_BUILD_PROFILE = 'default'
+    const mainWindow = { webContents: { send: vi.fn() } }
+
+    try {
+      const {
+        setupAutoUpdater,
+        checkForUpdates,
+        checkForUpdatesFromMenu,
+        downloadUpdate,
+        listAvailableReleaseBuilds,
+        quitAndInstall
+      } = await loadUpdaterModule()
+
+      listReleaseBuildsMock.mockRejectedValue(new Error('must not query upstream releases'))
+
+      setupAutoUpdater(mainWindow as never, {
+        getLastUpdateCheckAt: () => null,
+        setLastUpdateCheckAt: vi.fn()
+      })
+      await expect(listAvailableReleaseBuilds('stable')).resolves.toEqual([])
+      checkForUpdates()
+      checkForUpdatesFromMenu()
+      downloadUpdate()
+      quitAndInstall()
+      appMock.emit('browser-window-focus')
+      await vi.advanceTimersByTimeAsync(25 * 60 * 60 * 1000)
+
+      expect(autoUpdaterMock.updateConfigPath).toBeUndefined()
+      expect(autoUpdaterMock.setFeedURL).not.toHaveBeenCalled()
+      expect(autoUpdaterMock.on).not.toHaveBeenCalled()
+      expect(autoUpdaterMock.checkForUpdates).not.toHaveBeenCalled()
+      expect(autoUpdaterMock.downloadUpdate).not.toHaveBeenCalled()
+      expect(autoUpdaterMock.quitAndInstall).not.toHaveBeenCalled()
+      expect(listReleaseBuildsMock).not.toHaveBeenCalled()
+      expect(fetchNudgeMock).not.toHaveBeenCalled()
+      expect(powerMonitorOnMock).not.toHaveBeenCalled()
+    } finally {
+      if (originalProfile === undefined) {
+        delete process.env.ORCA_BUILD_PROFILE
+      } else {
+        process.env.ORCA_BUILD_PROFILE = originalProfile
+      }
+      if (originalGlobalProfile === undefined) {
+        delete buildProfileGlobal.__ORCA_BUILD_PROFILE__
+      } else {
+        buildProfileGlobal.__ORCA_BUILD_PROFILE__ = originalGlobalProfile
+      }
+    }
   })
 
   it('starts nudge polling only after updater initialization is complete', async () => {
