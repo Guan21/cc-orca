@@ -355,10 +355,14 @@ module.exports = {
         console.log('[verify-packaged-node-pty] skipped cross-platform or cross-arch package')
       }
     }
-    verifySkillsCliRuntime(join(resourcesDir, 'app.asar.unpacked', 'out'), resourcesDir, {
-      executeCommands: canExecuteTargetArch
-    })
-    if (!canExecuteTargetArch) {
+    if (isCorporateBuild) {
+      console.log('[verify-skills-cli-runtime] skipped corporate build profile')
+    } else {
+      verifySkillsCliRuntime(join(resourcesDir, 'app.asar.unpacked', 'out'), resourcesDir, {
+        executeCommands: canExecuteTargetArch
+      })
+    }
+    if (!isCorporateBuild && !canExecuteTargetArch) {
       console.log(
         `[verify-skills-cli-runtime] skipped command probes on cross-arch slice (target ${context.arch}, host ${process.arch})`
       )
