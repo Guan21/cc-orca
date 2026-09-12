@@ -2,7 +2,7 @@
 
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { delimiter, dirname, join } from 'node:path'
+import { delimiter, dirname, extname, join } from 'node:path'
 
 const target = process.argv[2]
 const corporateEnv = {
@@ -82,7 +82,10 @@ function spawnPnpm(args) {
 function findPnpmLaunch() {
   const npmExecPath = process.env.npm_execpath
   if (npmExecPath?.toLowerCase().includes('pnpm') && existsSync(npmExecPath)) {
-    return { command: process.execPath, args: [npmExecPath] }
+    if (['.cjs', '.js'].includes(extname(npmExecPath).toLowerCase())) {
+      return { command: process.execPath, args: [npmExecPath] }
+    }
+    return { command: npmExecPath, args: [] }
   }
   for (const pathEntry of (process.env.PATH ?? '').split(delimiter)) {
     if (!pathEntry) {
