@@ -39,6 +39,19 @@ const isWinDevChannel = isWinHourly || isWinDaily || isWinAdhoc
 const isMacRelease = process.env.ORCA_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
 const isLinuxArm64Release = process.env.ORCA_LINUX_ARM64_RELEASE === '1'
 const orcaBuildProfile = process.env.ORCA_BUILD_PROFILE === 'corporate' ? 'corporate' : 'default'
+const isCorporateBuild = orcaBuildProfile === 'corporate'
+const productName = isCorporateBuild
+  ? readNonEmptyEnv('ORCA_CORPORATE_PRODUCT_NAME', 'Secure Orca Lite')
+  : 'Orca'
+const appId = isCorporateBuild
+  ? readNonEmptyEnv('ORCA_CORPORATE_APP_ID', 'dev.orca.secure-lite')
+  : 'com.stablyai.orca'
+const windowsArtifactName = isCorporateBuild
+  ? 'secure-orca-lite-windows-setup.${ext}'
+  : 'orca-windows-setup.${ext}'
+const macDmgArtifactName = isCorporateBuild
+  ? 'secure-orca-lite-macos-${arch}.${ext}'
+  : 'orca-macos-${arch}.${ext}'
 const localBuildVersion =
   isMacRelease || isWinDevChannel ? undefined : process.env.ORCA_LOCAL_BUILD_VERSION
 const isHourlyChannel = isMacHourly || isWinHourly
@@ -64,7 +77,6 @@ const devChannelRepo = isHourlyChannel
     : isAdhocChannel
       ? 'orca-adhoc'
       : null
-const appId = 'com.stablyai.orca'
 const featureWallResources = {
   from: 'resources/onboarding/feature-wall',
   to: 'onboarding/feature-wall'
@@ -151,7 +163,7 @@ const MARKDOWN_FILE_EXTENSIONS = ['md', 'markdown', 'mdx']
 /** @type {import('electron-builder').Configuration} */
 module.exports = {
   appId,
-  productName: 'Orca',
+  productName,
   protocols: [{ name: 'Orca', schemes: ['orca'] }],
   toolsets: { appimage: '1.0.3' },
   ...(devChannelBuildVersion
@@ -438,7 +450,7 @@ module.exports = {
     ]
   },
   nsis: {
-    artifactName: 'orca-windows-setup.${ext}',
+    artifactName: windowsArtifactName,
     shortcutName: '${productName}',
     uninstallDisplayName: '${productName}',
     createDesktopShortcut: 'always',
@@ -543,7 +555,7 @@ module.exports = {
   // silently downgrading to ad-hoc artifacts that look shippable in CI logs.
   forceCodeSigning: isMacRelease,
   dmg: {
-    artifactName: 'orca-macos-${arch}.${ext}'
+    artifactName: macDmgArtifactName
   },
   linux: {
     // Why mimeTypes and not fileAssociations: shared-mime-info already maps *.md/*.markdown to
@@ -658,6 +670,11 @@ function stampPackagedCliMetadata(resourcesDir, version) {
     packageJsonPath,
     `${JSON.stringify({ ...packageJson, version, orcaBuildProfile }, null, 2)}\n`
   )
+}
+
+function readNonEmptyEnv(name, fallback) {
+  const value = process.env[name]?.trim()
+  return value ? value : fallback
 }
 
 function chmodUnixCliLaunchers(resourcesDir, electronPlatformName) {
