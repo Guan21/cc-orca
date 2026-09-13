@@ -34,28 +34,58 @@ function disabledCapabilityError(capability: CorporateBuildCapability): Error {
   return new Error(`Capability disabled in corporate build: ${capability}`)
 }
 
-function createDisabledCapabilityFunction(capability: CorporateBuildCapability): () => Promise<never> {
-  return () => Promise.reject(disabledCapabilityError(capability))
+function createDisabledCapabilityFunction(
+  capability: CorporateBuildCapability,
+  key?: string
+): () => Promise<never> | (() => undefined) {
+  return () =>
+    key?.startsWith('on')
+      ? noopUnsubscribe
+      : Promise.reject(disabledCapabilityError(capability))
 }
 
-function createDisabledCapabilityNamespace(capability: CorporateBuildCapability): object {
-  return new Proxy(
-    {},
-    {
-      get(_target, property) {
-        if (property === 'then') {
-          return undefined
-        }
-        if (typeof property !== 'string') {
-          return undefined
-        }
-        return () =>
-          property.startsWith('on')
-            ? noopUnsubscribe
-            : Promise.reject(disabledCapabilityError(capability))
-      }
-    }
-  )
+function isBridgeNamespace(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function createDisabledCapabilityValue(
+  capability: CorporateBuildCapability,
+  value: unknown,
+  key?: string
+): unknown {
+  if (typeof value === 'function') {
+    return createDisabledCapabilityFunction(capability, key)
+  }
+  if (isBridgeNamespace(value)) {
+    return createDisabledCapabilityNamespace(capability, value)
+  }
+  return value
+}
+
+function createDisabledCapabilityNamespace(
+  capability: CorporateBuildCapability,
+  namespace: unknown
+): object {
+  const disabledNamespace: Record<string, unknown> = {}
+  if (!isBridgeNamespace(namespace)) {
+    return disabledNamespace
+  }
+
+  for (const [key, value] of Object.entries(namespace)) {
+    disabledNamespace[key] = createDisabledCapabilityValue(capability, value, key)
+  }
+  return disabledNamespace
+}
+
+function createDisabledCapabilityReplacement(
+  api: Record<string, unknown>,
+  capability: CorporateBuildCapability,
+  key: string,
+  shape: PreloadApiCapabilityGate['shape']
+): unknown {
+  return shape === 'function'
+    ? createDisabledCapabilityFunction(capability)
+    : createDisabledCapabilityNamespace(capability, api[key])
 }
 
 export function filterPreloadApiForBuildProfile<T extends object>(
@@ -71,10 +101,7 @@ export function filterPreloadApiForBuildProfile<T extends object>(
     if (isCapabilityEnabledForBuildProfile(capability, profile)) {
       continue
     }
-    filtered[key] =
-      shape === 'function'
-        ? createDisabledCapabilityFunction(capability)
-        : createDisabledCapabilityNamespace(capability)
+    filtered[key] = createDisabledCapabilityReplacement(filtered, capability, key, shape)
   }
   return filtered as T
 }

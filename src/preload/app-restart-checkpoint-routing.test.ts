@@ -65,6 +65,22 @@ describe('native preload destructive app actions', () => {
     expect(exposeInMainWorld).not.toHaveBeenCalledWith('electron', expect.anything())
   })
 
+  it('fails preload startup when contextBridge cannot expose the API', async () => {
+    const bridgeError = new Error('bridge clone failure')
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    exposeInMainWorld.mockImplementationOnce(() => {
+      throw bridgeError
+    })
+
+    await expect(import('./index')).rejects.toThrow('bridge clone failure')
+
+    expect(consoleError).toHaveBeenCalledWith(
+      '[preload] Failed to expose window.api through contextBridge.',
+      bridgeError
+    )
+    consoleError.mockRestore()
+  })
+
   for (const action of ['reload', 'relaunch'] as const) {
     it(`prepares and awaits durability before ${action}`, async () => {
       const api = await loadApi()
