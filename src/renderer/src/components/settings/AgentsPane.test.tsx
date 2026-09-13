@@ -1,6 +1,6 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { TuiAgent } from '../../../../shared/tui-agent'
@@ -150,6 +150,7 @@ function findSegmentedControl(node: unknown, ariaLabel: string): ReactElementLik
 
 describe('AgentsPane', () => {
   beforeEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     detectedAgentsMock.detectedIds = ['claude']
     detectedAgentsMock.isLoading = false
     detectedAgentsMock.detectionFailed = false
@@ -163,6 +164,10 @@ describe('AgentsPane', () => {
       isRefreshingAgents: false,
       runtimeEnvironments: []
     } as never)
+  })
+
+  afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
   })
 
   it('detects agents locally when no active remote server is set', () => {
@@ -461,6 +466,22 @@ describe('AgentsPane', () => {
     expect(markup).not.toContain('Hidden from launch and default choices.')
     expect(markup).not.toContain('aria-label="Enable Claude"')
     expect(markup).not.toContain('aria-label="Disable Claude"')
+  })
+
+  it('hides unsupported agents and dangerous launch controls in corporate builds', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    detectedAgentsMock.detectedIds = ['claude', 'codex', 'gemini']
+
+    const markup = renderPane(getDefaultSettings('/tmp'))
+
+    expect(markup).toContain('Claude Code')
+    expect(markup).toContain('Codex')
+    expect(markup).not.toContain('Gemini')
+    expect(markup).not.toContain('Available to install')
+    expect(markup).not.toContain('Agent Permissions')
+    expect(markup).not.toContain('Yolo')
+    expect(markup).not.toContain('Arguments')
+    expect(markup).not.toContain('dangerously')
   })
 
   it('only toggles agent availability when the segmented value changes', () => {

@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { createBootstrapFatalExitBanner } from './config/build-plugins/bootstrap-fatal-exit-banner'
 import { createPlainNodeEntryGuardPlugin } from './config/build-plugins/plain-node-entry-guard'
 import packageJson from './package.json' with { type: 'json' }
+import { getProductDisplayName } from './src/shared/product-display-name'
 
 const BUNDLED_MAIN_DEPENDENCIES = new Set([
   '@xterm/headless',
@@ -65,6 +66,16 @@ export function resolveOrcaBuildProfileLiteral(
     : JSON.stringify('default')
 }
 const ORCA_BUILD_PROFILE_LITERAL = resolveOrcaBuildProfileLiteral()
+
+function createProductDisplayNameHtmlPlugin() {
+  const productDisplayName = getProductDisplayName()
+  return {
+    name: 'orca-product-display-name-html',
+    transformIndexHtml(html: string): string {
+      return html.replace('<title>Orca</title>', `<title>${productDisplayName}</title>`)
+    }
+  }
+}
 
 function createStartupDiagnosticsBanner(chunkName: string): string {
   return `
@@ -317,7 +328,7 @@ export const electronViteConfig: UserConfig = {
         '@': resolve('src/renderer/src')
       }
     },
-    plugins: [react(), tailwindcss()],
+    plugins: [createProductDisplayNameHtmlPlugin(), react(), tailwindcss()],
     worker: {
       format: 'es'
     },

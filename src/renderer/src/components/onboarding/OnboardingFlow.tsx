@@ -15,6 +15,8 @@ import { OnboardingFooter } from './OnboardingFooter'
 import { shouldRequestOnboardingSkipConfirmation } from './onboarding-dismiss-target'
 import logo from '../../../../../resources/logo.svg'
 import { translate } from '@/i18n/i18n'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 const stepCopy = {
   agent: {
@@ -27,7 +29,9 @@ const stepCopy = {
     get subtitle() {
       return translate(
         'auto.components.onboarding.OnboardingFlow.322fc50a18',
-        "Orca works with every CLI agent. Choose the one you'll reach for most. Switch any time."
+        getOrcaBuildProfile() === 'corporate'
+          ? 'Secure Orca Lite supports Claude Code and Codex. Choose the one you\'ll reach for most.'
+          : "Orca works with every CLI agent. Choose the one you'll reach for most. Switch any time."
       )
     }
   },
@@ -53,10 +57,12 @@ const stepCopy = {
       )
     },
     get subtitle() {
-      return translate(
-        'auto.components.onboarding.OnboardingFlow.ff92d15436',
-        'Orca will notify you when agents are done or need help.'
-      )
+      return getOrcaBuildProfile() === 'corporate'
+        ? `${getProductDisplayName()} will notify you when agents are done or need help.`
+        : translate(
+            'auto.components.onboarding.OnboardingFlow.ff92d15436',
+            'Orca will notify you when agents are done or need help.'
+          )
     }
   },
   integrations: {
@@ -126,6 +132,7 @@ export default function OnboardingFlow({
   onboarding,
   onOnboardingChange
 }: OnboardingFlowProps): React.JSX.Element {
+  const productDisplayName = getProductDisplayName()
   const flow = useOnboardingFlow(onboarding, onOnboardingChange)
   const continueShortcutModifierLabel = getScreenSubmitModifierLabel()
   const { currentStep, stepIndex, busyLabel } = flow
@@ -215,7 +222,7 @@ export default function OnboardingFlow({
           role="dialog"
           aria-label={translate(
             'auto.components.onboarding.OnboardingFlow.277ba45540',
-            'Orca onboarding'
+            `${productDisplayName} onboarding`
           )}
           aria-modal="true"
           data-onboarding-modal
@@ -233,7 +240,7 @@ export default function OnboardingFlow({
                 className="h-7 w-auto shrink-0 invert dark:invert-0"
               />
               <span>
-                {translate('auto.components.onboarding.OnboardingFlow.a249f81538', 'Orca')}
+                {productDisplayName}
               </span>
             </div>
 
@@ -284,7 +291,7 @@ export default function OnboardingFlow({
                 <div className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
                   {translate(
                     'auto.components.onboarding.OnboardingFlow.1b5e182e9f',
-                    'Welcome to Orca'
+                    `Welcome to ${productDisplayName}`
                   )}
                 </div>
               )}

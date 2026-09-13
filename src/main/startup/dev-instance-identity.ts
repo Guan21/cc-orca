@@ -1,8 +1,13 @@
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import type { AppIdentity } from '../../shared/app-identity'
+import {
+  DEFAULT_PRODUCT_DISPLAY_NAME,
+  getProductDisplayName
+} from '../../shared/product-display-name'
+import { normalizeOrcaBuildProfile } from '../../shared/corporate-build-profile'
 
-const BASE_APP_NAME = 'Orca'
+const BASE_APP_NAME = DEFAULT_PRODUCT_DISPLAY_NAME
 const BASE_APP_USER_MODEL_ID = 'com.stablyai.orca'
 const MAX_LABEL_LENGTH = 80
 
@@ -66,9 +71,12 @@ export function getDevInstanceIdentity(
   env: NodeJS.ProcessEnv = process.env
 ): DevInstanceIdentity {
   if (!isDev) {
+    const productDisplayName = getProductDisplayName(
+      normalizeOrcaBuildProfile(env.ORCA_BUILD_PROFILE)
+    )
     return {
-      name: BASE_APP_NAME,
-      appName: BASE_APP_NAME,
+      name: productDisplayName,
+      appName: productDisplayName,
       isDev: false,
       devLabel: null,
       devBranch: null,

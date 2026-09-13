@@ -13,6 +13,15 @@ describe('dev-instance-identity', () => {
     })
   })
 
+  it('uses the corporate product name for packaged corporate builds without renaming internal ids', () => {
+    expect(getDevInstanceIdentity(false, { ORCA_BUILD_PROFILE: 'corporate' })).toMatchObject({
+      name: 'Secure Orca Lite',
+      appName: 'Secure Orca Lite',
+      isDev: false,
+      appUserModelId: 'com.stablyai.orca'
+    })
+  })
+
   it('pins a stable dev appName across branches so the safeStorage key does not churn', () => {
     const a = getDevInstanceIdentity(true, { ORCA_DEV_BRANCH: 'feature/a' })
     const b = getDevInstanceIdentity(true, { ORCA_DEV_BRANCH: 'feature/b' })

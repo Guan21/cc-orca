@@ -24,8 +24,10 @@ import { getOrCreateRendererRoot } from './lib/react-renderer-root'
 import { primeTerminalWebglAddon } from './lib/pane-manager/pane-webgl-renderer'
 import { SkillWarningPreviewLauncher } from './components/skills/SkillWarningPreviewLauncher'
 import { installBrowserClientPageRenderer } from './components/browser-pane/browser-client-page-renderer-installation'
+import { getProductDisplayName } from '../../shared/product-display-name'
 
 recordRendererCrashBreadcrumb('renderer_bootstrap_started', { dev: import.meta.env.DEV })
+document.title = getProductDisplayName()
 installRendererCrashDiagnostics()
 installTypingLatencyDiagnostic()
 installAutomationHostDiagnostic()

@@ -122,3 +122,11 @@ export function filterEnabledTuiAgents<T extends TuiAgent>(
     (agent) => !disabledSet.has(agent) && isTuiAgentAllowedForBuildProfile(agent, buildProfile)
   )
 }
+
+export function getTuiAgentDisplayLabel(
+  agent: TuiAgent,
+  defaultLabel: string,
+  buildProfile: OrcaBuildProfile = getOrcaBuildProfile()
+): string {
+  return buildProfile === 'corporate' && agent === 'claude' ? 'Claude Code' : defaultLabel
+}

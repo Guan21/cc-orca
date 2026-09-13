@@ -6,6 +6,12 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { TuiAgent } from '../../../../shared/tui-agent'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
+import {
+  filterEnabledTuiAgents,
+  getTuiAgentDisplayLabel
+} from '../../../../shared/tui-agent-selection'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { translate } from '@/i18n/i18n'
 
 const AGENT_GRID_MAX_ROWS = 4
@@ -67,7 +73,9 @@ export function AgentStep({
   yoloPermissions = true,
   onYoloPermissionsChange
 }: AgentStepProps) {
-  const agentCatalog = getAgentCatalog()
+  const fullCatalog = getAgentCatalog()
+  const allowedAgentIds = new Set(filterEnabledTuiAgents(fullCatalog.map((agent) => agent.id)))
+  const agentCatalog = fullCatalog.filter((agent) => allowedAgentIds.has(agent.id))
   const detected = agentCatalog.filter((agent) => detectedSet.has(agent.id))
   const rest = agentCatalog.filter((agent) => !detectedSet.has(agent.id))
   const hasDetected = detected.length > 0
@@ -122,11 +130,15 @@ export function AgentStep({
       {selectedEntry && (
         <div className="flex shrink-0 items-center justify-between gap-3 rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-xs text-amber-700 dark:text-amber-200/90">
           <span>
-            <span className="font-medium">{selectedEntry.label}</span>{' '}
-            {translate(
-              'auto.components.onboarding.AgentStep.69af7e9c1c',
-              "isn't on your PATH yet. Orca will set it as your default and you can install it any time."
-            )}
+            <span className="font-medium">
+              {getTuiAgentDisplayLabel(selectedEntry.id, selectedEntry.label)}
+            </span>{' '}
+            {getOrcaBuildProfile() === 'corporate'
+              ? `${getProductDisplayName()} isn't on your PATH yet. ${getProductDisplayName()} will set it as your default and you can install it any time.`
+              : translate(
+                  'auto.components.onboarding.AgentStep.69af7e9c1c',
+                  "isn't on your PATH yet. Orca will set it as your default and you can install it any time."
+                )}
           </span>
           <button
             type="button"
@@ -190,10 +202,12 @@ export function AgentStep({
           </div>
         </div>
       </section>
-      <YoloPermissionsControl
-        yoloPermissions={yoloPermissions}
-        onYoloPermissionsChange={onYoloPermissionsChange}
-      />
+      {getOrcaBuildProfile() !== 'corporate' && (
+        <YoloPermissionsControl
+          yoloPermissions={yoloPermissions}
+          onYoloPermissionsChange={onYoloPermissionsChange}
+        />
+      )}
     </div>
   )
 }
@@ -302,7 +316,9 @@ function AgentButton({
           <AgentIcon agent={agent.id} size={16} />
         </span>
         <div className="min-w-0">
-          <div className="truncate text-sm font-medium text-foreground">{agent.label}</div>
+          <div className="truncate text-sm font-medium text-foreground">
+            {getTuiAgentDisplayLabel(agent.id, agent.label)}
+          </div>
           <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
             {agent.cmd}
           </div>

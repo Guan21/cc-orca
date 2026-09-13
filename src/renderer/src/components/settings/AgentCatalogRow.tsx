@@ -74,6 +74,7 @@ export type AgentCatalogRowProps = {
   onSaveArgs: (value: string) => void
   onSaveEnv: (value: Record<string, string>) => void
   sessionSourceHome?: AgentSessionSourceHomeControl
+  showLaunchArgs?: boolean
 }
 
 export function AgentCatalogRow({
@@ -94,12 +95,15 @@ export function AgentCatalogRow({
   onSaveOverride,
   onSaveArgs,
   onSaveEnv,
-  sessionSourceHome
+  sessionSourceHome,
+  showLaunchArgs = true
 }: AgentCatalogRowProps): React.JSX.Element {
   const envSummary = stringifyAgentDefaultEnvDraft(envOverride)
   const defaultEnvSummary = stringifyAgentDefaultEnvDraft(defaultEnv)
   const [cmdOpen, setCmdOpen] = useState(
-    Boolean(cmdOverride) || argsOverride !== defaultArgs || envSummary !== defaultEnvSummary
+    Boolean(cmdOverride) ||
+    (showLaunchArgs && argsOverride !== defaultArgs) ||
+    envSummary !== defaultEnvSummary
   )
 
   return (
@@ -126,7 +130,9 @@ export function AgentCatalogRow({
             ) : (
               defaultCmd
             )}
-            {argsOverride && <span className="ml-1.5 text-foreground/70">{argsOverride}</span>}
+            {showLaunchArgs && argsOverride && (
+              <span className="ml-1.5 text-foreground/70">{argsOverride}</span>
+            )}
             {envSummary && <span className="ml-1.5 text-foreground/60">{envSummary}</span>}
           </div>
         </div>
@@ -208,14 +214,16 @@ export function AgentCatalogRow({
             cmdOverride={cmdOverride}
             onSaveOverride={onSaveOverride}
           />
-          <div className="mt-2">
-            <AgentDefaultArgsInput
-              key={`${agentId}:${argsOverride}`}
-              defaultArgs={defaultArgs}
-              argsOverride={argsOverride}
-              onSaveArgs={onSaveArgs}
-            />
-          </div>
+          {showLaunchArgs && (
+            <div className="mt-2">
+              <AgentDefaultArgsInput
+                key={`${agentId}:${argsOverride}`}
+                defaultArgs={defaultArgs}
+                argsOverride={argsOverride}
+                onSaveArgs={onSaveArgs}
+              />
+            </div>
+          )}
           {(defaultEnvSummary || envSummary) && (
             <div className="mt-2">
               <AgentDefaultEnvInput
@@ -239,7 +247,9 @@ export function AgentCatalogRow({
           <p className="mt-2 text-[11px] text-muted-foreground">
             {translate(
               'auto.components.settings.AgentsPane.f9f127d664',
-              'Override the binary path or name, and edit the default launch arguments or environment for this agent.'
+              showLaunchArgs
+                ? 'Override the binary path or name, and edit the default launch arguments or environment for this agent.'
+                : 'Override the binary path or name or environment for this agent.'
             )}
           </p>
         </div>

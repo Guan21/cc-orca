@@ -1,4 +1,6 @@
 import { getAgentCatalog } from '@/lib/agent-catalog'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
+import { filterEnabledTuiAgents } from '../../../../shared/tui-agent-selection'
 import {
   getAgentAwakeDescription,
   getAgentAwakeSearchKeywords,
@@ -31,10 +33,14 @@ function buildAgentSettingsKeywords(): string[] {
     { key: 'auto.components.settings.agents.search.60393e1b17', fallback: 'disable' },
     { key: 'auto.components.settings.agents.search.2e188c771c', fallback: 'hide' },
     { key: 'auto.components.settings.agents.search.87fffe6c20', fallback: 'show' },
-    { key: 'auto.components.settings.agents.search.permission', fallback: 'permission' },
-    { key: 'auto.components.settings.agents.search.permissions', fallback: 'permissions' },
-    { key: 'auto.components.settings.agents.search.yolo', fallback: 'yolo', englishOnly: true },
-    { key: 'auto.components.settings.agents.search.manual', fallback: 'manual' },
+    ...(getOrcaBuildProfile() === 'corporate'
+      ? []
+      : [
+          { key: 'auto.components.settings.agents.search.permission', fallback: 'permission' },
+          { key: 'auto.components.settings.agents.search.permissions', fallback: 'permissions' },
+          { key: 'auto.components.settings.agents.search.yolo', fallback: 'yolo', englishOnly: true },
+          { key: 'auto.components.settings.agents.search.manual', fallback: 'manual' }
+        ]),
     {
       key: 'auto.components.settings.agents.search.e2b7c0dcd7',
       fallback: 'github',
@@ -42,7 +48,9 @@ function buildAgentSettingsKeywords(): string[] {
     }
   ])
 
-  for (const agent of getAgentCatalog()) {
+  const catalog = getAgentCatalog()
+  const allowedIds = new Set(filterEnabledTuiAgents(catalog.map((agent) => agent.id)))
+  for (const agent of catalog.filter((entry) => allowedIds.has(entry.id))) {
     keywords.push(...expandAgentSearchText(agent.id), ...expandAgentSearchText(agent.label))
     keywords.push(...expandAgentSearchText(agent.cmd))
   }
@@ -66,6 +74,7 @@ type AgentsPaneSearchOptions = {
 
 const AGENT_AWAKE_SEARCH_ENTRY_ID = 'agent-awake'
 const AGENT_RUNTIME_SEARCH_ENTRY_ID = 'agent-runtime'
+const AGENT_PERMISSIONS_SEARCH_ENTRY_ID = 'agent-permissions'
 
 const getAllAgentsPaneSearchEntries = createLocalizedCatalog(() => [
   {
@@ -120,6 +129,7 @@ const getAllAgentsPaneSearchEntries = createLocalizedCatalog(() => [
     keywords: getAgentAwakeSearchKeywords()
   },
   {
+    id: AGENT_PERMISSIONS_SEARCH_ENTRY_ID,
     title: translate(
       'auto.components.settings.agents.search.agentPermissions',
       'Agent Permissions'
@@ -151,6 +161,9 @@ export function getAgentsPaneSearchEntries({
   return entries.filter(
     (entry) =>
       (!('id' in entry) || entry.id !== AGENT_RUNTIME_SEARCH_ENTRY_ID || includeAgentRuntime) &&
-      (!('id' in entry) || entry.id !== AGENT_AWAKE_SEARCH_ENTRY_ID || includeAgentAwake)
+      (!('id' in entry) || entry.id !== AGENT_AWAKE_SEARCH_ENTRY_ID || includeAgentAwake) &&
+      (!('id' in entry) ||
+        entry.id !== AGENT_PERMISSIONS_SEARCH_ENTRY_ID ||
+        getOrcaBuildProfile() !== 'corporate')
   )
 }
