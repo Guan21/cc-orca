@@ -27,7 +27,7 @@ jobs:
       - name: Checkout temporary CI branch
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 20
           persist-credentials: false
 
       - name: Verify PR28 source baseline
