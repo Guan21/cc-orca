@@ -1,0 +1,120 @@
+name: PR28 macOS Corporate Acceptance
+
+on:
+  push:
+    branches:
+      - ci-pr28-macos-acceptance
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr28-macos-corporate-acceptance-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  EXPECTED_SOURCE_SHA: 0bbca778ee2a6803d41f50b1bb7c35e3e3b6a0a5
+  CI_WORKFLOW_PATH: .github/workflows/pr28-macos-corporate-acceptance.yml
+  NODE_OPTIONS: --max-old-space-size=4096
+
+jobs:
+  build-corporate-macos:
+    if: github.repository == 'Guan21/cc-orca' && github.ref_name == 'ci-pr28-macos-acceptance'
+    runs-on: macos-15-intel
+    timeout-minutes: 120
+    steps:
+      - name: Checkout temporary CI branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify PR28 source baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Checked-out HEAD: $(git rev-parse HEAD)"
+          echo "Expected PR28 source HEAD: $EXPECTED_SOURCE_SHA"
+
+          if ! git cat-file -e "$EXPECTED_SOURCE_SHA^{commit}"; then
+            echo "::error::Expected source commit $EXPECTED_SOURCE_SHA is not present in this checkout."
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "$EXPECTED_SOURCE_SHA" HEAD; then
+            echo "::error::Checked-out HEAD is not based on expected PR28 source commit $EXPECTED_SOURCE_SHA."
+            exit 1
+          fi
+
+          direct_parent="$(git rev-parse HEAD^)"
+          if [[ "$direct_parent" != "$EXPECTED_SOURCE_SHA" ]]; then
+            echo "::error::Temporary CI branch must be exactly one workflow commit on top of $EXPECTED_SOURCE_SHA; found parent $direct_parent."
+            exit 1
+          fi
+
+          mapfile -t changed_files < <(git diff --name-only "$EXPECTED_SOURCE_SHA"..HEAD)
+          printf 'Files changed after PR28 source HEAD:\n'
+          printf '  %s\n' "${changed_files[@]}"
+
+          if [[ "${#changed_files[@]}" -ne 1 || "${changed_files[0]}" != "$CI_WORKFLOW_PATH" ]]; then
+            echo "::error::Temporary CI branch may only add $CI_WORKFLOW_PATH."
+            exit 1
+          fi
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Prepare pnpm 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@12.0.0 --activate
+
+      - name: Print build environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          sw_vers
+          uname -m
+          node --version
+          pnpm --version
+          xcodebuild -version
+          swift --version
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Ensure Electron runtime
+        run: pnpm run ensure:electron-runtime
+
+      - name: Build corporate macOS package
+        run: pnpm run build:mac:corporate
+
+      - name: Print corporate artifacts
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -d dist ]]; then
+            ls -lah dist
+            shasum -a 256 dist/secure-orca-lite-macos-*.dmg || true
+            shasum -a 256 dist/secure-orca-lite-macos-*.zip || true
+            find dist -maxdepth 3 -name '*.app' -print -exec codesign -dv --verbose=4 {} \; || true
+          else
+            echo "dist directory was not created."
+          fi
+
+      - name: Upload corporate macOS artifacts
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: pr28-macos-corporate-artifacts
+          if-no-files-found: warn
+          path: |
+            dist/secure-orca-lite-macos-*.dmg
+            dist/secure-orca-lite-macos-*.zip
