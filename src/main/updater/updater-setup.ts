@@ -12,6 +12,7 @@ import type {
   RemoteServerUpdaterSnapshot,
   RemoteServerUpdateSupport
 } from '../../shared/remote-server-update'
+import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
 import { getLinuxPackageType } from '../linux-update-package-type'
 import { createUpdaterDiagnosticLogger } from '../linux-package-install-diagnostic'
 import { registerAutoUpdaterHandlers } from '../updater-events'
@@ -33,21 +34,37 @@ export type UpdaterSetupOptions = {
   installMode?: UpdateInstallMode
 }
 
+function isAutoUpdateDisabledForBuildProfile(): boolean {
+  return getOrcaBuildProfile() === 'corporate'
+}
+
 /** Initializes electron-updater and attaches lifecycle/event bridges. */
 export class UpdaterSetup extends UpdaterDownloadInstall {
   checkForUpdates(): void {
+    if (isAutoUpdateDisabledForBuildProfile()) {
+      return
+    }
     this.checkForUpdatesInBackground()
   }
 
   checkForUpdatesFromMenu(options?: UpdateCheckOptions): void {
+    if (isAutoUpdateDisabledForBuildProfile()) {
+      return
+    }
     super.checkForUpdatesFromMenu(options)
   }
 
   downloadUpdate(): void {
+    if (isAutoUpdateDisabledForBuildProfile()) {
+      return
+    }
     super.downloadUpdate()
   }
 
   quitAndInstall(): void {
+    if (isAutoUpdateDisabledForBuildProfile()) {
+      return
+    }
     super.quitAndInstall()
   }
 
@@ -95,6 +112,9 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
   }
 
   async listAvailableReleaseBuilds(channel: ReleaseChannel): Promise<ReleaseBuild[]> {
+    if (isAutoUpdateDisabledForBuildProfile()) {
+      return []
+    }
     return super.listAvailableReleaseBuilds(channel)
   }
 
@@ -118,6 +138,10 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
     this.getReleaseChannelOverride = opts?.getReleaseChannelOverride ?? null
     this.updateInstallMode = opts?.installMode ?? 'interactive'
     this.lastInstallDeferralVersion = { download: null, install: null }
+
+    if (isAutoUpdateDisabledForBuildProfile()) {
+      return
+    }
 
     const serveHandoffFailure = getServeUpdateHandoffFailure()
     if (serveHandoffFailure) {

@@ -189,7 +189,8 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
-    console.error(error)
+    console.error('[preload] Failed to expose window.api through contextBridge.', error)
+    throw error
   }
 } else {
   window.api = api
