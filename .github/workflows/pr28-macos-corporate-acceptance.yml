@@ -25,10 +25,16 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout temporary CI branch
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-          persist-credentials: false
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! git init --ref-format=reftable .; then
+            rm -rf .git
+            git init .
+          fi
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags --depth=1 origin "refs/heads/${GITHUB_REF_NAME}"
+          git checkout --force "$GITHUB_SHA"
 
       - name: Verify PR28 source baseline
         shell: bash
