@@ -1,0 +1,140 @@
+name: Secure Orca Lite Latest Installers
+
+on:
+  push:
+    branches:
+      - ci-secure-orca-lite-latest-installers
+
+permissions:
+  contents: read
+
+concurrency:
+  group: secure-orca-lite-latest-installers-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  EXPECTED_SOURCE_SHA: d56cd69cb8300084d2f42cd47e1247a96f83488a
+  CI_WORKFLOW_PATH: .github/workflows/secure-orca-lite-latest-installers.yml
+  NODE_OPTIONS: --max-old-space-size=4096
+
+jobs:
+  windows:
+    if: github.repository == 'Guan21/cc-orca' && github.ref_name == 'ci-secure-orca-lite-latest-installers'
+    runs-on: windows-2025
+    timeout-minutes: 120
+    steps:
+      - name: Checkout temporary build branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Verify source baseline
+        shell: pwsh
+        run: |
+          $changed = git diff --name-only "$env:EXPECTED_SOURCE_SHA..HEAD"
+          $bad = $changed | Where-Object { $_ -ne $env:CI_WORKFLOW_PATH }
+          if ($bad) {
+            Write-Error "Temporary build branch changed non-workflow files: $($bad -join ', ')"
+            exit 1
+          }
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Prepare pnpm 12
+        shell: pwsh
+        run: |
+          corepack enable
+          corepack prepare pnpm@12.0.0 --activate
+          node --version
+          pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Ensure Electron runtime
+        run: pnpm run ensure:electron-runtime
+
+      - name: Build corporate Windows installer
+        shell: pwsh
+        env:
+          ORCA_REUSE_PREPARED_NATIVE_RUNTIME: '1'
+        run: pnpm run build:win:corporate
+
+      - name: Print Windows artifact hash
+        shell: pwsh
+        run: |
+          Get-Item dist\secure-orca-lite-windows-setup.exe | Format-List FullName,Length
+          Get-FileHash dist\secure-orca-lite-windows-setup.exe -Algorithm SHA256
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v5
+        with:
+          name: secure-orca-lite-windows-d56cd69
+          if-no-files-found: error
+          path: dist/secure-orca-lite-windows-setup.exe
+
+  macos:
+    if: github.repository == 'Guan21/cc-orca' && github.ref_name == 'ci-secure-orca-lite-latest-installers'
+    runs-on: macos-15-intel
+    timeout-minutes: 120
+    steps:
+      - name: Checkout temporary build branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Verify source baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed_files="$(git diff --name-only "$EXPECTED_SOURCE_SHA"..HEAD)"
+          bad="$(printf '%s\n' "$changed_files" | grep -v -x "$CI_WORKFLOW_PATH" || true)"
+          if [[ -n "$bad" ]]; then
+            echo "::error::Temporary build branch changed non-workflow files."
+            printf '%s\n' "$bad"
+            exit 1
+          fi
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Prepare pnpm 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@12.0.0 --activate
+          node --version
+          pnpm --version
+          sw_vers
+          uname -m
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Ensure Electron runtime
+        run: pnpm run ensure:electron-runtime
+
+      - name: Build corporate macOS package
+        run: pnpm run build:mac:corporate
+
+      - name: Print macOS artifact hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls -lah dist
+          shasum -a 256 dist/secure-orca-lite-macos-*.dmg
+
+      - name: Upload macOS installers
+        uses: actions/upload-artifact@v5
+        with:
+          name: secure-orca-lite-macos-d56cd69
+          if-no-files-found: error
+          path: |
+            dist/secure-orca-lite-macos-*.dmg
+            dist/*.zip
