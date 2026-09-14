@@ -40,6 +40,7 @@ import {
   getWorkspaceCardLayoutEntry
 } from './appearance-sidebar-search'
 import { resolveInterfaceSectionSummary } from './appearance-interface-summary'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 export { getAppearancePaneSearchEntries }
 
 type AppearancePaneProps = {
@@ -84,6 +85,7 @@ export function AppearancePane({
   // browser web client has no local tray to control.
   const isDesktopWindows = getRendererAppPlatform() === 'win32' && !isWebClient
   const isDesktopMac = getRendererAppPlatform() === 'darwin' && !isWebClient
+  const showAppIconSelector = getOrcaBuildProfile() !== 'corporate'
 
   // Why: Terminal / Window settings were too easy to miss when only Interface
   // started open; keep sections independently collapsible but expanded by default.
@@ -170,7 +172,8 @@ export function AppearancePane({
     title: windowSidebarTitle,
     description: windowSidebarSummary
   })
-  const appIconMatches = matchesSettingsSearch(searchQuery, getAppIconEntries())
+  const appIconMatches =
+    showAppIconSelector && matchesSettingsSearch(searchQuery, getAppIconEntries())
 
   // While searching, force-open every section that contains a match so its
   // controls (including advanced ones) are revealed; otherwise use the user's

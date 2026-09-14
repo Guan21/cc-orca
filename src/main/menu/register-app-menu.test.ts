@@ -79,6 +79,7 @@ describe('registerAppMenu', () => {
   })
 
   beforeEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     buildFromTemplateMock.mockReset()
     setApplicationMenuMock.mockReset()
     getFocusedWindowMock.mockReset()
@@ -88,6 +89,7 @@ describe('registerAppMenu', () => {
   })
 
   afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     vi.restoreAllMocks()
   })
 
@@ -230,6 +232,29 @@ describe('registerAppMenu', () => {
 
     expect(paletteItem).toBeDefined()
     expect(paletteItem?.accelerator).toBeUndefined()
+  })
+
+  it('hides unavailable tour and mobile menu entries in corporate builds', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    registerAppMenu(buildMenuOptions())
+
+    const helpSubmenu = getSubmenu(getTemplate(), 'Help')
+    const appearanceSubmenu = getSubmenu(getSubmenu(getTemplate(), 'View'), 'Appearance')
+
+    expect(helpSubmenu).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: 'Explore Orca' })])
+    )
+    expect(helpSubmenu).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: 'Explore Secure Orca Lite' })])
+    )
+    expect(helpSubmenu).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Getting Started with Secure Orca Lite' })
+      ])
+    )
+    expect(appearanceSubmenu).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: 'Show Orca Mobile Button' })])
+    )
   })
 
   // Why: pin the platform on every case — CI runs this suite on Linux only, so an

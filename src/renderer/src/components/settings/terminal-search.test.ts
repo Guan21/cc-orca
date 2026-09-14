@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { getTerminalPaneSearchEntries } from './terminal-search'
 import { getAppearancePaneSearchEntries, getSidebarEntries } from './appearance-search'
 import {
@@ -8,6 +8,10 @@ import {
 import { matchesSettingsSearch } from './settings-search'
 
 describe('getTerminalPaneSearchEntries', () => {
+  afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  })
+
   it('includes the Windows right-click setting on Windows', () => {
     const entries = getTerminalPaneSearchEntries({ isWindows: true, isMac: false })
     expect(entries.some((entry) => entry.title === 'Right-click to paste')).toBe(true)
@@ -182,6 +186,14 @@ describe('getTerminalPaneSearchEntries', () => {
     expect(macEntries.some((entry) => entry.title === 'Show Menu Bar Icon')).toBe(true)
     expect(otherEntries.some((entry) => entry.title === 'Show Menu Bar Icon')).toBe(false)
     expect(matchesSettingsSearch('status item', macEntries)).toBe(true)
+  })
+
+  it('omits App Icon entries from corporate Appearance search', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const entries = getAppearancePaneSearchEntries()
+
+    expect(entries.some((entry) => entry.title === 'App Icon')).toBe(false)
+    expect(matchesSettingsSearch('watercolor', entries)).toBe(false)
   })
 
   it('keeps sidebar shortcut restore settings in the Appearance search index', () => {

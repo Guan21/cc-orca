@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { callRuntimeRpc } from '@/runtime/runtime-rpc-client'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../../shared/corporate-build-profile'
 import {
   normalizeExternalBrowserUrl,
   redactKagiSessionToken
@@ -187,8 +188,12 @@ export function RemoteBrowserPageContextMenu({
               onClick={onOpenLinkInOrcaBrowser}
             >
               {translate(
-                'auto.components.browser.pane.BrowserPane.b5b87d6cbb',
-                'Open Link In Orca Browser'
+                getOrcaBuildProfile() === 'corporate'
+                  ? 'auto.components.browser.pane.BrowserPane.openLinkInAppBrowser'
+                  : 'auto.components.browser.pane.BrowserPane.b5b87d6cbb',
+                getOrcaBuildProfile() === 'corporate'
+                  ? 'Open Link In App Browser'
+                  : 'Open Link In Orca Browser'
               )}
             </button>
             <button

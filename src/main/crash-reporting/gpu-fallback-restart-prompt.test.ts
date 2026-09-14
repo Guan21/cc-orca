@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { showMessageBoxMock } = vi.hoisted(() => ({
   showMessageBoxMock: vi.fn()
@@ -11,7 +11,12 @@ vi.mock('electron', () => ({
 import { promptForGpuFallbackRestart } from './gpu-fallback-restart-prompt'
 
 beforeEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
   showMessageBoxMock.mockReset()
+})
+
+afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
 })
 
 describe('promptForGpuFallbackRestart', () => {
@@ -37,5 +42,19 @@ describe('promptForGpuFallbackRestart', () => {
 
     await expect(promptForGpuFallbackRestart()).resolves.toBe('continue')
     expect(showMessageBoxMock).toHaveBeenCalledOnce()
+  })
+
+  it('uses the corporate product display name in corporate builds', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    showMessageBoxMock.mockResolvedValue({ response: 1 })
+
+    await promptForGpuFallbackRestart()
+
+    expect(showMessageBoxMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Restart Secure Orca Lite in Safe Graphics Mode?',
+        message: "Secure Orca Lite's graphics process has crashed repeatedly."
+      })
+    )
   })
 })

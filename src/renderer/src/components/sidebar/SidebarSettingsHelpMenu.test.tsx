@@ -172,6 +172,7 @@ function findMenuItem(container: HTMLElement, label: string): HTMLButtonElement 
 describe('SidebarSettingsHelpMenu', () => {
   beforeEach(() => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = true
+    delete globalThis.__ORCA_BUILD_PROFILE__
     vi.clearAllMocks()
     installWindowApi()
     mocks.useShortcutKeyDetails.mockReturnValue({ keys: ['⌘', ','], doubleTap: false })
@@ -185,6 +186,7 @@ describe('SidebarSettingsHelpMenu', () => {
   })
 
   afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     roots.splice(0).forEach((root) => {
       act(() => root.unmount())
     })
@@ -282,6 +284,21 @@ describe('SidebarSettingsHelpMenu', () => {
   it('renders X link', () => {
     const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
     expect(html).toContain('>X<')
+  })
+
+  it('hides upstream community links and uses corporate restart copy in corporate builds', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
+
+    expect(html).toContain('Restart application')
+    expect(html).toContain('Docs')
+    expect(html).not.toContain('Restart Orca')
+    expect(html).not.toContain('Discord')
+    expect(html).not.toContain('>X<')
+    expect(html).not.toContain('GitHub')
+    expect(html).not.toContain('Send Feedback')
+    expect(html).not.toContain('Changelog')
   })
 
   it('renders Check for Updates menu item', () => {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { buildHttpLinkActions, httpLinkActionDestinationsFor } from './http-link-destinations'
 
 describe('httpLinkActionDestinationsFor', () => {
@@ -32,6 +32,10 @@ describe('httpLinkActionDestinationsFor', () => {
 })
 
 describe('buildHttpLinkActions', () => {
+  afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  })
+
   it('labels each offered destination and routes the run to it', () => {
     const opened: (string | undefined)[] = []
     const actions = buildHttpLinkActions(
@@ -49,6 +53,14 @@ describe('buildHttpLinkActions', () => {
     void actions.primary.run()
     void actions.alternate?.run()
     expect(opened).toEqual(['orca', 'system'])
+  })
+
+  it('uses neutral in-app browser wording in corporate builds', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const actions = buildHttpLinkActions({ primary: 'orca' }, () => {})
+
+    expect(actions.primary.label).toBe('App Browser')
   })
 
   it('omits the alternate row when only one destination is offered', () => {

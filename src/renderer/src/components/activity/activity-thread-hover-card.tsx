@@ -29,6 +29,7 @@ import { useWorktreeCardSecondaryDetails } from '../sidebar/use-worktree-card-se
 import { getReviewLabel } from '../sidebar/worktree-review-helpers'
 import { ActivityThreadHoverCardSummary } from './activity-thread-hover-card-summary'
 import type { AgentPaneThread } from './activity-thread-types'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 export type ActivityThreadHoverCardProps = {
   thread: AgentPaneThread
@@ -260,8 +261,10 @@ function ActivityThreadHoverCardContent({
                   {secondary.hoverLinearIssue.url && secondary.handleOpenLinearIssueInOrca && (
                     <MetadataActionIcon
                       label={translate(
-                        'auto.components.sidebar.WorktreeCardMeta.2c67730e07',
-                        'Open in Orca'
+                        getOrcaBuildProfile() === 'corporate'
+                          ? 'auto.components.sidebar.WorktreeCardMeta.openInApp'
+                          : 'auto.components.sidebar.WorktreeCardMeta.2c67730e07',
+                        getOrcaBuildProfile() === 'corporate' ? 'Open in app' : 'Open in Orca'
                       )}
                       onClick={dismissAndRun(secondary.handleOpenLinearIssueInOrca)}
                     >

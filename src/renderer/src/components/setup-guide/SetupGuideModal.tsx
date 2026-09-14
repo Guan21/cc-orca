@@ -3,7 +3,8 @@ import { EyeOff } from 'lucide-react'
 import {
   FEATURE_WALL_SETUP_STEP_IDS,
   getFirstIncompleteFeatureWallSetupStepId,
-  getFeatureWallSetupSteps
+  getFeatureWallSetupSteps,
+  isFeatureWallSetupStepEnabledForBuildProfile
 } from '../../../../shared/feature-wall-setup-steps'
 import type { FeatureWallSetupStepId } from '../../../../shared/feature-wall-setup-steps'
 import {
@@ -21,6 +22,8 @@ import { SetupGuideProgressRing } from './SetupGuideProgressRing'
 import { useSetupGuideProgress } from './use-setup-guide-progress'
 import { useSetupGuideOpenCloseTelemetry } from './use-setup-guide-telemetry'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 const SETUP_GUIDE_CLOSE_LINGER_MS = 300
 
@@ -53,6 +56,8 @@ function SetupGuideModalContent({
   const closeModal = useAppStore((s) => s.closeModal)
   const setSetupGuideSidebarDismissed = useAppStore((s) => s.setSetupGuideSidebarDismissed)
   const setupSteps = useMemo(() => getFeatureWallSetupSteps(), [])
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
+  const productDisplayName = getProductDisplayName()
   const [userSelectedStep, setUserSelectedStep] = useState(false)
   const [orchestrationSkillInstalled, setOrchestrationSkillInstalled] = useState(false)
   const [browserUseSkillInstalled, setBrowserUseSkillInstalled] = useState(false)
@@ -67,9 +72,11 @@ function SetupGuideModalContent({
   const [activeStepId, setActiveStepId] = useState<FeatureWallSetupStepId>(() =>
     getFirstIncompleteFeatureWallSetupStepId(progress.stepDone)
   )
-  const requestedStepId = isFeatureWallSetupStepId(modalData.setupStepId)
-    ? modalData.setupStepId
-    : null
+  const requestedStepId =
+    isFeatureWallSetupStepId(modalData.setupStepId) &&
+    isFeatureWallSetupStepEnabledForBuildProfile(modalData.setupStepId)
+      ? modalData.setupStepId
+      : null
   const telemetrySource =
     typeof modalData.setupGuideSource === 'string'
       ? modalData.setupGuideSource
@@ -180,10 +187,15 @@ function SetupGuideModalContent({
             />
           </div>
           <DialogDescription className="text-sm text-muted-foreground">
-            {translate(
-              'auto.components.setup.guide.SetupGuideModal.3598a3ca0c',
-              'Finish the core workflows that make Orca useful for parallel agent work.'
-            )}
+            {isCorporateBuild
+              ? translate(
+                  'auto.components.setup.guide.SetupGuideModal.corporateDescription',
+                  `Finish the core workflows that make ${productDisplayName} useful for parallel agent work.`
+                )
+              : translate(
+                  'auto.components.setup.guide.SetupGuideModal.3598a3ca0c',
+                  'Finish the core workflows that make Orca useful for parallel agent work.'
+                )}
           </DialogDescription>
         </DialogHeader>
         <div className="min-h-0 overflow-hidden px-7 py-6">

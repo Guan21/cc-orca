@@ -15,7 +15,9 @@ export function AgentDetectionCatalog({
   activeServerEnvironmentId,
   activeServerName,
   onRefresh,
-  getRowProps
+  getRowProps,
+  undetectedSectionTitle,
+  undetectedCountLabel
 }: {
   detectedAgents: AgentCatalogEntry[]
   undetectedAgents: AgentCatalogEntry[]
@@ -26,6 +28,8 @@ export function AgentDetectionCatalog({
   activeServerName: string | null
   onRefresh: () => void
   getRowProps: (agent: AgentCatalogEntry, isDetected: boolean) => AgentCatalogRowProps
+  undetectedSectionTitle?: string
+  undetectedCountLabel?: string
 }): React.JSX.Element {
   return (
     <>
@@ -101,12 +105,15 @@ export function AgentDetectionCatalog({
             title={
               <span className="flex items-center gap-2 text-muted-foreground">
                 {translate(
-                  'auto.components.settings.AgentsPane.e8da2af684',
-                  'Available to install'
+                  undetectedSectionTitle
+                    ? 'auto.components.settings.AgentsPane.setupRequired'
+                    : 'auto.components.settings.AgentsPane.e8da2af684',
+                  undetectedSectionTitle ?? 'Available to install'
                 )}
                 <SettingsBadge tone="muted">
                   {undetectedAgents.length}{' '}
-                  {translate('auto.components.settings.AgentsPane.024bd95089', 'agents')}
+                  {undetectedCountLabel ??
+                    translate('auto.components.settings.AgentsPane.024bd95089', 'agents')}
                 </SettingsBadge>
               </span>
             }

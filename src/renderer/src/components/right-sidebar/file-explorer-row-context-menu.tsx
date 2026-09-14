@@ -28,6 +28,7 @@ import { detectLanguage } from '@/lib/language-detect'
 import { openFileInBrowserTab } from '@/lib/file-preview'
 import { isLocalPathOpenBlocked, showLocalPathOpenBlockedToast } from '@/lib/local-path-open-guard'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import type { FileExplorerRowProps } from './FileExplorerRow'
 import {
   shouldShowCollapseFolderAction,
@@ -220,8 +221,12 @@ export function FileExplorerRowContextMenu({
         <ContextMenuItem onSelect={handleOpenInOrcaBrowser}>
           <Globe />
           {translate(
-            'auto.components.right.sidebar.FileExplorerRow.dd112c81d2',
-            'Open in Orca Browser'
+            getOrcaBuildProfile() === 'corporate'
+              ? 'auto.components.right.sidebar.FileExplorerRow.openInAppBrowser'
+              : 'auto.components.right.sidebar.FileExplorerRow.dd112c81d2',
+            getOrcaBuildProfile() === 'corporate'
+              ? 'Open in app browser'
+              : 'Open in Orca Browser'
           )}
         </ContextMenuItem>
       )}

@@ -16,6 +16,7 @@ import {
 import { DetailHeader, MetadataActionIcon } from './WorktreeCardMetadataControls'
 import { IssueStateBadge } from './WorktreeCardMetadataStatusBadges'
 import type { WorktreeCardIssueDisplay } from './worktree-card-meta-types'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 type WorktreeCardIssueDetailSectionProps = {
   issue: WorktreeCardIssueDisplay | null
@@ -94,8 +95,12 @@ export function WorktreeCardIssueDetailSection({
                     >
                       <Globe className="size-3.5" />
                       {translate(
-                        'auto.components.sidebar.WorktreeCardMeta.openInOrcaBrowser',
-                        'Open in Orca browser'
+                        getOrcaBuildProfile() === 'corporate'
+                          ? 'auto.components.sidebar.WorktreeCardMeta.openInAppBrowser'
+                          : 'auto.components.sidebar.WorktreeCardMeta.openInOrcaBrowser',
+                        getOrcaBuildProfile() === 'corporate'
+                          ? 'Open in app browser'
+                          : 'Open in Orca browser'
                       )}
                     </DropdownMenuItem>
                   )}
@@ -122,8 +127,10 @@ export function WorktreeCardIssueDetailSection({
             {issue.url && onOpenGitHubIssueInOrca && (
               <MetadataActionIcon
                 label={translate(
-                  'auto.components.sidebar.WorktreeCardMeta.2c67730e07',
-                  'Open in Orca'
+                  getOrcaBuildProfile() === 'corporate'
+                    ? 'auto.components.sidebar.WorktreeCardMeta.openInApp'
+                    : 'auto.components.sidebar.WorktreeCardMeta.2c67730e07',
+                  getOrcaBuildProfile() === 'corporate' ? 'Open in app' : 'Open in Orca'
                 )}
                 onClick={onOpenGitHubIssueInOrca}
               >

@@ -27,6 +27,7 @@ describe('OnboardingFlow', () => {
 
   afterEach(() => {
     useAppStore.setState(useAppStore.getInitialState(), true)
+    delete globalThis.__ORCA_BUILD_PROFILE__
     vi.unstubAllGlobals()
   })
 
@@ -226,6 +227,20 @@ describe('OnboardingFlow', () => {
     expect(html).toContain('h-7 w-auto shrink-0 invert dark:invert-0')
     expect(html).not.toContain('min-h-screen')
     expect(html).not.toContain('background-color:#12181e')
+  })
+
+  it('uses the corporate product name in onboarding chrome and agent copy', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const html = renderOnboardingFlow({
+      onboarding: getDefaultOnboardingState(),
+      onOnboardingChange: vi.fn()
+    })
+
+    expect(html).toContain('Secure Orca Lite')
+    expect(html).toContain('Claude Code and Codex')
+    expect(html).not.toContain('Welcome to Orca')
+    expect(html).not.toContain('Orca works with every CLI agent')
   })
 
   it('renders concise skip confirmation copy', () => {

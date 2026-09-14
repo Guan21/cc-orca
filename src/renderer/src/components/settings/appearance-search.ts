@@ -8,6 +8,7 @@ import { SHOW_UI_LANGUAGE_SETTING } from '@/i18n/supported-languages'
 import { getStatusBarToggles } from './appearance-status-bar-search'
 import { getUsagePercentageDisplayEntry } from './appearance-usage-percentage-search'
 import { getMenuBarIconEntries, getSystemTrayEntries } from './appearance-system-presence-search'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 export {
   getMenuBarIconEntries,
@@ -175,7 +176,7 @@ export const getStatusBarEntries = createLocalizedCatalog((): SettingsSearchEntr
 
 export { getLeftSidebarAppearanceEntry, getSidebarEntries }
 
-export const getAppIconEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
+const getDefaultAppIconEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
   {
     title: translate('auto.components.settings.appearance.search.2b313598c6', 'App Icon'),
     description: translate(
@@ -202,6 +203,13 @@ export const getAppIconEntries = createLocalizedCatalog((): SettingsSearchEntry[
     ]
   }
 ])
+
+export function getAppIconEntries(): SettingsSearchEntry[] {
+  if (getOrcaBuildProfile() === 'corporate') {
+    return []
+  }
+  return getDefaultAppIconEntries()
+}
 
 const getAppearanceSectionEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
   {

@@ -1,3 +1,9 @@
+import {
+  getOrcaBuildProfile,
+  isCapabilityEnabledForBuildProfile,
+  type OrcaBuildProfile
+} from './corporate-build-profile'
+
 export type FeatureWallSetupStepId =
   | 'default-agent'
   | 'add-two-repos'
@@ -80,8 +86,31 @@ export const FEATURE_WALL_SETUP_STEPS: readonly FeatureWallSetupStep[] = [
 
 export const FEATURE_WALL_SETUP_STEP_IDS = FEATURE_WALL_SETUP_STEPS.map((step) => step.id)
 
-export function getFeatureWallSetupSteps(): readonly FeatureWallSetupStep[] {
-  return FEATURE_WALL_SETUP_STEPS
+export function isFeatureWallSetupStepEnabledForBuildProfile(
+  stepId: FeatureWallSetupStepId,
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): boolean {
+  if (profile !== 'corporate') {
+    return true
+  }
+  if (stepId === 'browser') {
+    return isCapabilityEnabledForBuildProfile('skills', profile)
+  }
+  if (stepId === 'agent-capabilities') {
+    return (
+      isCapabilityEnabledForBuildProfile('skills', profile) &&
+      isCapabilityEnabledForBuildProfile('computer-use', profile)
+    )
+  }
+  return true
+}
+
+export function getFeatureWallSetupSteps(
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): readonly FeatureWallSetupStep[] {
+  return FEATURE_WALL_SETUP_STEPS.filter((step) =>
+    isFeatureWallSetupStepEnabledForBuildProfile(step.id, profile)
+  )
 }
 
 export function getFeatureWallSetupSectionId(
@@ -95,25 +124,31 @@ export function getFeatureWallSetupSectionId(
 }
 
 export function getFeatureWallSetupStepsForSection(
-  sectionId: FeatureWallSetupSectionId
+  sectionId: FeatureWallSetupSectionId,
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
 ): readonly FeatureWallSetupStep[] {
-  return FEATURE_WALL_SETUP_STEPS.filter(
+  return getFeatureWallSetupSteps(profile).filter(
     (step) => getFeatureWallSetupSectionId(step.id) === sectionId
   )
 }
 
 export function getFirstIncompleteFeatureWallSetupStepId(
-  stepDone: Partial<Record<FeatureWallSetupStepId, boolean>>
+  stepDone: Partial<Record<FeatureWallSetupStepId, boolean>>,
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
 ): FeatureWallSetupStepId {
   // Why: onboarding should prioritize Setup, while durable definitions retain the original order.
-  const setupStep = getFeatureWallSetupStepsForSection('setup').find((step) => !stepDone[step.id])
+  const setupStep = getFeatureWallSetupStepsForSection('setup', profile).find(
+    (step) => !stepDone[step.id]
+  )
   if (setupStep) {
     return setupStep.id
   }
-  const parallelStep = getFeatureWallSetupStepsForSection('parallel-work').find(
+  const parallelStep = getFeatureWallSetupStepsForSection('parallel-work', profile).find(
     (step) => !stepDone[step.id]
   )
-  return parallelStep?.id ?? FEATURE_WALL_SETUP_STEPS[0].id
+  return (
+    parallelStep?.id ?? getFeatureWallSetupSteps(profile)[0]?.id ?? FEATURE_WALL_SETUP_STEPS[0].id
+  )
 }
 
 export function isFeatureWallSetupStepId(value: unknown): value is FeatureWallSetupStepId {

@@ -2,6 +2,7 @@ import type { MessageBoxOptions, MessageBoxReturnValue } from 'electron'
 import { translateMain } from '../i18n/main-i18n'
 import type { InstallDirAclPoisonDiagnosis } from '../startup/windows-install-dir-acl-recovery'
 import type { RecoveryExhaustionCause } from './renderer-recovery-reload-watchdog'
+import { getProductDisplayName } from '../../shared/product-display-name'
 
 export type RendererRecoveryPromptFailure = RecoveryExhaustionCause
 
@@ -20,6 +21,7 @@ export async function presentRendererRecoveryPrompt(
   deps: RendererRecoveryPromptDeps
 ): Promise<void> {
   const stalled = deps.failure === 'reload-stalled'
+  const productName = getProductDisplayName()
   // Copying must preserve the only available recovery surface.
   while (!deps.isQuitting()) {
     const diagnosis = deps.diagnose()
@@ -30,12 +32,20 @@ export async function presentRendererRecoveryPrompt(
     buttons.push(translateMain('rendererRecovery.quit', 'Quit'))
     const recoveryDetail = stalled
       ? translateMain(
-          'rendererRecovery.stalledDetail',
-          'Orca reloaded the window after a crash, but it never finished loading.'
+          productName === 'Orca'
+            ? 'rendererRecovery.stalledDetail'
+            : 'rendererRecovery.productStalledDetail',
+          productName === 'Orca'
+            ? 'Orca reloaded the window after a crash, but it never finished loading.'
+            : `${productName} reloaded the window after a crash, but it never finished loading.`
         )
       : translateMain(
-          'rendererRecovery.crashLoopDetail',
-          'Orca tried to recover {{recoveryCount}} times in a row without success.',
+          productName === 'Orca'
+            ? 'rendererRecovery.crashLoopDetail'
+            : 'rendererRecovery.productCrashLoopDetail',
+          productName === 'Orca'
+            ? 'Orca tried to recover {{recoveryCount}} times in a row without success.'
+            : `${productName} tried to recover {{recoveryCount}} times in a row without success.`,
           { recoveryCount: deps.recentRecoveryCount }
         )
     const causeDetail = diagnosis
@@ -44,8 +54,12 @@ export async function presentRendererRecoveryPrompt(
           'If that does not help, the cause is usually a graphics driver.'
         )}`
       : translateMain(
-          'rendererRecovery.genericDetail',
-          'This is often a graphics-driver or installation problem. Reload to try again, or quit and relaunch Orca.'
+          productName === 'Orca'
+            ? 'rendererRecovery.genericDetail'
+            : 'rendererRecovery.productGenericDetail',
+          productName === 'Orca'
+            ? 'This is often a graphics-driver or installation problem. Reload to try again, or quit and relaunch Orca.'
+            : 'This is often a graphics-driver or installation problem. Reload to try again, or quit and relaunch the application.'
         )
     const { response } = await deps.showMessageBox({
       type: 'error',
@@ -53,7 +67,10 @@ export async function presentRendererRecoveryPrompt(
       defaultId: 0,
       // Escape retries instead of destroying the session.
       cancelId: 0,
-      title: translateMain('rendererRecovery.title', 'Orca keeps failing to load'),
+      title: translateMain(
+        productName === 'Orca' ? 'rendererRecovery.title' : 'rendererRecovery.productTitle',
+        productName === 'Orca' ? 'Orca keeps failing to load' : `${productName} keeps failing to load`
+      ),
       message: stalled
         ? translateMain(
             'rendererRecovery.stalledMessage',

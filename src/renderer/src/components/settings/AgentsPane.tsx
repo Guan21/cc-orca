@@ -21,8 +21,11 @@ import {
 } from './SettingsFormControls'
 import {
   isTuiAgentEnabled,
-  normalizeDisabledTuiAgents
+  normalizeDisabledTuiAgents,
+  filterEnabledTuiAgents,
+  getTuiAgentDisplayLabel
 } from '../../../../shared/tui-agent-selection'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import {
   getTuiAgentDefaultArgs,
   getTuiAgentDefaultEnv,
@@ -172,7 +175,10 @@ export function AgentsPane({
     () => (detectedList ? new Set(detectedList) : null),
     [detectedList]
   )
-  const catalog = getAgentCatalog()
+  const fullCatalog = getAgentCatalog()
+  const allowedAgentIds = new Set(filterEnabledTuiAgents(fullCatalog.map((agent) => agent.id)))
+  const catalog = fullCatalog.filter((agent) => allowedAgentIds.has(agent.id))
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
   const defaultAgent = settings.defaultTuiAgent
   const cmdOverrides = settings.agentCmdOverrides ?? {}
   const agentDefaultArgs = settings.agentDefaultArgs ?? {}
@@ -201,7 +207,7 @@ export function AgentsPane({
     isDetected: boolean
   ): AgentCatalogRowProps => ({
     agentId: agent.id,
-    label: agent.label,
+    label: getTuiAgentDisplayLabel(agent.id, agent.label),
     homepageUrl: agent.homepageUrl,
     defaultCmd: agent.cmd,
     defaultArgs: getTuiAgentDefaultArgs(agent.id),
@@ -232,7 +238,11 @@ export function AgentsPane({
     sessionSourceHome:
       isDetected && agent.id === 'codex'
         ? buildCodexSessionSourceHomeControl(settings, updateSettings)
-        : undefined
+        : undefined,
+    showLaunchArgs: !isCorporateBuild,
+    undetectedLinkTitle: isCorporateBuild
+      ? translate('auto.components.settings.AgentsPane.setupDocs', 'Setup docs')
+      : undefined
   })
 
   return (
@@ -260,12 +270,14 @@ export function AgentsPane({
         <AgentAwakeSetting settings={settings} updateSettings={updateSettings} />
       ) : null}
       <AgentCacheTimerSection settings={settings} updateSettings={updateSettings} />
-      <AgentPermissionsSetting
-        mode={resolveAgentPermissionModeSummary({ agentDefaultArgs, agentDefaultEnv })}
-        onChange={(mode) =>
-          updateSettings(applyAgentPermissionMode({ mode, agentDefaultArgs, agentDefaultEnv }))
-        }
-      />
+      {!isCorporateBuild && (
+        <AgentPermissionsSetting
+          mode={resolveAgentPermissionModeSummary({ agentDefaultArgs, agentDefaultEnv })}
+          onChange={(mode) =>
+            updateSettings(applyAgentPermissionMode({ mode, agentDefaultArgs, agentDefaultEnv }))
+          }
+        />
+      )}
       <AgentDetectionCatalog
         detectedAgents={detectedAgents}
         undetectedAgents={undetectedAgents}
@@ -276,6 +288,11 @@ export function AgentsPane({
         activeServerName={activeServerName}
         onRefresh={() => void refreshTargetAgents()}
         getRowProps={getRowProps}
+        undetectedSectionTitle={
+          isCorporateBuild
+            ? translate('auto.components.settings.AgentsPane.setupRequired', 'Setup required')
+            : undefined
+        }
       />
     </div>
   )

@@ -8,6 +8,7 @@ import {
 import type { UpdateCheckOptions } from '../../shared/update-status-types'
 import { translateMain } from '../i18n/main-i18n'
 import { createAppMenuSelectionItem } from './app-menu-selection-item'
+import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
 
 export type AppearanceMenuState = {
   showTasksButton: boolean
@@ -38,8 +39,6 @@ type RegisterAppMenuOptions = {
   onToggleAppearance: (key: AppearanceMenuKey) => void
   getAppearanceState: () => AppearanceMenuState
   getKeybindings?: () => KeybindingOverrides | undefined
-  // Why: the macOS app-menu title. Passed the per-branch dev label since
-  // app.name is now pinned to a stable value for Keychain-key stability.
   appMenuLabel?: string
 }
 
@@ -62,6 +61,7 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
   } = options
 
   const isMac = process.platform === 'darwin'
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
   const appearance = getAppearanceState()
   const shortcutLabel = (actionId: KeybindingActionId): string => {
     const bindings = getEffectiveKeybindingsForAction(
@@ -88,9 +88,6 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     webContents.reload()
   }
 
-  // Why: modifier-click update checks are hidden power-user affordances.
-  // Extracted so the macOS app-menu entry and Windows/Linux Help entry share
-  // identical RC/perf channel routing.
   const checkForUpdatesClick: Electron.MenuItemConstructorOptions['click'] = (
     _menuItem,
     _window,
@@ -118,26 +115,25 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     click: () => onOpenSettings()
   }
 
-  const featureTourItem: Electron.MenuItemConstructorOptions = {
-    label: translateMain('menu.exploreOrca', 'Explore Orca'),
-    click: (_menuItem, window) => onOpenFeatureTour(window)
-  }
+  const featureTourItem: Electron.MenuItemConstructorOptions | null = isCorporateBuild
+    ? null
+    : {
+        label: translateMain('menu.exploreOrca', 'Explore Orca'),
+        click: (_menuItem, window) => onOpenFeatureTour(window)
+      }
 
-  const setupGuideItem: Electron.MenuItemConstructorOptions = {
-    label: translateMain('menu.gettingStarted', 'Getting Started with Orca'),
-    click: (_menuItem, window) => onOpenSetupGuide(window)
-  }
+  const setupGuideItem: Electron.MenuItemConstructorOptions | null = isCorporateBuild
+    ? null
+    : {
+        label: translateMain('menu.gettingStarted', 'Getting Started with Orca'),
+        click: (_menuItem, window) => onOpenSetupGuide(window)
+      }
 
   const crashReportItem: Electron.MenuItemConstructorOptions = {
     label: translateMain('menu.reportCrash', 'Report Crash...'),
     click: (_menuItem, window) => onOpenCrashReport(window)
   }
 
-  // Why: the macOS app-menu (named after the app) is mandatory on darwin and
-  // owns hide/hideOthers/unhide/services/quit roles that only make sense in
-  // the system menu bar. On Windows/Linux that menu would render as a
-  // redundant "Orca" entry with roles that don't apply, so we omit it there
-  // and distribute its items across File / Help instead.
   const macAppMenu: Electron.MenuItemConstructorOptions = {
     label: options.appMenuLabel ?? app.name,
     submenu: [
@@ -157,9 +153,6 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
 
   const fileMenu: Electron.MenuItemConstructorOptions = {
     label: translateMain('menu.file', 'File'),
-    // Why: on Windows/Linux there is no app-named menu, so Settings and
-    // Quit live under File — matching the common platform convention and
-    // keeping all user-facing actions reachable from the in-window menu bar.
     submenu: [
       settingsItem,
       { type: 'separator' },
@@ -167,7 +160,6 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     ]
   }
 
-  // Why: keep native menu hints while letting non-macOS Ctrl+Z/Ctrl+Y reach the focused terminal or DOM control.
   const undoRedoOptions: Electron.MenuItemConstructorOptions = isMac
     ? {}
     : { registerAccelerator: false }
@@ -187,16 +179,12 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
         label: translateMain('menu.paste', 'Paste'),
         accelerator: 'CmdOrCtrl+V',
         click: () => {
-          // Why: a focused terminal/native-chat pane is not a native editable
-          // control, so raw Electron paste cannot know which Orca surface owns it.
           const focusedWindow = BrowserWindow.getFocusedWindow()
           if (focusedWindow) {
             focusedWindow.webContents.send('ui:appMenuPaste')
             return
           }
 
-          // Why: a macOS native panel (open/save, Go to Folder) leaves no focused
-          // BrowserWindow, so overriding the paste role would strand Cmd+V as a no-op.
           if (isMac) {
             Menu.sendActionToFirstResponder('paste:')
           }
@@ -210,28 +198,14 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     ]
   }
 
-  // Why: mirror VS Code's View > Appearance submenu so users can toggle
-  // sidebar/status-bar/tasks-button/titlebar-activity from the menu bar as
-  // well as from the settings pane. Electron doesn't reactively update
-  // menu items when the backing state changes, so rebuildAppMenu() must be
-  // called after every settings update — each build reads current
-  // appearance state through getAppearanceState() and produces a fresh
-  // template with accurate `checked` values.
   const appearanceSubmenu: Electron.MenuItemConstructorOptions = {
     label: translateMain('menu.appearance', 'Appearance'),
     submenu: [
       {
-        // Why: display-only shortcut hint — not a real accelerator. Cmd/Ctrl+B
-        // is intercepted in createMainWindow.ts's before-input-event handler
-        // with a TipTap-bold carve-out for markdown editors. Binding the
-        // accelerator here would steal the chord before that carve-out can
-        // fire. Sidebar open/closed lives in the renderer store (non-persisted),
-        // so we forward a toggle request rather than mirroring state in main.
         label: `${translateMain('menu.toggleLeftSidebar', 'Toggle Left Sidebar')}\t${shortcutLabel('sidebar.left.toggle')}`,
         click: () => onToggleLeftSidebar()
       },
       {
-        // Why: display-only shortcut hint for the same reason as above.
         label: `${translateMain('menu.toggleRightSidebar', 'Toggle Right Sidebar')}\t${shortcutLabel('sidebar.right.toggle')}`,
         click: () => onToggleRightSidebar()
       },
@@ -254,12 +228,16 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
         checked: appearance.showAutomationsButton,
         click: () => onToggleAppearance('showAutomationsButton')
       },
-      {
-        label: translateMain('menu.showMobileButton', 'Show Orca Mobile Button'),
-        type: 'checkbox',
-        checked: appearance.showMobileButton,
-        click: () => onToggleAppearance('showMobileButton')
-      },
+      ...(!isCorporateBuild
+        ? ([
+            {
+              label: translateMain('menu.showMobileButton', 'Show Orca Mobile Button'),
+              type: 'checkbox',
+              checked: appearance.showMobileButton,
+              click: () => onToggleAppearance('showMobileButton')
+            }
+          ] satisfies Electron.MenuItemConstructorOptions[])
+        : []),
       {
         label: translateMain('menu.showTitlebarAppName', 'Show Titlebar App Name'),
         type: 'checkbox',
@@ -296,11 +274,6 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
       },
       { type: 'separator' },
       {
-        // Why: display-only shortcut hint — do NOT set `accelerator` here.
-        // Menu accelerators intercept key events at the main-process level
-        // before the renderer's keydown handler fires. The overlay
-        // mutual-exclusion logic (which runs in the renderer) would be
-        // bypassed if this were a real accelerator binding.
         label: `${translateMain('menu.openWorktreePalette', 'Open Worktree Palette')}\t${shortcutLabel('worktree.palette')}`
       },
       { type: 'separator' },
@@ -319,9 +292,13 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     label: translateMain('menu.help', 'Help'),
     submenu: [
       crashReportItem,
-      { type: 'separator' },
-      featureTourItem,
-      setupGuideItem,
+      ...(featureTourItem || setupGuideItem
+        ? ([
+            { type: 'separator' },
+            ...(featureTourItem ? [featureTourItem] : []),
+            ...(setupGuideItem ? [setupGuideItem] : [])
+          ] satisfies Electron.MenuItemConstructorOptions[])
+        : []),
       ...(isMac
         ? []
         : ([
@@ -351,10 +328,6 @@ export function registerAppMenu(options: RegisterAppMenuOptions): void {
   buildAndApplyMenu(options)
 }
 
-/** Rebuild the application menu using the options from the most recent
- *  registerAppMenu call. Used to refresh checkbox `checked` state when
- *  settings that feed the Appearance submenu change, since Electron's
- *  menu items do not reactively re-render when the backing state updates. */
 export function rebuildAppMenu(): void {
   if (lastRegisterOptions) {
     buildAndApplyMenu(lastRegisterOptions)

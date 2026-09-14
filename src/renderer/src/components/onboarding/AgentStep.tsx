@@ -6,6 +6,11 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { TuiAgent } from '../../../../shared/tui-agent'
+import {
+  filterEnabledTuiAgents,
+  getTuiAgentDisplayLabel
+} from '../../../../shared/tui-agent-selection'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { translate } from '@/i18n/i18n'
 
 const AGENT_GRID_MAX_ROWS = 4
@@ -67,7 +72,10 @@ export function AgentStep({
   yoloPermissions = true,
   onYoloPermissionsChange
 }: AgentStepProps) {
-  const agentCatalog = getAgentCatalog()
+  const fullCatalog = getAgentCatalog()
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
+  const allowedAgentIds = new Set(filterEnabledTuiAgents(fullCatalog.map((agent) => agent.id)))
+  const agentCatalog = fullCatalog.filter((agent) => allowedAgentIds.has(agent.id))
   const detected = agentCatalog.filter((agent) => detectedSet.has(agent.id))
   const rest = agentCatalog.filter((agent) => !detectedSet.has(agent.id))
   const hasDetected = detected.length > 0
@@ -122,18 +130,33 @@ export function AgentStep({
       {selectedEntry && (
         <div className="flex shrink-0 items-center justify-between gap-3 rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-xs text-amber-700 dark:text-amber-200/90">
           <span>
-            <span className="font-medium">{selectedEntry.label}</span>{' '}
-            {translate(
-              'auto.components.onboarding.AgentStep.69af7e9c1c',
-              "isn't on your PATH yet. Orca will set it as your default and you can install it any time."
-            )}
+            <span className="font-medium">
+              {getTuiAgentDisplayLabel(selectedEntry.id, selectedEntry.label)}
+            </span>{' '}
+            {isCorporateBuild
+              ? translate(
+                  'auto.components.onboarding.AgentStep.corporateMissingAgent',
+                  "isn't available on your PATH yet. Install or configure it on this workstation, then retry detection."
+                )
+              : translate(
+                  'auto.components.onboarding.AgentStep.69af7e9c1c',
+                  "isn't on your PATH yet. Orca will set it as your default and you can install it any time."
+                )}
           </span>
           <button
             type="button"
             className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-400/40 bg-amber-400/10 px-2 py-1 font-medium text-amber-800 hover:bg-amber-400/20 dark:text-amber-100"
             onClick={() => void window.api.shell.openUrl(selectedEntry.homepageUrl)}
           >
-            {translate('auto.components.onboarding.AgentStep.9c163bb0e0', 'Install instructions')}
+            {isCorporateBuild
+              ? translate(
+                  'auto.components.onboarding.AgentStep.setupInstructions',
+                  'Setup instructions'
+                )
+              : translate(
+                  'auto.components.onboarding.AgentStep.9c163bb0e0',
+                  'Install instructions'
+                )}
             <ExternalLink className="size-3" />
           </button>
         </div>
@@ -190,10 +213,12 @@ export function AgentStep({
           </div>
         </div>
       </section>
-      <YoloPermissionsControl
-        yoloPermissions={yoloPermissions}
-        onYoloPermissionsChange={onYoloPermissionsChange}
-      />
+      {!isCorporateBuild && (
+        <YoloPermissionsControl
+          yoloPermissions={yoloPermissions}
+          onYoloPermissionsChange={onYoloPermissionsChange}
+        />
+      )}
     </div>
   )
 }
@@ -302,7 +327,9 @@ function AgentButton({
           <AgentIcon agent={agent.id} size={16} />
         </span>
         <div className="min-w-0">
-          <div className="truncate text-sm font-medium text-foreground">{agent.label}</div>
+          <div className="truncate text-sm font-medium text-foreground">
+            {getTuiAgentDisplayLabel(agent.id, agent.label)}
+          </div>
           <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
             {agent.cmd}
           </div>
