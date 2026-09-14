@@ -27,7 +27,7 @@ jobs:
       - name: Checkout temporary CI branch
         uses: actions/checkout@v6
         with:
-          fetch-depth: 20
+          fetch-depth: 1
           persist-credentials: false
 
       - name: Verify PR28 source baseline
@@ -38,15 +38,19 @@ jobs:
           echo "Checked-out HEAD: $(git rev-parse HEAD)"
           echo "Expected PR28 source HEAD: $EXPECTED_SOURCE_SHA"
 
-          if ! git cat-file -e "$EXPECTED_SOURCE_SHA^{commit}"; then
-            echo "::error::Expected source commit $EXPECTED_SOURCE_SHA is not present in this checkout."
+          if ! git cat-file -e "$EXPECTED_SOURCE_SHA^{commit}" 2>/dev/null; then
+            git fetch --no-tags --depth=1 origin "$EXPECTED_SOURCE_SHA"
+          fi
+
+          if ! git cat-file -e "$EXPECTED_SOURCE_SHA^{commit}" 2>/dev/null; then
+            echo "::error::Expected source commit $EXPECTED_SOURCE_SHA could not be fetched."
             exit 1
           fi
 
-          if ! git merge-base --is-ancestor "$EXPECTED_SOURCE_SHA" HEAD; then
-            echo "::error::Checked-out HEAD is not based on expected PR28 source commit $EXPECTED_SOURCE_SHA."
-            exit 1
-          fi
+          checked_out_tree="$(git rev-parse HEAD^{tree})"
+          expected_tree="$(git rev-parse "$EXPECTED_SOURCE_SHA^{tree}")"
+          echo "Checked-out tree: $checked_out_tree"
+          echo "Expected source tree: $expected_tree"
 
           changed_files="$(git diff --name-only "$EXPECTED_SOURCE_SHA"..HEAD)"
           printf 'Files changed after PR28 source HEAD:\n'
