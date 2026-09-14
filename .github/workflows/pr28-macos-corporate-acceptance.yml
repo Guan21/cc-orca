@@ -114,7 +114,7 @@ jobs:
           if [[ -d dist ]]; then
             ls -lah dist
             shasum -a 256 dist/secure-orca-lite-macos-*.dmg || true
-            shasum -a 256 dist/secure-orca-lite-macos-*.zip || true
+            shasum -a 256 dist/*.zip || true
             find dist -maxdepth 3 -name '*.app' -print -exec codesign -dv --verbose=4 {} \; || true
           else
             echo "dist directory was not created."
@@ -128,4 +128,4 @@ jobs:
           if-no-files-found: warn
           path: |
             dist/secure-orca-lite-macos-*.dmg
-            dist/secure-orca-lite-macos-*.zip
+            dist/*.zip
