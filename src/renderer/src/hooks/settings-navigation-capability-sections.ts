@@ -16,6 +16,7 @@ import {
   Blocks,
   Bot,
   CircleUserRound,
+  ListChecks,
   Mic,
   MousePointerClick,
   Network,
@@ -121,6 +122,7 @@ export function buildCapabilitySettingsSections({
 }
 
 export function buildSetupSettingsSections({
+  buildProfile,
   isLocalWindowsHost,
   isWebClient
 }: SettingsNavigationBuildOptions): SettingsNavSection[] {
@@ -151,7 +153,7 @@ export function buildSetupSettingsSections({
         'auto.hooks.useSettingsNavigationMetadata.5f32ac08f3',
         'Finish the onboarding checklist for core Orca workflows.'
       ),
-      icon: OrcaLogoSettingsIcon,
+      icon: buildProfile === 'corporate' ? ListChecks : OrcaLogoSettingsIcon,
       searchEntries: [
         {
           title: translate(

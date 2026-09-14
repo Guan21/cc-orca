@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import type { FeatureWallSetupProgressInput } from './feature-wall-setup-progress'
 import { getFeatureWallSetupProgress } from './feature-wall-setup-progress'
 import {
@@ -41,6 +41,10 @@ function makeWorktree(
 }
 
 describe('getFeatureWallSetupProgress', () => {
+  afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  })
+
   it('tracks Add 2 projects from durable git repo count', () => {
     expect(getFeatureWallSetupProgress(makeInput({ gitRepoCount: 1 })).stepDone).toMatchObject({
       'add-two-repos': false
@@ -50,6 +54,17 @@ describe('getFeatureWallSetupProgress', () => {
 
     expect(progress.stepDone['add-two-repos']).toBe(true)
     expect(progress.coreTotal).toBe(8)
+  })
+
+  it('counts only corporate-visible setup steps in corporate progress totals', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const progress = getFeatureWallSetupProgress(makeInput())
+
+    expect(progress.coreTotal).toBe(6)
+    expect(progress.coreDoneCount).toBe(0)
+    expect(progress.stepDone.browser).toBe(false)
+    expect(progress.stepDone['agent-capabilities']).toBe(false)
   })
 
   it('preserves the durable setup step definition order', () => {

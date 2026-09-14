@@ -240,6 +240,7 @@ describe('AppearancePane', () => {
 
   afterEach(() => {
     delete (window as unknown as { api?: unknown }).api
+    delete globalThis.__ORCA_BUILD_PROFILE__
   })
 
   it('shows language as a primary interface control without opening Advanced', async () => {
@@ -442,6 +443,15 @@ describe('AppearancePane', () => {
         appIconImage &&
         interfaceRow.compareDocumentPosition(appIconImage) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
+  })
+
+  it('hides the App Icon selector in corporate builds', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    mocks.state.settingsSearchQuery = ''
+    const container = await renderAppearancePane(getDefaultSettings('/tmp'))
+
+    expect(container.querySelector<HTMLImageElement>('img[alt="Selected app icon"]')).toBeNull()
+    expect(container.textContent).not.toContain('App Icon')
   })
 
   it('reveals an advanced sidebar control when its search matches, even though it is hidden by default', async () => {

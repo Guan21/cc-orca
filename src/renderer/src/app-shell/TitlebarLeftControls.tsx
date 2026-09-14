@@ -18,6 +18,7 @@ import { useAppStore } from '../store'
 import { hasCustomTitleBar, isMac } from './app-window-chrome'
 import type { AppChromeLayout } from './use-app-chrome-layout'
 import { getProductDisplayName } from '../../../shared/product-display-name'
+import { getOrcaBuildProfile } from '../../../shared/corporate-build-profile'
 
 /**
  * The titlebar's left cluster: window chrome padding, app name, sidebar toggle, and the
@@ -26,6 +27,7 @@ import { getProductDisplayName } from '../../../shared/product-display-name'
  */
 export function TitlebarLeftControls({ layout }: { layout: AppChromeLayout }): React.JSX.Element {
   const productDisplayName = getProductDisplayName()
+  const showProductLogo = getOrcaBuildProfile() !== 'corporate'
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
   const updateSettings = useAppStore((s) => s.updateSettings)
   const canGoBackWorktree = useAppStore(canGoBackWorktreeHistory)
@@ -47,9 +49,11 @@ export function TitlebarLeftControls({ layout }: { layout: AppChromeLayout }): R
         {isMac && !layout.isFullScreen ? (
           <div className="titlebar-traffic-light-pad" />
         ) : hasCustomTitleBar ? (
-          /* Why: Windows/Linux remove the native title bar, so render the logo plus a ··· button that pops the application menu (as Alt does). */
+          /* Why: Windows/Linux remove the native title bar, so render the app-menu button that pops the application menu (as Alt does). */
           <>
-            <img src={logo} alt="" aria-hidden className="titlebar-logo" />
+            {showProductLogo ? (
+              <img src={logo} alt="" aria-hidden className="titlebar-logo" />
+            ) : null}
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
@@ -71,13 +75,8 @@ export function TitlebarLeftControls({ layout }: { layout: AppChromeLayout }): R
         {layout.showSidebar && !hasCustomTitleBar && layout.showTitlebarAppName && (
           <ContextMenu>
             <ContextMenuTrigger asChild>
-              <div
-                className="titlebar-app-name"
-                aria-label={productDisplayName}
-              >
-                <span className="titlebar-app-name-main">
-                  {productDisplayName}
-                </span>
+              <div className="titlebar-app-name" aria-label={productDisplayName}>
+                <span className="titlebar-app-name-main">{productDisplayName}</span>
               </div>
             </ContextMenuTrigger>
             <ContextMenuContent>

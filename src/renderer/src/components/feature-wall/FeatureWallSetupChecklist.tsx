@@ -4,7 +4,10 @@ import type {
   FeatureWallSetupStep,
   FeatureWallSetupStepId
 } from '../../../../shared/feature-wall-setup-steps'
-import { getFeatureWallSetupStepsForSection } from '../../../../shared/feature-wall-setup-steps'
+import {
+  getFeatureWallSetupStepsForSection,
+  isFeatureWallSetupStepEnabledForBuildProfile
+} from '../../../../shared/feature-wall-setup-steps'
 import { cn } from '@/lib/utils'
 import type { FeatureWallSetupProgress } from './feature-wall-setup-progress'
 import { AgentCapabilitiesSetupAction } from './AgentCapabilitiesSetupAction'
@@ -137,6 +140,9 @@ function SelectedStepAction(props: FeatureWallSetupChecklistProps): React.JSX.El
   if (!activeStep) {
     return null
   }
+  if (!isFeatureWallSetupStepEnabledForBuildProfile(activeStep.id)) {
+    return null
+  }
   const activeDone = props.progress.stepDone[activeStep.id]
   if (activeStep.id === 'default-agent') {
     return <DefaultAgentAction />
@@ -171,6 +177,9 @@ function SelectedStepAction(props: FeatureWallSetupChecklistProps): React.JSX.El
 }
 
 function SelectedStepVisual(props: { stepId: FeatureWallSetupStepId }): React.JSX.Element | null {
+  if (!isFeatureWallSetupStepEnabledForBuildProfile(props.stepId)) {
+    return null
+  }
   if (props.stepId === 'two-worktrees') {
     return <SetupWorkspacesVisual />
   }

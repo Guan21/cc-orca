@@ -5,6 +5,7 @@ import {
   ExternalLink,
   Github,
   Keyboard,
+  ListChecks,
   Loader2,
   MessageSquareText,
   RefreshCw,
@@ -155,7 +156,10 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
             'auto.components.sidebar.SidebarSettingsHelpMenu.restartApplication',
             'Restarting application…'
           )
-        : translate('auto.components.sidebar.SidebarSettingsHelpMenu.5161eef55d', 'Restarting Orca…')
+        : translate(
+            'auto.components.sidebar.SidebarSettingsHelpMenu.5161eef55d',
+            'Restarting Orca…'
+          )
     )
     void window.api.app.restart().catch((error) => {
       if (mountedRef.current) {
@@ -276,12 +280,16 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
             ) : null}
             {showMilestones ? (
               <DropdownMenuItem onSelect={openMilestones}>
-                <img
-                  src={logo}
-                  alt=""
-                  aria-hidden="true"
-                  className="size-3.5 object-contain invert opacity-55 dark:invert-0"
-                />
+                {isCorporateBuild ? (
+                  <ListChecks className="size-3.5" />
+                ) : (
+                  <img
+                    src={logo}
+                    alt=""
+                    aria-hidden="true"
+                    className="size-3.5 object-contain invert opacity-55 dark:invert-0"
+                  />
+                )}
                 {translate(
                   'auto.components.sidebar.SidebarSettingsHelpMenu.f8a2c91d4e',
                   'Milestones'

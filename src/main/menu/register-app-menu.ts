@@ -9,7 +9,6 @@ import type { UpdateCheckOptions } from '../../shared/update-status-types'
 import { translateMain } from '../i18n/main-i18n'
 import { createAppMenuSelectionItem } from './app-menu-selection-item'
 import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
-import { getProductDisplayName } from '../../shared/product-display-name'
 
 export type AppearanceMenuState = {
   showTasksButton: boolean
@@ -65,7 +64,6 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
 
   const isMac = process.platform === 'darwin'
   const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
-  const productName = getProductDisplayName()
   const appearance = getAppearanceState()
   const shortcutLabel = (actionId: KeybindingActionId): string => {
     const bindings = getEffectiveKeybindingsForAction(
@@ -122,19 +120,19 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     click: () => onOpenSettings()
   }
 
-  const featureTourItem: Electron.MenuItemConstructorOptions = {
-    label: isCorporateBuild
-      ? translateMain('menu.exploreProduct', `Explore ${productName}`)
-      : translateMain('menu.exploreOrca', 'Explore Orca'),
-    click: (_menuItem, window) => onOpenFeatureTour(window)
-  }
+  const featureTourItem: Electron.MenuItemConstructorOptions | null = isCorporateBuild
+    ? null
+    : {
+        label: translateMain('menu.exploreOrca', 'Explore Orca'),
+        click: (_menuItem, window) => onOpenFeatureTour(window)
+      }
 
-  const setupGuideItem: Electron.MenuItemConstructorOptions = {
-    label: isCorporateBuild
-      ? translateMain('menu.gettingStartedProduct', `Getting Started with ${productName}`)
-      : translateMain('menu.gettingStarted', 'Getting Started with Orca'),
-    click: (_menuItem, window) => onOpenSetupGuide(window)
-  }
+  const setupGuideItem: Electron.MenuItemConstructorOptions | null = isCorporateBuild
+    ? null
+    : {
+        label: translateMain('menu.gettingStarted', 'Getting Started with Orca'),
+        click: (_menuItem, window) => onOpenSetupGuide(window)
+      }
 
   const crashReportItem: Electron.MenuItemConstructorOptions = {
     label: translateMain('menu.reportCrash', 'Report Crash...'),
@@ -331,9 +329,13 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     label: translateMain('menu.help', 'Help'),
     submenu: [
       crashReportItem,
-      { type: 'separator' },
-      featureTourItem,
-      setupGuideItem,
+      ...(featureTourItem || setupGuideItem
+        ? ([
+            { type: 'separator' },
+            ...(featureTourItem ? [featureTourItem] : []),
+            ...(setupGuideItem ? [setupGuideItem] : [])
+          ] satisfies Electron.MenuItemConstructorOptions[])
+        : []),
       ...(isMac
         ? []
         : ([

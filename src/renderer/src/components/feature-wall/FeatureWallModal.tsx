@@ -10,12 +10,14 @@ import {
 import { useAppStore } from '@/store'
 import { FeatureWallTourSurface } from './FeatureWallTourSurface'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 export default function FeatureWallModal(): JSX.Element | null {
   const activeModal = useAppStore((s) => s.activeModal)
   const modalData = useAppStore((s) => s.modalData)
   const closeModal = useAppStore((s) => s.closeModal)
   const isOpen = activeModal === 'feature-wall'
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
   const source = getFeatureWallOpenSource(modalData)
 
   const handleOpenChange = (open: boolean): void => {
@@ -24,7 +26,7 @@ export default function FeatureWallModal(): JSX.Element | null {
     }
   }
 
-  if (!isOpen) {
+  if (!isOpen || isCorporateBuild) {
     return null
   }
 
