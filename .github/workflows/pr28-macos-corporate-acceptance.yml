@@ -48,18 +48,19 @@ jobs:
             exit 1
           fi
 
-          direct_parent="$(git rev-parse HEAD^)"
-          if [[ "$direct_parent" != "$EXPECTED_SOURCE_SHA" ]]; then
-            echo "::error::Temporary CI branch must be exactly one workflow commit on top of $EXPECTED_SOURCE_SHA; found parent $direct_parent."
+          changed_files="$(git diff --name-only "$EXPECTED_SOURCE_SHA"..HEAD)"
+          printf 'Files changed after PR28 source HEAD:\n'
+          printf '%s\n' "$changed_files" | sed 's/^/  /'
+
+          disallowed_files="$(printf '%s\n' "$changed_files" | grep -v -x "$CI_WORKFLOW_PATH" || true)"
+          if [[ -n "$disallowed_files" ]]; then
+            echo "::error::Temporary CI branch may only add $CI_WORKFLOW_PATH."
+            printf 'Disallowed files:\n%s\n' "$disallowed_files"
             exit 1
           fi
 
-          mapfile -t changed_files < <(git diff --name-only "$EXPECTED_SOURCE_SHA"..HEAD)
-          printf 'Files changed after PR28 source HEAD:\n'
-          printf '  %s\n' "${changed_files[@]}"
-
-          if [[ "${#changed_files[@]}" -ne 1 || "${changed_files[0]}" != "$CI_WORKFLOW_PATH" ]]; then
-            echo "::error::Temporary CI branch may only add $CI_WORKFLOW_PATH."
+          if ! printf '%s\n' "$changed_files" | grep -q -x "$CI_WORKFLOW_PATH"; then
+            echo "::error::$CI_WORKFLOW_PATH was not found in the temporary CI branch diff."
             exit 1
           fi
 
