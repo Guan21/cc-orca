@@ -6,6 +6,7 @@ import {
 } from '@/components/confirmation-dialog-context'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
+import { getOrcaBuildProfile } from '../../../../../shared/corporate-build-profile'
 
 function displayHost(url: string): string {
   try {
@@ -26,8 +27,12 @@ async function openConfirmedExternalLink(url: string): Promise<void> {
   }
   toast.error(
     translate(
-      'auto.hooks.ipc.events.browserStateIpcBridge.docPreviewLinkFailed',
-      'Could not open this link in Orca Browser.'
+      getOrcaBuildProfile() === 'corporate'
+        ? 'auto.hooks.ipc.events.browserStateIpcBridge.docPreviewLinkFailedApp'
+        : 'auto.hooks.ipc.events.browserStateIpcBridge.docPreviewLinkFailed',
+      getOrcaBuildProfile() === 'corporate'
+        ? 'Could not open this link in the app browser.'
+        : 'Could not open this link in Orca Browser.'
     )
   )
 }

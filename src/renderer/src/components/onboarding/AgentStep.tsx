@@ -6,7 +6,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { TuiAgent } from '../../../../shared/tui-agent'
-import { getProductDisplayName } from '../../../../shared/product-display-name'
 import {
   filterEnabledTuiAgents,
   getTuiAgentDisplayLabel
@@ -74,6 +73,7 @@ export function AgentStep({
   onYoloPermissionsChange
 }: AgentStepProps) {
   const fullCatalog = getAgentCatalog()
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
   const allowedAgentIds = new Set(filterEnabledTuiAgents(fullCatalog.map((agent) => agent.id)))
   const agentCatalog = fullCatalog.filter((agent) => allowedAgentIds.has(agent.id))
   const detected = agentCatalog.filter((agent) => detectedSet.has(agent.id))
@@ -133,8 +133,11 @@ export function AgentStep({
             <span className="font-medium">
               {getTuiAgentDisplayLabel(selectedEntry.id, selectedEntry.label)}
             </span>{' '}
-            {getOrcaBuildProfile() === 'corporate'
-              ? `${getProductDisplayName()} isn't on your PATH yet. ${getProductDisplayName()} will set it as your default and you can install it any time.`
+            {isCorporateBuild
+              ? translate(
+                  'auto.components.onboarding.AgentStep.corporateMissingAgent',
+                  "isn't available on your PATH yet. Install or configure it on this workstation, then retry detection."
+                )
               : translate(
                   'auto.components.onboarding.AgentStep.69af7e9c1c',
                   "isn't on your PATH yet. Orca will set it as your default and you can install it any time."
@@ -145,7 +148,15 @@ export function AgentStep({
             className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-400/40 bg-amber-400/10 px-2 py-1 font-medium text-amber-800 hover:bg-amber-400/20 dark:text-amber-100"
             onClick={() => void window.api.shell.openUrl(selectedEntry.homepageUrl)}
           >
-            {translate('auto.components.onboarding.AgentStep.9c163bb0e0', 'Install instructions')}
+            {isCorporateBuild
+              ? translate(
+                  'auto.components.onboarding.AgentStep.setupInstructions',
+                  'Setup instructions'
+                )
+              : translate(
+                  'auto.components.onboarding.AgentStep.9c163bb0e0',
+                  'Install instructions'
+                )}
             <ExternalLink className="size-3" />
           </button>
         </div>
@@ -202,7 +213,7 @@ export function AgentStep({
           </div>
         </div>
       </section>
-      {getOrcaBuildProfile() !== 'corporate' && (
+      {!isCorporateBuild && (
         <YoloPermissionsControl
           yoloPermissions={yoloPermissions}
           onYoloPermissionsChange={onYoloPermissionsChange}

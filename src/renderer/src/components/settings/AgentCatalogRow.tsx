@@ -75,6 +75,7 @@ export type AgentCatalogRowProps = {
   onSaveEnv: (value: Record<string, string>) => void
   sessionSourceHome?: AgentSessionSourceHomeControl
   showLaunchArgs?: boolean
+  undetectedLinkTitle?: string
 }
 
 export function AgentCatalogRow({
@@ -96,10 +97,18 @@ export function AgentCatalogRow({
   onSaveArgs,
   onSaveEnv,
   sessionSourceHome,
-  showLaunchArgs = true
+  showLaunchArgs = true,
+  undetectedLinkTitle
 }: AgentCatalogRowProps): React.JSX.Element {
   const envSummary = stringifyAgentDefaultEnvDraft(envOverride)
   const defaultEnvSummary = stringifyAgentDefaultEnvDraft(defaultEnv)
+  const undetectedFallbackLinkTitle = translate(
+    'auto.components.settings.AgentsPane.f95b5c79b8',
+    'Install'
+  )
+  const externalLinkTitle = isDetected
+    ? translate('auto.components.settings.AgentsPane.fe4d630c94', 'Docs')
+    : (undetectedLinkTitle ?? undetectedFallbackLinkTitle)
   const [cmdOpen, setCmdOpen] = useState(
     Boolean(cmdOverride) ||
     (showLaunchArgs && argsOverride !== defaultArgs) ||
@@ -168,11 +177,7 @@ export function AgentCatalogRow({
             href={homepageUrl}
             target="_blank"
             rel="noopener noreferrer"
-            title={
-              isDetected
-                ? translate('auto.components.settings.AgentsPane.fe4d630c94', 'Docs')
-                : translate('auto.components.settings.AgentsPane.f95b5c79b8', 'Install')
-            }
+            title={externalLinkTitle}
             className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
           >
             <ExternalLink className="size-3.5" />

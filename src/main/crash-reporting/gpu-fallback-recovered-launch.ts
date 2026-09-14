@@ -1,24 +1,27 @@
 import { dialog, type BrowserWindow, type MessageBoxOptions } from 'electron'
+import { getProductDisplayName } from '../../shared/product-display-name'
 
 export type GpuFallbackRecoveredLaunchDecision = 'keep-safe' | 'retry-hardware'
 
-const GPU_FALLBACK_RECOVERED_LAUNCH_OPTIONS: MessageBoxOptions = {
-  type: 'info',
-  buttons: ['Keep Safe Graphics Mode', 'Try Hardware Acceleration'],
-  defaultId: 0,
-  cancelId: 0,
-  title: 'Safe Graphics Mode is Active',
-  message: 'Orca recovered in Safe Graphics Mode.',
-  detail:
-    'Safe Graphics Mode was enabled after repeated graphics crashes. Keep it for stability, or restart and try hardware acceleration again.'
+function getGpuFallbackRecoveredLaunchOptions(): MessageBoxOptions {
+  return {
+    type: 'info',
+    buttons: ['Keep Safe Graphics Mode', 'Try Hardware Acceleration'],
+    defaultId: 0,
+    cancelId: 0,
+    title: 'Safe Graphics Mode is Active',
+    message: `${getProductDisplayName()} recovered in Safe Graphics Mode.`,
+    detail:
+      'Safe Graphics Mode was enabled after repeated graphics crashes. Keep it for stability, or restart and try hardware acceleration again.'
+  }
 }
 
 export async function promptForGpuFallbackRecoveredLaunch(
   parentWindow?: BrowserWindow
 ): Promise<GpuFallbackRecoveredLaunchDecision> {
   const { response } = parentWindow
-    ? await dialog.showMessageBox(parentWindow, GPU_FALLBACK_RECOVERED_LAUNCH_OPTIONS)
-    : await dialog.showMessageBox(GPU_FALLBACK_RECOVERED_LAUNCH_OPTIONS)
+    ? await dialog.showMessageBox(parentWindow, getGpuFallbackRecoveredLaunchOptions())
+    : await dialog.showMessageBox(getGpuFallbackRecoveredLaunchOptions())
   return response === 1 ? 'retry-hardware' : 'keep-safe'
 }
 

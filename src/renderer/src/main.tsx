@@ -55,14 +55,27 @@ if (!rootElement) {
 
 function RendererRoot(): React.JSX.Element {
   useTranslation()
+  const productName = getProductDisplayName()
   return (
     <RecoverableRenderErrorBoundary
       boundaryId="app.root"
       surface="app-root"
-      title={translate('app.recoverableError.rootTitle', 'Orca hit a renderer error.')}
+      title={
+        productName === 'Orca'
+          ? translate('app.recoverableError.rootTitle', 'Orca hit a renderer error.')
+          : translate(
+              'app.recoverableError.productRootTitle',
+              '{{productName}} hit a renderer error.',
+              { productName }
+            )
+      }
       description={translate(
-        'app.recoverableError.rootDescription',
-        'The app shell could not finish rendering. Retry to remount it, or relaunch Orca if the error persists.'
+        productName === 'Orca'
+          ? 'app.recoverableError.rootDescription'
+          : 'app.recoverableError.productRootDescription',
+        productName === 'Orca'
+          ? 'The app shell could not finish rendering. Retry to remount it, or relaunch Orca if the error persists.'
+          : 'The app shell could not finish rendering. Retry to remount it, or relaunch the application if the error persists.'
       )}
     >
       <App />

@@ -3,6 +3,7 @@ import { dialog, type BrowserWindow, type MessageBoxOptions } from 'electron'
 import type { RuntimeRpcStartErrorClass } from '../../shared/telemetry-events'
 import { translateMain } from '../i18n/main-i18n'
 import { track } from '../telemetry/client'
+import { getProductDisplayName } from '../../shared/product-display-name'
 
 const MAX_VISIBLE_CAUSE_LENGTH = 500
 
@@ -93,22 +94,42 @@ const GUIDANCE_BY_ERROR_CLASS: Readonly<
 
 function createRuntimeRpcStartupFailureDialogOptions(error: unknown): MessageBoxOptions {
   const cause = describeRuntimeRpcStartFailure(error)
+  const productName = getProductDisplayName()
   const { key, fallback } = GUIDANCE_BY_ERROR_CLASS[classifyRuntimeRpcStartFailure(error)]
+  const productGuidance =
+    productName === 'Orca'
+      ? fallback
+      : fallback
+          .replaceAll("Orca's data folder", `${productName}'s data folder`)
+          .replaceAll('Restart Orca', `Restart ${productName}`)
   return {
     type: 'error',
     buttons: [translateMain('runtimeRpc.startupFailure.continueButton', 'Continue without CLI')],
     defaultId: 0,
     cancelId: 0,
     noLink: true,
-    title: translateMain('runtimeRpc.startupFailure.title', 'Orca CLI unavailable'),
+    title: translateMain(
+      productName === 'Orca'
+        ? 'runtimeRpc.startupFailure.title'
+        : 'runtimeRpc.startupFailure.productTitle',
+      productName === 'Orca' ? 'Orca CLI unavailable' : `${productName} CLI unavailable`
+    ),
     message: translateMain(
-      'runtimeRpc.startupFailure.message',
-      "Orca couldn't start its local command transport."
+      productName === 'Orca'
+        ? 'runtimeRpc.startupFailure.message'
+        : 'runtimeRpc.startupFailure.productMessage',
+      productName === 'Orca'
+        ? "Orca couldn't start its local command transport."
+        : `${productName} couldn't start its local command transport.`
     ),
     detail: translateMain(
-      'runtimeRpc.startupFailure.detail',
-      'Orca will continue to work, but commands such as orca status, orca terminal, and orchestration are unavailable for this session.\n\n{{guidance}}\n\nCause: {{cause}}',
-      { cause, guidance: translateMain(key, fallback) }
+      productName === 'Orca'
+        ? 'runtimeRpc.startupFailure.detail'
+        : 'runtimeRpc.startupFailure.productDetail',
+      productName === 'Orca'
+        ? 'Orca will continue to work, but commands such as orca status, orca terminal, and orchestration are unavailable for this session.\n\n{{guidance}}\n\nCause: {{cause}}'
+        : `${productName} will continue to work, but commands such as orca status, orca terminal, and orchestration are unavailable for this session.\n\n{{guidance}}\n\nCause: {{cause}}`,
+      { cause, guidance: translateMain(key, productGuidance) }
     )
   }
 }

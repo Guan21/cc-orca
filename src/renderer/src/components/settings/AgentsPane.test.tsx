@@ -484,6 +484,20 @@ describe('AgentsPane', () => {
     expect(markup).not.toContain('dangerously')
   })
 
+  it('describes undetected corporate agents as setup-required instead of installable', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    detectedAgentsMock.detectedIds = ['claude']
+
+    const markup = renderPane(getDefaultSettings('/tmp'))
+
+    expect(markup).toContain('Claude Code')
+    expect(markup).toContain('Codex')
+    expect(markup).toContain('Setup required')
+    expect(markup).not.toContain('Available to install')
+    expect(markup).not.toContain('title="Install"')
+    expect(markup).not.toContain('Gemini')
+  })
+
   it('only toggles agent availability when the segmented value changes', () => {
     const onSetEnabled = vi.fn()
     const control = AgentAvailabilityControl({

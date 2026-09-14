@@ -8,6 +8,8 @@ import {
 import type { UpdateCheckOptions } from '../../shared/update-status-types'
 import { translateMain } from '../i18n/main-i18n'
 import { createAppMenuSelectionItem } from './app-menu-selection-item'
+import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
+import { getProductDisplayName } from '../../shared/product-display-name'
 
 export type AppearanceMenuState = {
   showTasksButton: boolean
@@ -62,6 +64,8 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
   } = options
 
   const isMac = process.platform === 'darwin'
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
+  const productName = getProductDisplayName()
   const appearance = getAppearanceState()
   const shortcutLabel = (actionId: KeybindingActionId): string => {
     const bindings = getEffectiveKeybindingsForAction(
@@ -119,12 +123,16 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
   }
 
   const featureTourItem: Electron.MenuItemConstructorOptions = {
-    label: translateMain('menu.exploreOrca', 'Explore Orca'),
+    label: isCorporateBuild
+      ? translateMain('menu.exploreProduct', `Explore ${productName}`)
+      : translateMain('menu.exploreOrca', 'Explore Orca'),
     click: (_menuItem, window) => onOpenFeatureTour(window)
   }
 
   const setupGuideItem: Electron.MenuItemConstructorOptions = {
-    label: translateMain('menu.gettingStarted', 'Getting Started with Orca'),
+    label: isCorporateBuild
+      ? translateMain('menu.gettingStartedProduct', `Getting Started with ${productName}`)
+      : translateMain('menu.gettingStarted', 'Getting Started with Orca'),
     click: (_menuItem, window) => onOpenSetupGuide(window)
   }
 
@@ -254,12 +262,16 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
         checked: appearance.showAutomationsButton,
         click: () => onToggleAppearance('showAutomationsButton')
       },
-      {
-        label: translateMain('menu.showMobileButton', 'Show Orca Mobile Button'),
-        type: 'checkbox',
-        checked: appearance.showMobileButton,
-        click: () => onToggleAppearance('showMobileButton')
-      },
+      ...(!isCorporateBuild
+        ? ([
+            {
+              label: translateMain('menu.showMobileButton', 'Show Orca Mobile Button'),
+              type: 'checkbox',
+              checked: appearance.showMobileButton,
+              click: () => onToggleAppearance('showMobileButton')
+            }
+          ] satisfies Electron.MenuItemConstructorOptions[])
+        : []),
       {
         label: translateMain('menu.showTitlebarAppName', 'Show Titlebar App Name'),
         type: 'checkbox',

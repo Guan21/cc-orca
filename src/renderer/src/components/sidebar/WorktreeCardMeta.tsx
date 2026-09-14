@@ -31,6 +31,7 @@ import { WorktreeCardCliDetailSection } from './WorktreeCardCliDetailSection'
 import { WorktreeCardIssueDetailSection } from './WorktreeCardIssueDetailSection'
 import { WorktreeCardHoverIdentityHeader } from './WorktreeCardHoverIdentityHeader'
 import { CommentMarkdownAsync, preloadCommentMarkdown } from './comment-markdown-lazy'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 const COMMENT_MARKDOWN_CLASS_NAME =
   'text-[11.5px] text-foreground break-words leading-normal [&_.comment-md-p]:block [&_.comment-md-p+.comment-md-p]:mt-1'
@@ -246,8 +247,10 @@ export function WorktreeCardDetailsHover({
                     {linearIssue.url && onOpenLinearIssueInOrca && (
                       <MetadataActionIcon
                         label={translate(
-                          'auto.components.sidebar.WorktreeCardMeta.2c67730e07',
-                          'Open in Orca'
+                          getOrcaBuildProfile() === 'corporate'
+                            ? 'auto.components.sidebar.WorktreeCardMeta.openInApp'
+                            : 'auto.components.sidebar.WorktreeCardMeta.2c67730e07',
+                          getOrcaBuildProfile() === 'corporate' ? 'Open in app' : 'Open in Orca'
                         )}
                         onClick={dismissAndRun(onOpenLinearIssueInOrca)}
                       >

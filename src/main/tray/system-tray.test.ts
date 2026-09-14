@@ -149,6 +149,7 @@ function flushTraySceneMutation(): void {
 }
 
 beforeEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
   vi.useFakeTimers()
   trayInstances.length = 0
   menuFromTemplateMock.mockClear()
@@ -186,6 +187,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
   setPlatform(originalPlatform)
   vi.useRealTimers()
   vi.restoreAllMocks()
@@ -249,6 +251,22 @@ describe('createSystemTray', () => {
         ?.click?.()
       expect(callback).toHaveBeenCalledOnce()
     }
+  })
+
+  it('uses the corporate product display name for production tray copy', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    setPlatform('win32')
+    const { createSystemTray } = await loadModule()
+    const options = createOptions()
+
+    createSystemTray(options)
+
+    expect(trayInstances[0].setToolTip).toHaveBeenCalledWith('Secure Orca Lite')
+    expect(builtMenuItems().map((item) => item.label)).toEqual([
+      'Open Secure Orca Lite',
+      undefined,
+      'Quit'
+    ])
   })
 
   it('does not create a blank macOS item when the template asset fails to load', async () => {

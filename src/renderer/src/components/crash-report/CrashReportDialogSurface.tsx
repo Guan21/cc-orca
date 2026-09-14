@@ -29,6 +29,7 @@ import {
   getCrashReportSubmitWarningNotice
 } from './crash-report-submit-notice'
 import { useCrashReportCopy } from './use-crash-report-copy'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 function formatSummary(report: CrashReportRecord): string {
   if (isReactErrorBoundaryReport(report)) {
@@ -41,12 +42,13 @@ function formatSummary(report: CrashReportRecord): string {
 }
 
 function getDialogTitle(report: CrashReportRecord | null): string {
+  const productName = getProductDisplayName()
   if (!report) {
     return 'Report a crash'
   }
   return report && isReactErrorBoundaryReport(report)
-    ? 'Orca hit a recoverable UI error'
-    : 'Orca closed unexpectedly'
+    ? `${productName} hit a recoverable UI error`
+    : `${productName} closed unexpectedly`
 }
 
 function getDialogDescription(report: CrashReportRecord | null): string {
@@ -64,7 +66,7 @@ function getNotesPlaceholder(report: CrashReportRecord | null): string {
   }
   return report && isReactErrorBoundaryReport(report)
     ? 'Optional: what were you doing before this UI error?'
-    : 'Optional: what were you doing before Orca closed?'
+    : `Optional: what were you doing before ${getProductDisplayName()} closed?`
 }
 
 type CrashReportDialogSurfaceProps = {

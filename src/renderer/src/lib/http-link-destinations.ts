@@ -1,5 +1,6 @@
 import { translate } from '@/i18n/i18n'
 import { openHttpLink, type HttpLinkSourceOwner } from '@/lib/http-link-routing'
+import { getOrcaBuildProfile } from '../../../shared/corporate-build-profile'
 
 // Catalog keys keep their original terminal namespace: they are opaque ids with
 // shipped translations, and the popover is now shared with native chat.
@@ -43,15 +44,21 @@ export function httpLinkActionDestinationsFor(
 }
 
 export function httpLinkDestinationLabel(destination: HttpLinkDestination): string {
-  return destination === 'orca'
-    ? translate(
-        'auto.components.terminal.pane.TerminalLinkActionPopover.orcaBrowser',
-        'Orca Browser'
-      )
-    : translate(
-        'auto.components.terminal.pane.TerminalLinkActionPopover.systemBrowser',
-        'System Browser'
-      )
+  if (destination === 'orca') {
+    return getOrcaBuildProfile() === 'corporate'
+      ? translate(
+          'auto.components.terminal.pane.TerminalLinkActionPopover.appBrowser',
+          'App Browser'
+        )
+      : translate(
+          'auto.components.terminal.pane.TerminalLinkActionPopover.orcaBrowser',
+          'Orca Browser'
+        )
+  }
+  return translate(
+    'auto.components.terminal.pane.TerminalLinkActionPopover.systemBrowser',
+    'System Browser'
+  )
 }
 
 /** One action per offered destination; surfaces share the labels and the open call. */

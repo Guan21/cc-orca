@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { ShortcutKeyCombo } from '@/components/ShortcutKeyCombo'
 import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../shared/corporate-build-profile'
 
 type LinkRoutingPreferenceDialogOptions = {
   url?: string
@@ -68,6 +69,7 @@ export function LinkRoutingPreferenceDialogProvider({
   const displayedRequest = activeRequest ?? lastDisplayedRequestRef.current
   const displayHost = displayHostForUrl(displayedRequest?.options.url)
   const openLinksInAppDefault = displayedRequest?.options.openLinksInAppDefault === true
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
   const isMac = navigator.userAgent.includes('Mac')
   const systemBrowserShortcutKeys = isMac ? ['⇧', '⌘'] : ['Shift', 'Ctrl']
 
@@ -149,14 +151,24 @@ export function LinkRoutingPreferenceDialogProvider({
               <div className="space-y-2">
                 <DialogTitle className="text-xl leading-tight">
                   {openLinksInAppDefault
-                    ? translate(
-                        'auto.components.link.routing.preference.dialog.keep.title',
-                        "Keep terminal links in Orca's browser?"
-                      )
-                    : translate(
-                        'auto.components.link.routing.preference.dialog.title',
-                        "Open terminal links in Orca's browser?"
-                      )}
+                    ? isCorporateBuild
+                      ? translate(
+                          'auto.components.link.routing.preference.dialog.keep.app.title',
+                          'Keep terminal links in the app browser?'
+                        )
+                      : translate(
+                          'auto.components.link.routing.preference.dialog.keep.title',
+                          "Keep terminal links in Orca's browser?"
+                        )
+                    : isCorporateBuild
+                      ? translate(
+                          'auto.components.link.routing.preference.dialog.app.title',
+                          'Open terminal links in the app browser?'
+                        )
+                      : translate(
+                          'auto.components.link.routing.preference.dialog.title',
+                          "Open terminal links in Orca's browser?"
+                        )}
                 </DialogTitle>
                 <DialogDescription className="text-sm leading-relaxed">
                   {openLinksInAppDefault
@@ -164,10 +176,15 @@ export function LinkRoutingPreferenceDialogProvider({
                         'auto.components.link.routing.preference.dialog.keep.description',
                         'Or use your system browser by default.'
                       )
-                    : translate(
-                        'auto.components.link.routing.preference.dialog.description',
-                        "Use Orca's browser for terminal links, or keep your system browser."
-                      )}
+                    : isCorporateBuild
+                      ? translate(
+                          'auto.components.link.routing.preference.dialog.app.description',
+                          'Use the app browser for terminal links, or keep your system browser.'
+                        )
+                      : translate(
+                          'auto.components.link.routing.preference.dialog.description',
+                          "Use Orca's browser for terminal links, or keep your system browser."
+                        )}
                 </DialogDescription>
               </div>
             </DialogHeader>
@@ -190,8 +207,12 @@ export function LinkRoutingPreferenceDialogProvider({
               <div className="space-y-1">
                 <p>
                   {translate(
-                    'auto.components.link.routing.preference.dialog.orca.note',
-                    'Orca can use imported cookies for logged-in sites.'
+                    isCorporateBuild
+                      ? 'auto.components.link.routing.preference.dialog.app.note'
+                      : 'auto.components.link.routing.preference.dialog.orca.note',
+                    isCorporateBuild
+                      ? 'The app browser can use imported cookies for logged-in sites.'
+                      : 'Orca can use imported cookies for logged-in sites.'
                   )}
                 </p>
                 <p>
@@ -203,8 +224,10 @@ export function LinkRoutingPreferenceDialogProvider({
                 <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
                   <span>
                     {translate(
-                      'auto.components.link.routing.preference.dialog.shortcut.note.prefix',
-                      'When links open in Orca,'
+                      isCorporateBuild
+                        ? 'auto.components.link.routing.preference.dialog.shortcut.note.app.prefix'
+                        : 'auto.components.link.routing.preference.dialog.shortcut.note.prefix',
+                      isCorporateBuild ? 'When links open in the app,' : 'When links open in Orca,'
                     )}
                   </span>
                   <ShortcutKeyCombo
@@ -234,12 +257,16 @@ export function LinkRoutingPreferenceDialogProvider({
             <Button autoFocus onClick={() => settleActiveRequest(true)}>
               {openLinksInAppDefault
                 ? translate(
-                    'auto.components.link.routing.preference.dialog.keep.orca.button',
-                    'Keep Orca'
+                    isCorporateBuild
+                      ? 'auto.components.link.routing.preference.dialog.keep.app.button'
+                      : 'auto.components.link.routing.preference.dialog.keep.orca.button',
+                    isCorporateBuild ? 'Keep in app' : 'Keep Orca'
                   )
                 : translate(
-                    'auto.components.link.routing.preference.dialog.orca.button',
-                    'Open in Orca'
+                    isCorporateBuild
+                      ? 'auto.components.link.routing.preference.dialog.app.button'
+                      : 'auto.components.link.routing.preference.dialog.orca.button',
+                    isCorporateBuild ? 'Open in app' : 'Open in Orca'
                   )}
             </Button>
           </DialogFooter>

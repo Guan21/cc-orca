@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { showMessageBoxMock } = vi.hoisted(() => ({
   showMessageBoxMock: vi.fn()
@@ -18,7 +18,12 @@ import {
 } from './gpu-fallback-recovered-launch'
 
 beforeEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
   showMessageBoxMock.mockReset()
+})
+
+afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
 })
 
 function createHandlers(
@@ -65,6 +70,19 @@ describe('promptForGpuFallbackRecoveredLaunch', () => {
   it('returns the explicit hardware retry choice', async () => {
     showMessageBoxMock.mockResolvedValue({ response: 1 })
     await expect(promptForGpuFallbackRecoveredLaunch()).resolves.toBe('retry-hardware')
+  })
+
+  it('uses the corporate product display name in corporate builds', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    showMessageBoxMock.mockResolvedValue({ response: 0 })
+
+    await promptForGpuFallbackRecoveredLaunch()
+
+    expect(showMessageBoxMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Secure Orca Lite recovered in Safe Graphics Mode.'
+      })
+    )
   })
 })
 

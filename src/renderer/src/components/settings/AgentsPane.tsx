@@ -239,7 +239,10 @@ export function AgentsPane({
       isDetected && agent.id === 'codex'
         ? buildCodexSessionSourceHomeControl(settings, updateSettings)
         : undefined,
-    showLaunchArgs: !isCorporateBuild
+    showLaunchArgs: !isCorporateBuild,
+    undetectedLinkTitle: isCorporateBuild
+      ? translate('auto.components.settings.AgentsPane.setupDocs', 'Setup docs')
+      : undefined
   })
 
   return (
@@ -285,6 +288,11 @@ export function AgentsPane({
         activeServerName={activeServerName}
         onRefresh={() => void refreshTargetAgents()}
         getRowProps={getRowProps}
+        undetectedSectionTitle={
+          isCorporateBuild
+            ? translate('auto.components.settings.AgentsPane.setupRequired', 'Setup required')
+            : undefined
+        }
       />
     </div>
   )

@@ -17,11 +17,18 @@ import type { BrowserPageDocLocation } from '../../../shared/browser-workspace-t
 import { findPage } from '@/store/slices/browser-page-records'
 import type { BrowserPageConversionLeg } from '@/store/slices/browser-page-conversion'
 import { ORCA_BROWSER_BLANK_URL } from '../../../shared/constants'
+import { getOrcaBuildProfile } from '../../../shared/corporate-build-profile'
 
 export type PreviewableLanguage = 'html'
 /** Still the answer for flows that need a real `file://` URL (e.g. dropping a file on a browser pane). */
 export const REMOTE_FILE_BROWSER_UNSUPPORTED_MESSAGE =
   'Open in Orca Browser is only available for local files.'
+
+function remoteFileBrowserUnsupportedMessage(): string {
+  return getOrcaBuildProfile() === 'corporate'
+    ? 'Open in app browser is only available for local files.'
+    : REMOTE_FILE_BROWSER_UNSUPPORTED_MESSAGE
+}
 
 /** Localized lazily: a module constant would freeze the language at import time. */
 function pairedOutsideWorktreeMessage(): string {
@@ -56,7 +63,7 @@ export function getWorkspaceFilePreviewPlan(
     // remote path to this machine's filesystem.
     return {
       status: 'unsupported',
-      message: REMOTE_FILE_BROWSER_UNSUPPORTED_MESSAGE,
+      message: remoteFileBrowserUnsupportedMessage(),
       reason: 'no-channel'
     }
   }
@@ -153,7 +160,7 @@ export function getWorkspaceFileBrowserOpenTarget(params: {
     return {
       status: 'unsupported',
       reason: 'remote-worktree',
-      message: REMOTE_FILE_BROWSER_UNSUPPORTED_MESSAGE
+      message: remoteFileBrowserUnsupportedMessage()
     }
   }
 

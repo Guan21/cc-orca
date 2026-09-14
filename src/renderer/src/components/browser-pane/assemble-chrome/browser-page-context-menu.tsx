@@ -9,6 +9,7 @@ import {
 import { createPortal } from 'react-dom'
 import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../../shared/corporate-build-profile'
 import { normalizeExternalBrowserUrl } from '../../../../../shared/browser-url'
 import type { BrowserPageContextMenuState } from '../describe-page/browser-page-types'
 
@@ -194,8 +195,12 @@ export function BrowserPageContextMenu({
               }}
             >
               {translate(
-                'auto.components.browser.pane.BrowserPane.b5b87d6cbb',
-                'Open Link In Orca Browser'
+                getOrcaBuildProfile() === 'corporate'
+                  ? 'auto.components.browser.pane.BrowserPane.openLinkInAppBrowser'
+                  : 'auto.components.browser.pane.BrowserPane.b5b87d6cbb',
+                getOrcaBuildProfile() === 'corporate'
+                  ? 'Open Link In App Browser'
+                  : 'Open Link In Orca Browser'
               )}
             </button>
             <button
