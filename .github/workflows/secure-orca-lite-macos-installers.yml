@@ -4,6 +4,9 @@ run-name: Secure Orca Lite macOS installers bd30f83
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - ci-macos-installers-bd30f83
 
 permissions:
   contents: read
