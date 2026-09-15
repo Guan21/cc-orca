@@ -1,0 +1,222 @@
+name: Secure Orca Lite macOS Installer Build
+
+run-name: Secure Orca Lite macOS installers bd30f83
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-macos-installers:
+    runs-on: macos-15
+    timeout-minutes: 180
+    env:
+      EXPECTED_PRODUCT_BRANCH: company-work
+      EXPECTED_PRODUCT_SHA: bd30f83648968b3e60c5bb151fde9ef02f5ae7a9
+      ARTIFACT_NAME: secure-orca-lite-macos-bd30f83
+      NODE_OPTIONS: --max-old-space-size=4096
+      ORCA_BACKGROUND_LAUNCH: '1'
+    steps:
+      - name: Checkout exact product source
+        uses: actions/checkout@v4
+        with:
+          ref: bd30f83648968b3e60c5bb151fde9ef02f5ae7a9
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify product source isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin '+refs/heads/company-work:refs/remotes/origin/company-work'
+          branch_sha="$(git rev-parse origin/company-work)"
+          head_sha="$(git rev-parse HEAD)"
+          echo "origin/company-work: $branch_sha"
+          echo "HEAD: $head_sha"
+          if [[ "$branch_sha" != "$EXPECTED_PRODUCT_SHA" ]]; then
+            echo "::error::origin/company-work is $branch_sha, expected $EXPECTED_PRODUCT_SHA"
+            exit 1
+          fi
+          if [[ "$head_sha" != "$EXPECTED_PRODUCT_SHA" ]]; then
+            echo "::error::HEAD is $head_sha, expected $EXPECTED_PRODUCT_SHA"
+            exit 1
+          fi
+          {
+            echo "PRODUCT_BRANCH=$EXPECTED_PRODUCT_BRANCH"
+            echo "PRODUCT_SHA=$head_sha"
+          } >>"$GITHUB_ENV"
+
+      - name: Report macOS runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-evidence
+          {
+            echo "macOS runner image: ${ImageOS:-unknown} ${ImageVersion:-unknown}"
+            sw_vers
+            echo "architecture: $(uname -m)"
+            echo "runner name: ${RUNNER_NAME:-unknown}"
+            echo "runner os: ${RUNNER_OS:-unknown}"
+            echo "runner arch: ${RUNNER_ARCH:-unknown}"
+          } | tee build-evidence/runner.txt
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Setup pnpm 12.0.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@12.0.0 --activate
+
+      - name: Verify toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_version="$(node --version)"
+          pnpm_version="$(pnpm --version)"
+          echo "Node: $node_version"
+          echo "pnpm: $pnpm_version"
+          if [[ "$node_version" != v24.* ]]; then
+            echo "::error::Expected Node 24, got $node_version"
+            exit 1
+          fi
+          if [[ "$pnpm_version" != 12.0.0 ]]; then
+            echo "::error::Expected pnpm 12.0.0, got $pnpm_version"
+            exit 1
+          fi
+          {
+            echo "Node: $node_version"
+            echo "pnpm: $pnpm_version"
+          } | tee build-evidence/toolchain.txt
+
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify PR 31 source presence
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "const showSkillUpdateStatus = isCapabilityEnabledForBuildProfile('skills')" \
+            src/renderer/src/components/status-bar/StatusBarSurface.tsx
+          grep -Fq "{showSkillUpdateStatus ? <SkillUpdateStatusSegment iconOnly={iconOnly} /> : null}" \
+            src/renderer/src/components/status-bar/StatusBarSurface.tsx
+          grep -Fq "DISABLED_SKILLS_CAPABILITY_MESSAGE = 'Capability disabled in corporate build: skills'" \
+            src/renderer/src/components/skills/skill-update-run-store.ts
+          grep -Fq "isDisabledSkillsCapabilityError(error)" \
+            src/renderer/src/components/skills/skill-update-run-store.ts
+          grep -Fq "console.error('Failed to load skill update run', error)" \
+            src/renderer/src/components/skills/skill-update-run-store.ts
+          grep -Fq "{ key: 'skills', capability: 'skills', shape: 'namespace' }" \
+            src/preload/corporate-preload-api-filter.ts
+          grep -Fq "Promise.reject(disabledCapabilityError(capability))" \
+            src/preload/corporate-preload-api-filter.ts
+          grep -Fq "await expect(filtered.skills.getUpdateRun()).rejects.toThrow(" \
+            src/preload/corporate-preload-api-filter.test.ts
+          echo "PR #31 static source checks passed." | tee build-evidence/pr31-source-check.txt
+
+      - name: Build corporate macOS installers
+        shell: bash
+        run: pnpm run build:mac:corporate
+
+      - name: Collect installer evidence
+        id: evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-artifacts build-evidence
+          x64_dmg="$(find dist -type f -name 'secure-orca-lite-macos-x64.dmg' | sort | head -n 1)"
+          arm64_dmg="$(find dist -type f -name 'secure-orca-lite-macos-arm64.dmg' | sort | head -n 1)"
+          if [[ -z "$x64_dmg" || ! -f "$x64_dmg" ]]; then
+            echo "::error::Missing secure-orca-lite-macos-x64.dmg"
+            exit 1
+          fi
+          if [[ -z "$arm64_dmg" || ! -f "$arm64_dmg" ]]; then
+            echo "::error::Missing secure-orca-lite-macos-arm64.dmg"
+            exit 1
+          fi
+          cp "$x64_dmg" build-artifacts/
+          cp "$arm64_dmg" build-artifacts/
+          while IFS= read -r zip_file; do
+            [[ -n "$zip_file" ]] || continue
+            cp "$zip_file" build-artifacts/
+          done < <(find dist -type f -name 'secure-orca-lite-macos-*.zip' | sort)
+
+          x64_size="$(stat -f%z "$x64_dmg")"
+          arm64_size="$(stat -f%z "$arm64_dmg")"
+          x64_sha="$(shasum -a 256 "$x64_dmg" | awk '{print $1}')"
+          arm64_sha="$(shasum -a 256 "$arm64_dmg" | awk '{print $1}')"
+
+          signed="NO"
+          notarized="NO"
+          if app_path="$(find dist -type d -name 'Secure Orca Lite.app' | sort | head -n 1)" && [[ -n "$app_path" ]]; then
+            if codesign --verify --deep --strict "$app_path" >/dev/null 2>&1; then
+              signed="YES"
+            fi
+          fi
+
+          {
+            echo "source_branch=$PRODUCT_BRANCH"
+            echo "source_sha=$PRODUCT_SHA"
+            echo "x64_path=$x64_dmg"
+            echo "x64_size=$x64_size"
+            echo "x64_sha256=$x64_sha"
+            echo "arm64_path=$arm64_dmg"
+            echo "arm64_size=$arm64_size"
+            echo "arm64_sha256=$arm64_sha"
+            echo "signed=$signed"
+            echo "notarized=$notarized"
+          } | tee build-evidence/installers.env
+
+          {
+            echo "x64_path=$x64_dmg"
+            echo "x64_size=$x64_size"
+            echo "x64_sha256=$x64_sha"
+            echo "arm64_path=$arm64_dmg"
+            echo "arm64_size=$arm64_size"
+            echo "arm64_sha256=$arm64_sha"
+            echo "signed=$signed"
+            echo "notarized=$notarized"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Upload macOS installer artifact
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: secure-orca-lite-macos-bd30f83
+          path: |
+            build-artifacts/*
+            build-evidence/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Summarize build
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## Secure Orca Lite macOS Installer Build"
+            echo
+            echo "- product branch: $PRODUCT_BRANCH"
+            echo "- exact product SHA: $PRODUCT_SHA"
+            echo "- PR #31 included: YES"
+            echo "- source isolation: PASS"
+            echo "- command: pnpm run build:mac:corporate"
+            echo "- x64 DMG: ${{ steps.evidence.outputs.x64_path }}"
+            echo "- x64 size: ${{ steps.evidence.outputs.x64_size }}"
+            echo "- x64 SHA256: ${{ steps.evidence.outputs.x64_sha256 }}"
+            echo "- arm64 DMG: ${{ steps.evidence.outputs.arm64_path }}"
+            echo "- arm64 size: ${{ steps.evidence.outputs.arm64_size }}"
+            echo "- arm64 SHA256: ${{ steps.evidence.outputs.arm64_sha256 }}"
+            echo "- signed: ${{ steps.evidence.outputs.signed }}"
+            echo "- notarized: ${{ steps.evidence.outputs.notarized }}"
+            echo "- artifact name: $ARTIFACT_NAME"
+            echo "- artifact ID: ${{ steps.upload.outputs.artifact-id }}"
+            echo "- artifact URL: ${{ steps.upload.outputs.artifact-url }}"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
