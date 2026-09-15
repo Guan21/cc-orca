@@ -149,7 +149,7 @@ jobs:
           while IFS= read -r zip_file; do
             [[ -n "$zip_file" ]] || continue
             cp "$zip_file" build-artifacts/
-          done < <(find dist -type f -name 'secure-orca-lite-macos-*.zip' | sort)
+          done < <(find dist -maxdepth 1 -type f -name '*.zip' | sort)
 
           x64_size="$(stat -f%z "$x64_dmg")"
           arm64_size="$(stat -f%z "$arm64_dmg")"
@@ -175,6 +175,7 @@ jobs:
             echo "arm64_sha256=$arm64_sha"
             echo "signed=$signed"
             echo "notarized=$notarized"
+            find build-artifacts -maxdepth 1 -type f -name '*.zip' | sort | sed 's/^/zip_artifact=/'
           } | tee build-evidence/installers.env
 
           {
