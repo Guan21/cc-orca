@@ -1,0 +1,136 @@
+name: Secure Orca Lite Windows bd30f83 Installer
+
+on:
+  push:
+    branches:
+      - ci-win-installer-bd30f83
+
+permissions:
+  contents: read
+
+concurrency:
+  group: secure-orca-lite-windows-bd30f83-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  EXPECTED_SOURCE_SHA: bd30f83648968b3e60c5bb151fde9ef02f5ae7a9
+  ARTIFACT_NAME: secure-orca-lite-windows-bd30f83
+  INSTALLER_PATH: dist/secure-orca-lite-windows-setup.exe
+  NODE_OPTIONS: --max-old-space-size=4096
+
+jobs:
+  windows:
+    if: github.repository == 'Guan21/cc-orca' && github.ref_name == 'ci-win-installer-bd30f83'
+    runs-on: windows-2025
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout exact product source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.EXPECTED_SOURCE_SHA }}
+          fetch-depth: 1
+
+      - name: Verify exact product HEAD
+        shell: pwsh
+        run: |
+          $head = git rev-parse HEAD
+          "HEAD=$head"
+          "EXPECTED_SOURCE_SHA=$env:EXPECTED_SOURCE_SHA"
+          if ($head -ne $env:EXPECTED_SOURCE_SHA) {
+            Write-Error "Product checkout mismatch: expected $env:EXPECTED_SOURCE_SHA, got $head"
+            exit 1
+          }
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Prepare pnpm 12.0.0
+        shell: pwsh
+        run: |
+          corepack enable
+          corepack prepare pnpm@12.0.0 --activate
+          "NODE_VERSION=$(node --version)" | Tee-Object -FilePath build-env.txt
+          "PNPM_VERSION=$(pnpm --version)" | Tee-Object -FilePath build-env.txt -Append
+          node --version
+          pnpm --version
+
+      - name: Install dependencies with frozen lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify lockfile unchanged
+        shell: pwsh
+        run: |
+          git diff --exit-code -- pnpm-lock.yaml package.json
+
+      - name: Ensure Electron runtime
+        run: pnpm run ensure:electron-runtime
+
+      - name: Build corporate Windows installer
+        shell: pwsh
+        env:
+          ORCA_REUSE_PREPARED_NATIVE_RUNTIME: '1'
+        run: pnpm run build:win:corporate
+
+      - name: Record installer provenance
+        id: provenance
+        shell: pwsh
+        run: |
+          if (!(Test-Path $env:INSTALLER_PATH)) {
+            Write-Error "Installer not found at $env:INSTALLER_PATH"
+            exit 1
+          }
+
+          $item = Get-Item $env:INSTALLER_PATH
+          $hash = (Get-FileHash $item.FullName -Algorithm SHA256).Hash
+          $head = git rev-parse HEAD
+          $nodeVersion = node --version
+          $pnpmVersion = pnpm --version
+
+          $provenance = [ordered]@{
+            filename = $item.Name
+            path = $env:INSTALLER_PATH
+            size = $item.Length
+            sha256 = $hash
+            productSha = $head
+            expectedProductSha = $env:EXPECTED_SOURCE_SHA
+            artifactName = $env:ARTIFACT_NAME
+            runId = $env:GITHUB_RUN_ID
+            runAttempt = $env:GITHUB_RUN_ATTEMPT
+            runUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+            runner = $env:RUNNER_NAME
+            runnerOs = $env:RUNNER_OS
+            runnerArch = $env:RUNNER_ARCH
+            node = $nodeVersion
+            pnpm = $pnpmVersion
+          }
+
+          $provenance | ConvertTo-Json -Depth 4 | Set-Content -Path dist/secure-orca-lite-windows-provenance.json -Encoding UTF8
+          "$hash  $($item.Name)" | Set-Content -Path dist/secure-orca-lite-windows-setup.exe.sha256.txt -Encoding UTF8
+
+          "installer_size=$($item.Length)" >> $env:GITHUB_OUTPUT
+          "installer_sha256=$hash" >> $env:GITHUB_OUTPUT
+          "installer_filename=$($item.Name)" >> $env:GITHUB_OUTPUT
+
+          @"
+          ## Secure Orca Lite Windows Installer
+
+          - Product SHA: `$head`
+          - Filename: `$($item.Name)`
+          - Size: `$($item.Length)`
+          - SHA256: `$hash`
+          - Node: `$nodeVersion`
+          - pnpm: `$pnpmVersion`
+          "@ | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          if-no-files-found: error
+          path: |
+            dist/secure-orca-lite-windows-setup.exe
+            dist/secure-orca-lite-windows-setup.exe.sha256.txt
+            dist/secure-orca-lite-windows-provenance.json
