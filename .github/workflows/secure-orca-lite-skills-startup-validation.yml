@@ -1,0 +1,112 @@
+name: Secure Orca Lite Skills Startup Validation
+
+on:
+  push:
+    branches:
+      - ci-skills-startup-fix-validation
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate exact product commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PRODUCT_SHA: 155198aae85cf8c925e2e40fde26a2023ab9957d
+      BASE_SHA: d56cd69cb8300084d2f42cd47e1247a96f83488a
+      PNPM_VERSION: 12.0.0
+    steps:
+      - name: Checkout workflow branch
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Checkout exact product source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin company-work company-fix-corporate-skills-startup
+          git checkout --detach "$PRODUCT_SHA"
+          actual_head="$(git rev-parse HEAD)"
+          parent_line="$(git log -1 --format='%H %P' HEAD)"
+          parent_sha="$(awk '{print $2}' <<<"$parent_line")"
+          echo "HEAD=$actual_head"
+          echo "PARENT=$parent_sha"
+          test "$actual_head" = "$PRODUCT_SHA"
+          test "$parent_sha" = "$BASE_SHA"
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Setup pnpm 12.0.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          node --version
+          pnpm --version
+          test "$(node --version | cut -c1-4)" = "v24."
+          test "$(pnpm --version)" = "$PNPM_VERSION"
+
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Full typecheck
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --version
+          pnpm --version
+          pnpm run typecheck
+
+      - name: Focused regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec vitest run --config config/vitest.config.ts \
+            src/preload/corporate-preload-api-filter.test.ts \
+            src/renderer/src/components/status-bar/StatusBarSurface.test.tsx \
+            src/renderer/src/components/skills/skill-update-run-store.test.ts
+
+      - name: Oxlint changed fix files
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm exec oxlint \
+            src/preload/corporate-preload-api-filter.test.ts \
+            src/renderer/src/components/skills/skill-update-run-store.test.ts \
+            src/renderer/src/components/skills/skill-update-run-store.ts \
+            src/renderer/src/components/status-bar/StatusBarSurface.test.tsx \
+            src/renderer/src/components/status-bar/StatusBarSurface.tsx
+
+      - name: Changed code quality
+        shell: bash
+        run: node config/scripts/check-changed-code-quality.mjs "$BASE_SHA"
+
+      - name: Diff and scope verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected_files="$(mktemp)"
+          actual_files="$(mktemp)"
+          cat > "$expected_files" <<'FILES'
+src/preload/corporate-preload-api-filter.test.ts
+src/renderer/src/components/skills/skill-update-run-store.test.ts
+src/renderer/src/components/skills/skill-update-run-store.ts
+src/renderer/src/components/status-bar/StatusBarSurface.test.tsx
+src/renderer/src/components/status-bar/StatusBarSurface.tsx
+FILES
+          git diff --name-only "$BASE_SHA..$PRODUCT_SHA" | sort > "$actual_files"
+          sort "$expected_files" | diff -u - "$actual_files"
+          if git diff --name-only "$BASE_SHA..$PRODUCT_SHA" | grep -Ei '(^\.omx/|^mobile/|^src/relay/|computer|c3|c4|c5|installer|updater|userData|user-data|branding|appId|app-id)'; then
+            echo "Forbidden scope matched product diff" >&2
+            exit 1
+          fi
+          git diff --stat "$BASE_SHA..$PRODUCT_SHA"
