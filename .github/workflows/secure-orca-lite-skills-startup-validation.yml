@@ -96,13 +96,13 @@ jobs:
           set -euo pipefail
           expected_files="$(mktemp)"
           actual_files="$(mktemp)"
-          cat > "$expected_files" <<'FILES'
-src/preload/corporate-preload-api-filter.test.ts
-src/renderer/src/components/skills/skill-update-run-store.test.ts
-src/renderer/src/components/skills/skill-update-run-store.ts
-src/renderer/src/components/status-bar/StatusBarSurface.test.tsx
-src/renderer/src/components/status-bar/StatusBarSurface.tsx
-FILES
+          printf '%s\n' \
+            'src/preload/corporate-preload-api-filter.test.ts' \
+            'src/renderer/src/components/skills/skill-update-run-store.test.ts' \
+            'src/renderer/src/components/skills/skill-update-run-store.ts' \
+            'src/renderer/src/components/status-bar/StatusBarSurface.test.tsx' \
+            'src/renderer/src/components/status-bar/StatusBarSurface.tsx' \
+            > "$expected_files"
           git diff --name-only "$BASE_SHA..$PRODUCT_SHA" | sort > "$actual_files"
           sort "$expected_files" | diff -u - "$actual_files"
           if git diff --name-only "$BASE_SHA..$PRODUCT_SHA" | grep -Ei '(^\.omx/|^mobile/|^src/relay/|computer|c3|c4|c5|installer|updater|userData|user-data|branding|appId|app-id)'; then
