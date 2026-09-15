@@ -16,6 +16,7 @@ let successTimer: ReturnType<typeof setTimeout> | null = null
 
 /** How long a finished run keeps its green check in the status bar. */
 export const SKILL_UPDATE_SUCCESS_LINGER_MS = 4000
+const DISABLED_SKILLS_CAPABILITY_MESSAGE = 'Capability disabled in corporate build: skills'
 
 function emit(): void {
   for (const listener of listeners) {
@@ -28,6 +29,10 @@ function clearSuccessTimer(): void {
     clearTimeout(successTimer)
     successTimer = null
   }
+}
+
+function isDisabledSkillsCapabilityError(error: unknown): boolean {
+  return error instanceof Error && error.message === DISABLED_SKILLS_CAPABILITY_MESSAGE
 }
 
 /**
@@ -70,12 +75,23 @@ function ensureSubscribed(): void {
   }
   subscribed = true
   window.api.skills.onUpdateRun(setRun)
-  void window.api.skills.getUpdateRun().then((current) => {
-    // Don't clobber a live push that landed while this promise was in flight.
-    if (run.state === 'idle') {
-      setRun(current)
-    }
-  })
+  void window.api.skills
+    .getUpdateRun()
+    .then((current) => {
+      // Don't clobber a live push that landed while this promise was in flight.
+      if (run.state === 'idle') {
+        setRun(current)
+      }
+    })
+    .catch((error: unknown) => {
+      if (isDisabledSkillsCapabilityError(error)) {
+        if (run.state === 'idle') {
+          run = { state: 'idle' }
+        }
+        return
+      }
+      console.error('Failed to load skill update run', error)
+    })
 }
 
 export function subscribeSkillUpdateRun(listener: () => void): () => void {

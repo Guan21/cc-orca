@@ -30,6 +30,7 @@ import { ProviderLetterBadge, ProviderSegment } from './StatusBarProviderSegment
 import { useStatusBarController } from './use-status-bar-controller'
 import { StatusBarVisibilityMenu } from './StatusBarVisibilityMenu'
 import { isPairedWebClientWindow } from '@/lib/desktop-window-chrome'
+import { isCapabilityEnabledForBuildProfile } from '../../../../shared/corporate-build-profile'
 
 const PetStatusSegment = lazyWithRetry(() =>
   import('./PetStatusSegment').then((module) => ({ default: module.PetStatusSegment }))
@@ -89,6 +90,7 @@ export function StatusBarSurface({
     usageMenuOpen,
     usagePercentageDisplay
   } = controller
+  const showSkillUpdateStatus = isCapabilityEnabledForBuildProfile('skills')
 
   return (
     <div
@@ -245,7 +247,7 @@ export function StatusBarSurface({
       <div className="flex items-center gap-3">
         {!isPairedWebClientWindow() ? <CaffeinateStatusSegment iconOnly={iconOnly} /> : null}
         <RemoteServerUpdateStatusSegment iconOnly={iconOnly} />
-        <SkillUpdateStatusSegment iconOnly={iconOnly} />
+        {showSkillUpdateStatus ? <SkillUpdateStatusSegment iconOnly={iconOnly} /> : null}
         <UpdateStatusSegment compact={compact} iconOnly={iconOnly} />
         <React.Suspense fallback={null}>
           {petEnabled ? <PetStatusSegment /> : null}

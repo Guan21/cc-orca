@@ -14,7 +14,7 @@ describe('corporate preload API filter', () => {
   it('replaces disabled corporate namespaces with fail-closed bridges', async () => {
     const api = {
       app: { getVersion: () => Promise.resolve('1.0.0') },
-      skills: { discover: () => Promise.resolve([]) },
+      skills: { discover: () => Promise.resolve([]), getUpdateRun: () => Promise.resolve(null) },
       mobile: { onRelayStatusChanged: () => () => undefined },
       telemetryTrack: () => Promise.resolve()
     }
@@ -23,6 +23,9 @@ describe('corporate preload API filter', () => {
 
     expect(filtered.app).toBe(api.app)
     await expect(filtered.skills.discover()).rejects.toThrow(
+      'Capability disabled in corporate build: skills'
+    )
+    await expect(filtered.skills.getUpdateRun()).rejects.toThrow(
       'Capability disabled in corporate build: skills'
     )
     expect(filtered.mobile.onRelayStatusChanged()).toBeTypeOf('function')
