@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type * as MacosTccLoginShell from './macos-tcc-login-shell'
 
 const {
@@ -116,11 +116,22 @@ vi.mock('../shell-prompt-readiness-probe', () => ({
 
 import { LocalPtyProvider } from './local-pty-provider'
 import {
+  RUNTIME_SANDBOX_SETUP_FAILED,
+  RUNTIME_SANDBOX_UNAVAILABLE,
+  setRestrictedAgentExecutionBoundaryForTests
+} from '../agent-execution-boundary/agent-execution-boundary'
+import {
   applyLocalPtyProviderMockDefaults,
   createLocalPtyMockProcess,
   installLocalPtyProviderEnvSandbox,
   type LocalPtyMockProcess
 } from './local-pty-provider-test-harness'
+
+const ORIGINAL_ORCA_BUILD_PROFILE = process.env.ORCA_BUILD_PROFILE
+
+function enableCorporateBuildProfile(): void {
+  ;(globalThis as { __ORCA_BUILD_PROFILE__?: string }).__ORCA_BUILD_PROFILE__ = 'corporate'
+}
 
 describe('LocalPtyProvider', () => {
   let provider: LocalPtyProvider
@@ -128,6 +139,16 @@ describe('LocalPtyProvider', () => {
   let exitCb: ((info: { exitCode: number }) => void) | undefined
 
   installLocalPtyProviderEnvSandbox()
+
+  afterEach(() => {
+    delete (globalThis as { __ORCA_BUILD_PROFILE__?: string }).__ORCA_BUILD_PROFILE__
+    setRestrictedAgentExecutionBoundaryForTests(null)
+    if (ORIGINAL_ORCA_BUILD_PROFILE === undefined) {
+      delete process.env.ORCA_BUILD_PROFILE
+    } else {
+      process.env.ORCA_BUILD_PROFILE = ORIGINAL_ORCA_BUILD_PROFILE
+    }
+  })
 
   beforeEach(() => {
     applyLocalPtyProviderMockDefaults({
@@ -448,6 +469,68 @@ describe('LocalPtyProvider', () => {
       ).rejects.toThrow('post-spawn publication failed')
       expect(spawnMock).toHaveBeenCalledOnce()
       expect(committed).toHaveBeenCalledOnce()
+    })
+
+    it('fails closed before node-pty when corporate agent launches lack a restricted boundary', async () => {
+      enableCorporateBuildProfile()
+      spawnMock.mockClear()
+
+      await expect(
+        provider.spawn({
+          cols: 80,
+          rows: 24,
+          cwd: '/repo',
+          command: 'claude --permission-mode default'
+        })
+      ).rejects.toMatchObject({ code: RUNTIME_SANDBOX_UNAVAILABLE })
+
+      expect(spawnMock).not.toHaveBeenCalled()
+    })
+
+    it('fails closed before node-pty when the restricted boundary setup fails', async () => {
+      enableCorporateBuildProfile()
+      spawnMock.mockClear()
+      setRestrictedAgentExecutionBoundaryForTests({
+        kind: 'restricted',
+        prepare: () => {
+          throw new Error('sandbox setup exploded')
+        }
+      })
+
+      await expect(
+        provider.spawn({
+          cols: 80,
+          rows: 24,
+          cwd: '/repo',
+          command: 'codex --sandbox workspace-write --ask-for-approval on-request'
+        })
+      ).rejects.toMatchObject({ code: RUNTIME_SANDBOX_SETUP_FAILED })
+
+      expect(spawnMock).not.toHaveBeenCalled()
+    })
+
+    it('disposes the prepared restricted runtime when a corporate agent PTY exits', async () => {
+      enableCorporateBuildProfile()
+      const dispose = vi.fn()
+      setRestrictedAgentExecutionBoundaryForTests({
+        kind: 'restricted',
+        prepare: ({ spawn }) => ({
+          kind: 'restricted',
+          spawn,
+          dispose
+        })
+      })
+
+      await provider.spawn({
+        cols: 80,
+        rows: 24,
+        cwd: '/repo',
+        command: 'claude --permission-mode default'
+      })
+
+      expect(exitCb).toBeTypeOf('function')
+      exitCb?.({ exitCode: 0 })
+      await vi.waitFor(() => expect(dispose).toHaveBeenCalledOnce())
     })
   })
 })
