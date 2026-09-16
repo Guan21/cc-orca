@@ -1,0 +1,197 @@
+name: PR33 macOS acceptance artifact
+
+on:
+  push:
+    branches:
+      - pr33-macos-acceptance-artifact-5846908
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PRODUCT_SHA: 5846908ddab0d2bc46a412173707e9fac234c07f
+  ARTIFACT_NAME: secure-orca-lite-macos-pr33-5846908
+  DMG_NAME: secure-orca-lite-macos-x64.dmg
+
+jobs:
+  build:
+    name: build exact x64 corporate macOS artifact
+    runs-on: macos-13
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout exact product source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.PRODUCT_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify exact product source
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "git status --short"
+          git status --short
+          echo "git rev-parse HEAD"
+          actual="$(git rev-parse HEAD)"
+          echo "$actual"
+          echo "git log -1 --oneline"
+          git log -1 --oneline
+          if [ "$actual" != "$PRODUCT_SHA" ]; then
+            echo "::error::Expected $PRODUCT_SHA but checked out $actual"
+            exit 1
+          fi
+
+      - name: Capture build host
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "OS=$(sw_vers -productName) $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
+            echo "RUNNER_ARCH=${RUNNER_ARCH}"
+            echo "UNAME_M=$(uname -m)"
+            if [ "$(uname -m)" = "x86_64" ]; then
+              echo "X64_BUILD_MODE=NATIVE"
+            else
+              echo "X64_BUILD_MODE=CROSS-ARCH"
+            fi
+          } | tee build-host.env
+
+      - name: Cache electron-builder downloads
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+          key: electron-builder-macos-pr33-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            electron-builder-macos-
+
+      - uses: ./.github/actions/install-node-dependencies
+        with:
+          native-runtime: node
+          cache-electron-package: 'true'
+
+      - name: Verify lockfile unchanged after install
+        shell: bash
+        run: git diff --exit-code -- package.json pnpm-lock.yaml pnpm-workspace.yaml
+
+      - name: Pre-build Issue 32 validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n resources/darwin/bin/orca
+          pnpm exec vitest run --config config/vitest.config.ts \
+            src/main/cli/packaged-cli-assets.test.ts \
+            config/scripts/corporate-build-profile-contract.test.mjs
+          git diff --check
+
+      - name: Build corporate macOS package
+        shell: bash
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: pnpm run build:mac:corporate
+
+      - name: Verify lockfile unchanged after build
+        shell: bash
+        run: git diff --exit-code -- package.json pnpm-lock.yaml pnpm-workspace.yaml
+
+      - name: Collect x64 artifact metadata
+        id: metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          dmg="dist/${DMG_NAME}"
+          app="dist/mac/Secure Orca Lite.app"
+          exe="$app/Contents/MacOS/Secure Orca Lite"
+          plist="$app/Contents/Info.plist"
+          metadata="pr33-macos-artifact-metadata.txt"
+          test -s "$dmg"
+          test -d "$app"
+          test -x "$exe"
+          size="$(stat -f%z "$dmg")"
+          sha256="$(shasum -a 256 "$dmg" | awk '{print $1}')"
+          version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist")"
+          bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$plist")"
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$plist")"
+          arch_info="$(file "$exe")"
+          if codesign --verify --deep --strict --verbose=2 "$app" > codesign-verify.txt 2>&1; then
+            signed="YES"
+          else
+            signed="NO"
+          fi
+          codesign -dv --verbose=4 "$app" > codesign-details.txt 2>&1 || true
+          if xcrun stapler validate "$app" > notarization.txt 2>&1; then
+            notarized="YES"
+          else
+            notarized="NO"
+          fi
+          {
+            cat build-host.env
+            echo "PRODUCT_SHA=${PRODUCT_SHA}"
+            echo "DMG=${dmg}"
+            echo "DMG_SIZE=${size}"
+            echo "DMG_SHA256=${sha256}"
+            echo "APP_VERSION=${version}"
+            echo "BUNDLE_ID=${bundle_id}"
+            echo "CFBUNDLE_EXECUTABLE=${executable}"
+            echo "ARCH_INFO=${arch_info}"
+            echo "SIGNED=${signed}"
+            echo "NOTARIZED=${notarized}"
+            echo "NODE=$(node --version)"
+            echo "PNPM=$(pnpm --version)"
+          } | tee "$metadata"
+          {
+            echo "dmg-path=${dmg}"
+            echo "dmg-size=${size}"
+            echo "dmg-sha256=${sha256}"
+            echo "app-version=${version}"
+            echo "bundle-id=${bundle_id}"
+            echo "signed=${signed}"
+            echo "notarized=${notarized}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload x64 artifact
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          if-no-files-found: error
+          path: |
+            dist/${{ env.DMG_NAME }}
+            pr33-macos-artifact-metadata.txt
+            codesign-verify.txt
+            codesign-details.txt
+            notarization.txt
+
+      - name: Upload secondary arm64 artifact if present
+        if: hashFiles('dist/secure-orca-lite-macos-arm64.dmg') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: secure-orca-lite-macos-pr33-5846908-arm64-secondary
+          path: |
+            dist/secure-orca-lite-macos-arm64.dmg
+            dist/secure-orca-lite-macos-arm64.dmg.blockmap
+
+      - name: Summarize artifact
+        shell: bash
+        run: |
+          {
+            echo "## PR33 macOS Acceptance Artifact"
+            echo
+            echo "- Product SHA: ${PRODUCT_SHA}"
+            echo "- Artifact: ${ARTIFACT_NAME}"
+            echo "- Artifact ID: ${{ steps.upload.outputs.artifact-id }}"
+            echo "- Artifact URL: ${{ steps.upload.outputs.artifact-url }}"
+            echo "- Artifact digest: ${{ steps.upload.outputs.artifact-digest }}"
+            echo "- DMG: ${{ steps.metadata.outputs.dmg-path }}"
+            echo "- DMG size: ${{ steps.metadata.outputs.dmg-size }}"
+            echo "- DMG SHA256: ${{ steps.metadata.outputs.dmg-sha256 }}"
+            echo "- App version: ${{ steps.metadata.outputs.app-version }}"
+            echo "- Bundle ID: ${{ steps.metadata.outputs.bundle-id }}"
+            echo "- Signed: ${{ steps.metadata.outputs.signed }}"
+            echo "- Notarized: ${{ steps.metadata.outputs.notarized }}"
+          } >> "$GITHUB_STEP_SUMMARY"
