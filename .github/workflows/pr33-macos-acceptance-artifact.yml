@@ -11,7 +11,7 @@ permissions:
   actions: read
 
 env:
-  PRODUCT_SHA: 2b74321497583c883fa2522751beb47795e5727d
+  PRODUCT_SHA: 2b743214939cf998598dcd2d8eb8753e668206a0
   ARTIFACT_NAME: secure-orca-lite-macos-pr33-2b74321
   DMG_NAME: secure-orca-lite-macos-x64.dmg
 
