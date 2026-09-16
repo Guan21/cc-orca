@@ -2,45 +2,19 @@ import { BrowserWindow, Menu, app } from 'electron'
 import {
   formatKeybindingList,
   getEffectiveKeybindingsForAction,
-  type KeybindingActionId,
-  type KeybindingOverrides
+  type KeybindingActionId
 } from '../../shared/keybindings'
-import type { UpdateCheckOptions } from '../../shared/update-status-types'
 import { translateMain } from '../i18n/main-i18n'
 import { createAppMenuSelectionItem } from './app-menu-selection-item'
 import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
+import {
+  getNextDefaultOnAppearanceSettingValue,
+  type AppearanceMenuKey,
+  type AppearanceMenuState
+} from './app-menu-appearance-state'
+import type { RegisterAppMenuOptions } from './app-menu-register-options'
 
-export type AppearanceMenuState = {
-  showTasksButton: boolean
-  showAutomationsButton: boolean
-  showMobileButton: boolean
-  showTitlebarAppName: boolean
-  statusBarVisible: boolean
-}
-
-export type AppearanceMenuKey = keyof AppearanceMenuState
-
-export function getNextDefaultOnAppearanceSettingValue(current: boolean | undefined): boolean {
-  return !(current !== false)
-}
-
-type RegisterAppMenuOptions = {
-  onOpenSettings: () => void
-  onOpenSetupGuide: (window?: Electron.BaseWindow | null) => void
-  onOpenFeatureTour: (window?: Electron.BaseWindow | null) => void
-  onOpenCrashReport: (window?: Electron.BaseWindow | null) => void
-  onCheckForUpdates: (options: UpdateCheckOptions) => void
-  onBeforeReload?: (options: { ignoreCache: boolean; webContentsId: number }) => void
-  onZoomIn: () => void
-  onZoomOut: () => void
-  onZoomReset: () => void
-  onToggleLeftSidebar: () => void
-  onToggleRightSidebar: () => void
-  onToggleAppearance: (key: AppearanceMenuKey) => void
-  getAppearanceState: () => AppearanceMenuState
-  getKeybindings?: () => KeybindingOverrides | undefined
-  appMenuLabel?: string
-}
+export { getNextDefaultOnAppearanceSettingValue, type AppearanceMenuKey, type AppearanceMenuState }
 
 function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
   const {
