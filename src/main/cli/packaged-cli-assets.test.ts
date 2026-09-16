@@ -1,4 +1,4 @@
-import { execFile, spawn } from 'node:child_process'
+import { execFile, spawn, spawnSync } from 'node:child_process'
 import { copyFile, mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest'
 const require = createRequire(import.meta.url)
 const execFileAsync = promisify(execFile)
 const itRunsUnixShell = process.platform === 'win32' ? it.skip : it
+const itRunsBash = spawnSync('bash', ['--version'], { stdio: 'ignore' }).status === 0 ? it : it.skip
 const unixTerminationSignals = ['SIGINT', 'SIGTERM'] as const
 const builderConfig = require('../../../config/electron-builder.config.cjs') as {
   files?: string[]
@@ -35,6 +36,14 @@ const unixLauncherFixtures = [
     launcher: ['Contents', 'Resources', 'bin', 'orca'],
     executable: ['Contents', 'MacOS', 'Orca'],
     cli: ['Contents', 'Resources', 'app.asar.unpacked', 'out', 'cli', 'index.js']
+  }
+] as const
+const macLauncherProfiles = [
+  { name: 'default Orca', appDirName: 'Orca.app', executableName: 'Orca' },
+  {
+    name: 'corporate Secure Orca Lite',
+    appDirName: 'Secure Orca Lite.app',
+    executableName: 'Secure Orca Lite'
   }
 ] as const
 
@@ -140,6 +149,9 @@ describe('packaged CLI assets', () => {
           await mkdir(dirname(electronPath), { recursive: true })
           await mkdir(dirname(cliPath), { recursive: true })
           await copyFile(launcherFixture.asset, launcherPath)
+          if (launcherFixture.name === 'macOS') {
+            await writeMacInfoPlist(join(appDir, 'Contents', 'Info.plist'), 'Orca')
+          }
           await writeFile(cliPath, '', 'utf8')
           await writeFile(
             electronPath,
@@ -244,6 +256,101 @@ printf 'arg=%s\\n' "$@"
       }
     }
   )
+
+  it('keeps the macOS launcher executable path derived from bundle metadata', async () => {
+    const content = await readFile(darwinLauncherAsset, 'utf8')
+
+    expect(content).toContain('CFBundleExecutable')
+    expect(content).toContain('ELECTRON="$CONTENTS/MacOS/$EXECUTABLE_NAME"')
+    expect(content).not.toContain('ELECTRON="$CONTENTS/MacOS/Orca"')
+    expect(macLauncherProfiles).toEqual([
+      { name: 'default Orca', appDirName: 'Orca.app', executableName: 'Orca' },
+      {
+        name: 'corporate Secure Orca Lite',
+        appDirName: 'Secure Orca Lite.app',
+        executableName: 'Secure Orca Lite'
+      }
+    ])
+  })
+
+  itRunsBash.each(macLauncherProfiles)(
+    'resolves the $name Electron executable from macOS bundle metadata',
+    async ({ appDirName, executableName }) => {
+      const root = await mkdtemp(join(tmpdir(), 'orca-macos-cli-'))
+      try {
+        const appDir = join(root, appDirName)
+        const contentsDir = join(appDir, 'Contents')
+        const resourcesDir = join(contentsDir, 'Resources')
+        const launcherDir = join(resourcesDir, 'bin')
+        const macosDir = join(contentsDir, 'MacOS')
+        const cliDir = join(resourcesDir, 'app.asar.unpacked', 'out', 'cli')
+        const launcherPath = join(launcherDir, 'orca')
+        const electronPath = join(macosDir, executableName)
+        const cliPath = join(cliDir, 'index.js')
+
+        await mkdir(launcherDir, { recursive: true })
+        await mkdir(macosDir, { recursive: true })
+        await mkdir(cliDir, { recursive: true })
+        await copyFile(darwinLauncherAsset, launcherPath)
+        await writeMacInfoPlist(join(contentsDir, 'Info.plist'), executableName)
+        await writeFile(cliPath, '', 'utf8')
+        await writeFile(
+          electronPath,
+          `#!/usr/bin/env bash
+printf 'electron=%s\\n' "$0"
+printf 'run_as_node=%s\\n' "\${ELECTRON_RUN_AS_NODE-}"
+printf 'arg=%s\\n' "$@"
+`,
+          { encoding: 'utf8', mode: 0o755 }
+        )
+
+        const result = await execFileAsync('bash', [launcherPath, '--version'])
+        expect(result.stdout).toContain(`electron=${electronPath}`)
+        expect(result.stdout).toContain('run_as_node=1')
+        expect(result.stdout).toContain(`arg=${cliPath}`)
+        expect(result.stdout).toContain('arg=--version')
+      } finally {
+        await rm(root, { recursive: true, force: true })
+      }
+    }
+  )
+
+  itRunsBash('fails clearly when macOS bundle metadata is missing', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'orca-macos-cli-missing-plist-'))
+    try {
+      const launcherPath = join(root, 'Orca.app', 'Contents', 'Resources', 'bin', 'orca')
+      await mkdir(dirname(launcherPath), { recursive: true })
+      await copyFile(darwinLauncherAsset, launcherPath)
+
+      await expect(execFileAsync('bash', [launcherPath, '--version'])).rejects.toMatchObject({
+        stderr: expect.stringContaining(
+          'Unable to determine Orca executable: missing bundle metadata'
+        )
+      })
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  itRunsBash('fails clearly when the metadata executable is absent', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'orca-macos-cli-missing-executable-'))
+    try {
+      const appDir = join(root, 'Secure Orca Lite.app')
+      const contentsDir = join(appDir, 'Contents')
+      const launcherPath = join(contentsDir, 'Resources', 'bin', 'orca')
+      await mkdir(dirname(launcherPath), { recursive: true })
+      await copyFile(darwinLauncherAsset, launcherPath)
+      await writeMacInfoPlist(join(contentsDir, 'Info.plist'), 'Secure Orca Lite')
+
+      await expect(execFileAsync('bash', [launcherPath, '--version'])).rejects.toMatchObject({
+        stderr: expect.stringContaining(
+          'Unable to launch Orca CLI: expected Electron executable from CFBundleExecutable'
+        )
+      })
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
 
   // Why: registration on every Linux install method now points at this one
   // launcher, so its env sanitation and argv passthrough are the contract the
@@ -363,6 +470,22 @@ require('node:fs').writeFileSync(process.env.ORCA_TEST_LAUNCH_STATE, JSON.string
     }
   })
 })
+
+async function writeMacInfoPlist(path: string, executableName: string): Promise<void> {
+  await writeFile(
+    path,
+    `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key>
+  <string>${executableName}</string>
+</dict>
+</plist>
+`,
+    'utf8'
+  )
+}
 
 async function waitForListenerState(path: string): Promise<{ pid: number; port: number }> {
   const deadline = Date.now() + 5_000

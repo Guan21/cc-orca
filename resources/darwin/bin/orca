@@ -19,7 +19,59 @@ if [ -z "$APP_PATH" ]; then
 fi
 
 CONTENTS="$APP_PATH/Contents"
-ELECTRON="$CONTENTS/MacOS/Orca"
+
+function read_bundle_executable() {
+	PLIST="$CONTENTS/Info.plist"
+	if [ ! -r "$PLIST" ]; then
+		echo "Unable to determine Orca executable: missing bundle metadata at $PLIST" >&2
+		return 1
+	fi
+
+	EXECUTABLE_NAME=""
+	if [ -x /usr/libexec/PlistBuddy ]; then
+		EXECUTABLE_NAME=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$PLIST" 2>/dev/null || true)
+	elif command -v plutil >/dev/null 2>&1; then
+		EXECUTABLE_NAME=$(plutil -extract CFBundleExecutable raw -o - "$PLIST" 2>/dev/null || true)
+	else
+		EXECUTABLE_NAME=$(awk '
+			{
+				line = $0
+				if ($0 ~ /<key>CFBundleExecutable<\/key>/) {
+					found = 1
+					sub(/.*<key>CFBundleExecutable<\/key>/, "", line)
+				}
+				if (!found) {
+					next
+				}
+				value = line
+				sub(/.*<string>/, "", value)
+				sub(/<\/string>.*/, "", value)
+				if (value != line) {
+					print value
+					exit 0
+				}
+				if (line ~ /<key>/) {
+					exit 1
+				}
+			}
+		' "$PLIST" || true)
+	fi
+
+	if [ -z "$EXECUTABLE_NAME" ]; then
+		echo "Unable to determine Orca executable: CFBundleExecutable is missing from $PLIST" >&2
+		return 1
+	fi
+	printf '%s\n' "$EXECUTABLE_NAME"
+}
+
+if ! EXECUTABLE_NAME="$(read_bundle_executable)"; then
+	exit 1
+fi
+ELECTRON="$CONTENTS/MacOS/$EXECUTABLE_NAME"
+if [ ! -x "$ELECTRON" ]; then
+	echo "Unable to launch Orca CLI: expected Electron executable from CFBundleExecutable at $ELECTRON" >&2
+	exit 1
+fi
 # Why: Orca packages the CLI entrypoint outside app.asar so the public shell
 # command can execute it directly with ELECTRON_RUN_AS_NODE, mirroring VS Code's
 # launcher model instead of requiring a separate npm-distributed binary.
