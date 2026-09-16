@@ -1,5 +1,15 @@
 import { execFile, spawn, spawnSync } from 'node:child_process'
-import { copyFile, mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises'
+import {
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readFile,
+  realpath,
+  rm,
+  stat,
+  symlink,
+  writeFile
+} from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, sep } from 'node:path'
@@ -304,10 +314,13 @@ printf 'arg=%s\\n' "$@"
           { encoding: 'utf8', mode: 0o755 }
         )
 
+        const expectedElectronPath = await realpath(electronPath)
+        const expectedCliPath = await realpath(cliPath)
+
         const result = await execFileAsync('bash', [launcherPath, '--version'])
-        expect(result.stdout).toContain(`electron=${electronPath}`)
+        expect(result.stdout).toContain(`electron=${expectedElectronPath}`)
         expect(result.stdout).toContain('run_as_node=1')
-        expect(result.stdout).toContain(`arg=${cliPath}`)
+        expect(result.stdout).toContain(`arg=${expectedCliPath}`)
         expect(result.stdout).toContain('arg=--version')
       } finally {
         await rm(root, { recursive: true, force: true })
