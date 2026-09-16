@@ -11,8 +11,8 @@ permissions:
   actions: read
 
 env:
-  PRODUCT_SHA: 5846908ddab0d2bc46a412173707e9fac234c07f
-  ARTIFACT_NAME: secure-orca-lite-macos-pr33-5846908
+  PRODUCT_SHA: 2b74321497583c883fa2522751beb47795e5727d
+  ARTIFACT_NAME: secure-orca-lite-macos-pr33-2b74321
   DMG_NAME: secure-orca-lite-macos-x64.dmg
 
 jobs:
@@ -171,7 +171,7 @@ jobs:
         if: hashFiles('dist/secure-orca-lite-macos-arm64.dmg') != ''
         uses: actions/upload-artifact@v7
         with:
-          name: secure-orca-lite-macos-pr33-5846908-arm64-secondary
+          name: secure-orca-lite-macos-pr33-2b74321-arm64-secondary
           path: |
             dist/secure-orca-lite-macos-arm64.dmg
             dist/secure-orca-lite-macos-arm64.dmg.blockmap
