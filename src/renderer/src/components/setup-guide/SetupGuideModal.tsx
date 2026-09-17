@@ -190,7 +190,8 @@ function SetupGuideModalContent({
             {isCorporateBuild
               ? translate(
                   'auto.components.setup.guide.SetupGuideModal.corporateDescription',
-                  `Finish the core workflows that make ${productDisplayName} useful for parallel agent work.`
+                  'Finish the core workflows that make {{productDisplayName}} useful for parallel agent work.',
+                  { productDisplayName }
                 )
               : translate(
                   'auto.components.setup.guide.SetupGuideModal.3598a3ca0c',

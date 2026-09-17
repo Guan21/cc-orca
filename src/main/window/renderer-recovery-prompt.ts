@@ -69,7 +69,9 @@ export async function presentRendererRecoveryPrompt(
       cancelId: 0,
       title: translateMain(
         productName === 'Orca' ? 'rendererRecovery.title' : 'rendererRecovery.productTitle',
-        productName === 'Orca' ? 'Orca keeps failing to load' : `${productName} keeps failing to load`
+        productName === 'Orca'
+          ? 'Orca keeps failing to load'
+          : `${productName} keeps failing to load`
       ),
       message: stalled
         ? translateMain(

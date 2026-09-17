@@ -11,12 +11,19 @@
       "title": "Meet your Agents tab"
     }
   },
+  "app": {
+    "recoverableError": {
+      "productRootDescription": "The app shell could not finish rendering. Retry to remount it, or relaunch the application if the error persists.",
+      "rootDescription": "The app shell could not finish rendering. Retry to remount it, or relaunch Orca if the error persists."
+    }
+  },
   "auto": {
     "App": {
       "1b9d9d065f": "settings",
       "332dbfa497": "Workspace uploaded",
       "3443924e91": "automations",
       "4f08ae8311": "tasks",
+      "5096cbbc86": "Orca",
       "62ca9895a7": "space",
       "844eb0f4f4": "activity",
       "9f0152563e": "mobile",
@@ -314,12 +321,14 @@
             "a3508d7e6e": "{{value0}} annotation{{value1}} ready. Select another element or copy all feedback.",
             "a5dcd0fd1d": "confirming",
             "b2856516e2": "Can't load this page",
+            "b5b87d6cbb": "Open Link In Orca Browser",
             "c6be71329e": "Refresh",
             "c8bc7f1f9e": "requested",
             "da68d35f7b": "Open failed page in default browser",
             "db325a7eeb": "Can't reach {{value0}}",
             "e72dfa268a": "annotate",
-            "e7ca5a098c": "success"
+            "e7ca5a098c": "success",
+            "openLinkInAppBrowser": "Open Link In App Browser"
           },
           "BrowserToolbarMenu": {
             "6aa42813e4": "Imported {{value0}} cookies from {{value1}}{{value2}}."
@@ -606,6 +615,38 @@
           }
         }
       },
+      "link": {
+        "routing": {
+          "preference": {
+            "dialog": {
+              "app": {
+                "button": "Open in app",
+                "note": "The app browser can use imported cookies for logged-in sites."
+              },
+              "keep": {
+                "app": {
+                  "button": "Keep in app"
+                },
+                "orca": {
+                  "button": "Keep Orca"
+                }
+              },
+              "orca": {
+                "button": "Open in Orca",
+                "note": "Orca can use imported cookies for logged-in sites."
+              },
+              "shortcut": {
+                "note": {
+                  "app": {
+                    "prefix": "When links open in the app,"
+                  },
+                  "prefix": "When links open in Orca,"
+                }
+              }
+            }
+          }
+        }
+      },
       "mobile": {
         "MobileHero": {
           "79d2f480da": "Network interface to advertise",
@@ -658,11 +699,18 @@
           "d2dba86837": "Allow Orca in macOS"
         },
         "OnboardingFlow": {
+          "1b5e182e9f": "Welcome to Orca",
+          "277ba45540": "Orca onboarding",
+          "322fc50a18": "Orca works with every CLI agent. Choose the one you'll reach for most. Switch any time.",
           "35bbaf5ae0": "notifications",
           "984338477a": "theme",
+          "a249f81538": "Orca",
           "a5e5da02f7": "integrations",
           "c47e1bd149": "agent",
-          "ff92d15436": "Orca will notify you know when agents are done or need help."
+          "corporateAgentSubtitle": "Secure Orca Lite supports Claude Code and Codex. Choose the one you'll reach for most.",
+          "ff92d15436": "Orca will notify you know when agents are done or need help.",
+          "productOnboardingLabel": "{{productDisplayName}} onboarding",
+          "productWelcome": "Welcome to {{productDisplayName}}"
         },
         "ThemeStep": {
           "ad19e5c916": "Importing…"
@@ -778,7 +826,9 @@
           "FileExplorerRow": {
             "128a99ed5e": "Unassigned",
             "2de3b21934": "markdown",
-            "3161c4e425": "folder"
+            "3161c4e425": "folder",
+            "dd112c81d2": "Open in Orca Browser",
+            "openInAppBrowser": "Open in app browser"
           },
           "FileExplorerToolbar": {
             "693cbeadd0": "Search"
@@ -1087,7 +1137,9 @@
           "9b175d0f5e": "Pre-selected agent when opening a new workspace.",
           "c8794e622e": "Detected",
           "db9e9e5887": "Customize command",
-          "df123171d1": "Not installed"
+          "df123171d1": "Not installed",
+          "e8da2af684": "Available to install",
+          "f9f127d664": "Override the binary path or name, and edit the default launch arguments or environment for this agent."
         },
         "AppearancePane": {
           "0f28e7b30c": "Choose how Orca looks in the app window.",
@@ -1881,6 +1933,7 @@
           "9c95e1ce91": "Agents"
         },
         "SidebarSettingsHelpMenu": {
+          "ad3d3ed7f1": "Restart Orca",
           "d396773ef0": "checking"
         },
         "SidebarToolbar": {
@@ -1911,8 +1964,12 @@
           "ca74db7550": "Project on SSH host"
         },
         "WorktreeCardMeta": {
+          "2c67730e07": "Open in Orca",
           "ae76907ca6": "Unlink {{value0}}",
-          "eace1d2cf6": "neutral"
+          "eace1d2cf6": "neutral",
+          "openInApp": "Open in app",
+          "openInAppBrowser": "Open in app browser",
+          "openInOrcaBrowser": "Open in Orca browser"
         },
         "WorktreeCardMetadataStatusBadges": {
           "29df45afa2": "MR"
@@ -2535,6 +2592,14 @@
       }
     },
     "hooks": {
+      "ipc": {
+        "events": {
+          "browserStateIpcBridge": {
+            "docPreviewLinkFailed": "Could not open this link in Orca Browser.",
+            "docPreviewLinkFailedApp": "Could not open this link in the app browser."
+          }
+        }
+      },
       "useIpcEvents": {
         "60428567b4": "Local terminal reveal is unavailable while a remote runtime is active",
         "f6300deb8b": "New Browser Tab"
@@ -2734,15 +2799,31 @@
       "map": "Agent Map"
     }
   },
+  "rendererRecovery": {
+    "crashLoopDetail": "Orca tried to recover {{recoveryCount}} times in a row without success.",
+    "genericDetail": "This is often a graphics-driver or installation problem. Reload to try again, or quit and relaunch Orca.",
+    "productCrashLoopDetail": "{{productName}} tried to recover {{recoveryCount}} times in a row without success.",
+    "productGenericDetail": "This is often a graphics-driver or installation problem. Reload to try again, or quit and relaunch the application.",
+    "productStalledDetail": "{{productName}} reloaded the window after a crash, but it never finished loading.",
+    "productTitle": "{{productName}} keeps failing to load",
+    "stalledDetail": "Orca reloaded the window after a crash, but it never finished loading.",
+    "title": "Orca keeps failing to load"
+  },
   "runtimeRpc": {
     "startupFailure": {
+      "detail": "Orca will continue to work, but commands such as orca status, orca terminal, and orchestration are unavailable for this session.\n\n{{guidance}}\n\nCause: {{cause}}",
       "guidance": {
         "addressInUse": "Another process may be holding the port. Restart Orca to try again.",
         "invalidPath": "Orca's data folder may be missing, moved, or at a path that is too long. Restore it or use a shorter path, then restart Orca.",
         "permissionDenied": "Orca couldn't write its runtime file. Check permissions on Orca's data folder, then restart.",
         "storageUnavailable": "Your disk may be full or read-only. Free up space, then restart Orca.",
         "unknown": "Restart Orca to try again."
-      }
+      },
+      "message": "Orca couldn't start its local command transport.",
+      "productDetail": "{{productName}} will continue to work, but commands such as orca status, orca terminal, and orchestration are unavailable for this session.\n\n{{guidance}}\n\nCause: {{cause}}",
+      "productMessage": "{{productName}} couldn't start its local command transport.",
+      "productTitle": "{{productName}} CLI unavailable",
+      "title": "Orca CLI unavailable"
     }
   },
   "settings": {
@@ -2759,6 +2840,11 @@
         "title": "Browse through SSH workspace hosts"
       }
     }
+  },
+  "tray": {
+    "activityWaiting": "Orca - activity waiting",
+    "openOrca": "Open Orca",
+    "openProduct": "Open {{productName}}"
   },
   "worktreeJumpPalette": {
     "filter": {
