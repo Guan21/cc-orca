@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process'
-import { existsSync } from 'node:fs'
-import { delimiter, dirname, extname, join } from 'node:path'
+import { resolvePnpmCliInvocation } from './pnpm-cli-invocation.mjs'
 
 const target = process.argv[2]
 const corporateEnv = {
@@ -66,39 +65,10 @@ function runPnpm(args) {
 }
 
 function spawnPnpm(args) {
-  const pnpmLaunch = findPnpmLaunch()
-  if (pnpmLaunch) {
-    return spawn(pnpmLaunch.command, [...pnpmLaunch.args, ...args], {
-      env: corporateEnv,
-      stdio: 'inherit'
-    })
-  }
-  return spawn(process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm', args, {
+  const { command, prefixArgs, shell } = resolvePnpmCliInvocation()
+  return spawn(command, [...prefixArgs, ...args], {
     env: corporateEnv,
-    stdio: 'inherit'
+    stdio: 'inherit',
+    shell
   })
-}
-
-function findPnpmLaunch() {
-  const npmExecPath = process.env.npm_execpath
-  if (npmExecPath?.toLowerCase().includes('pnpm') && existsSync(npmExecPath)) {
-    if (['.cjs', '.js'].includes(extname(npmExecPath).toLowerCase())) {
-      return { command: process.execPath, args: [npmExecPath] }
-    }
-    return { command: npmExecPath, args: [] }
-  }
-  for (const pathEntry of (process.env.PATH ?? '').split(delimiter)) {
-    if (!pathEntry) {
-      continue
-    }
-    const cjsCandidate = join(dirname(pathEntry), 'pnpm', 'bin', 'pnpm.cjs')
-    if (existsSync(cjsCandidate)) {
-      return { command: process.execPath, args: [cjsCandidate] }
-    }
-    const binaryCandidate = join(dirname(pathEntry), 'pnpm', 'pnpm')
-    if (existsSync(binaryCandidate)) {
-      return { command: binaryCandidate, args: [] }
-    }
-  }
-  return null
 }

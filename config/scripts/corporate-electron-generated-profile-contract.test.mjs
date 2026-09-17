@@ -1,13 +1,36 @@
+import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const mainChunksDir = resolve('out/main/chunks')
+const corporateBuildScript = resolve('config/scripts/run-corporate-electron-vite-build.mjs')
+
+function ensureCorporateMainChunks() {
+  if (existsSync(mainChunksDir)) {
+    return
+  }
+  const result = spawnSync(process.execPath, [corporateBuildScript], {
+    env: {
+      ...process.env,
+      ORCA_ELECTRON_VITE_TARGET: 'main'
+    },
+    stdio: 'inherit'
+  })
+  if (result.error) {
+    throw result.error
+  }
+  if (!existsSync(mainChunksDir)) {
+    const buildResult =
+      result.signal !== null
+        ? `exited with signal ${result.signal}`
+        : `exited with code ${result.status ?? 1}`
+    throw new Error(`Corporate Electron main build ${buildResult} before creating out/main/chunks.`)
+  }
+}
 
 function findCorporateProfileChunk() {
-  if (!existsSync(mainChunksDir)) {
-    throw new Error('Missing out/main/chunks; run the corporate Electron build first.')
-  }
+  ensureCorporateMainChunks()
   const candidates = readdirSync(mainChunksDir)
     .filter((name) => name.endsWith('.js') && name.startsWith('tui-agent-selection-'))
     .map((name) => resolve(mainChunksDir, name))
