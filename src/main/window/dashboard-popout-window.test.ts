@@ -181,6 +181,7 @@ afterEach(() => vi.unstubAllEnvs())
 
 describe('createOrFocusDashboardPopout', () => {
   beforeEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     instances.length = 0
     isMock.dev = false
     vi.stubEnv('ELECTRON_RENDERER_URL', '')
@@ -188,6 +189,7 @@ describe('createOrFocusDashboardPopout', () => {
   })
 
   afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     // Reset the module-level singleton between tests.
     closeDashboardPopout()
     vi.unstubAllEnvs()
@@ -227,6 +229,14 @@ describe('createOrFocusDashboardPopout', () => {
     expect(permissionCallback).toHaveBeenCalledWith(false)
     expect(session.setPermissionCheckHandler.mock.calls[0][0]()).toBe(false)
     expect(sendToTrustedUIRendererMock).toHaveBeenCalledWith('dashboard:popoutOpenChanged', true)
+  })
+
+  it('uses the corporate product name in the native pop-out title', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    createOrFocusDashboardPopout(makeStore() as never)
+
+    expect(instances[0].options.title).toBe('Secure Orca Lite - Agent Dashboard')
   })
 
   it('shows the window on ready-to-show', () => {

@@ -71,6 +71,7 @@ function createMockChildProcess(): EventEmitter & { kill: ReturnType<typeof vi.f
 
 describe('app icon selection', () => {
   beforeEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     browserWindowGetAllWindowsMock.mockReset()
     createFromPathMock.mockReset()
     dockSetIconMock.mockReset()
@@ -79,6 +80,7 @@ describe('app icon selection', () => {
   })
 
   afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     vi.useRealTimers()
   })
 
@@ -87,6 +89,54 @@ describe('app icon selection', () => {
     expect(getAppIconPath('watercolor')).toBe('watercolor-icon')
     expect(getAppIconPath('blue')).toBe('blue-icon')
     expect(getAppIconPath('missing')).toBe('classic-icon')
+  })
+
+  it('routes corporate runtime icons to the corporate asset regardless of selected icon id', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    for (const iconId of ['classic', 'watercolor', 'blue', 'missing']) {
+      expect(getAppIconPath(iconId)).toMatch(/resources[\\/]build[\\/]corporate[\\/]icon\.png$/)
+    }
+  })
+
+  it('persists the corporate macOS Dock icon without reusing Orca app-icon variants', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const execFile = vi.fn(
+      (
+        _file: string,
+        _args: string[],
+        optionsOrCallback: unknown,
+        callback?: (error: Error | null) => void
+      ) => {
+        const onComplete =
+          typeof optionsOrCallback === 'function'
+            ? (optionsOrCallback as (error: Error | null) => void)
+            : callback
+        onComplete?.(null)
+      }
+    )
+
+    persistMacDockIcon('classic', {
+      appBundlePath: '/Applications/Secure Orca Lite.app',
+      execFile,
+      isDevApp: false,
+      platform: 'darwin'
+    })
+    await waitForQueuedPersistence()
+
+    expect(execFile).toHaveBeenCalledWith(
+      '/usr/bin/osascript',
+      expect.arrayContaining(['-e', expect.stringContaining('setIcon:image forFile:appPath')]),
+      expect.objectContaining({
+        env: expect.objectContaining({
+          ORCA_APP_BUNDLE_PATH: '/Applications/Secure Orca Lite.app',
+          ORCA_APP_ICON_PATH: expect.stringMatching(
+            /resources[\\/]build[\\/]corporate[\\/]icon\.png$/
+          )
+        })
+      }),
+      expect.any(Function)
+    )
   })
 
   it('applies the selected icon to the dock and live windows', () => {

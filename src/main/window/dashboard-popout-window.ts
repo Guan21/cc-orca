@@ -14,6 +14,7 @@ import {
   type KeybindingInput,
   type KeybindingOverrides
 } from '../../shared/keybindings'
+import { getProductDisplayName } from '../../shared/product-display-name'
 
 const MIN_WIDTH = 480
 const MIN_HEIGHT = 360
@@ -25,6 +26,13 @@ const DASHBOARD_POPOUT_PARTITION = 'orca-dashboard-popout'
 // Why: singleton — the dashboard is a companion surface, so a second "Pop Out"
 // request focuses the existing window rather than spawning duplicates.
 let dashboardPopoutWindow: BrowserWindow | null = null
+
+function getDashboardPopoutTitle(): string {
+  const productDisplayName = getProductDisplayName()
+  return productDisplayName === 'Orca'
+    ? 'Orca Agent Dashboard'
+    : `${productDisplayName} - Agent Dashboard`
+}
 
 /** The live pop-out window, or null when closed. Used by the dashboard relay to
  *  forward snapshots to the popout's webContents. */
@@ -165,7 +173,7 @@ export function createOrFocusDashboardPopout(
     ...(savedBounds ? { x: savedBounds.x, y: savedBounds.y } : {}),
     minWidth: MIN_WIDTH,
     minHeight: MIN_HEIGHT,
-    title: 'Orca Agent Dashboard',
+    title: getDashboardPopoutTitle(),
     show: false,
     autoHideMenuBar: true,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#0a0a0a' : '#ffffff',

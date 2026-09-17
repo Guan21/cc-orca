@@ -3,7 +3,7 @@ import {
   type ChildProcess,
   type ExecFileOptions
 } from 'node:child_process'
-import { dirname, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { app, BrowserWindow, nativeImage } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import classicIcon from '../../resources/icon.png?asset'
@@ -13,6 +13,7 @@ import watercolorMacDockIcon from '../../resources/app-icons/orca-watercolor.png
 import blueIcon from '../../resources/app-icons/orca-blue.png?asset'
 import blueMacDockIcon from '../../resources/app-icons/orca-blue.png?asset&asarUnpack'
 import { normalizeAppIconId, type AppIconId } from '../shared/app-icon'
+import { getOrcaBuildProfile } from '../shared/corporate-build-profile'
 
 const APP_ICON_PATHS = {
   classic: is.dev ? classicDevIcon : classicIcon,
@@ -24,6 +25,16 @@ const MAC_DOCK_ICON_PATHS = {
   watercolor: watercolorMacDockIcon,
   blue: blueMacDockIcon
 } satisfies Record<Exclude<AppIconId, 'classic'>, string>
+
+const CORPORATE_RUNTIME_ICON_RESOURCE_PATH = join('build', 'corporate', 'icon.png')
+
+function getCorporateAppIconPath(): string {
+  const resourcesPath = process.resourcesPath
+  if (typeof resourcesPath === 'string' && resourcesPath.length > 0) {
+    return join(resourcesPath, CORPORATE_RUNTIME_ICON_RESOURCE_PATH)
+  }
+  return resolve(process.cwd(), 'resources', 'build', 'corporate', 'icon.png')
+}
 
 type ExecFile = (
   file: string,
@@ -74,6 +85,9 @@ let macDockIconPersistenceGeneration = 0
 let macDockIconPersistenceQueue = Promise.resolve()
 
 export function getAppIconPath(value: unknown): string {
+  if (getOrcaBuildProfile() === 'corporate') {
+    return getCorporateAppIconPath()
+  }
   return APP_ICON_PATHS[normalizeAppIconId(value)]
 }
 
@@ -275,6 +289,10 @@ export function persistMacDockIcon(value: unknown, options: PersistMacDockIconOp
   enqueueMacDockIconPersistence(async () => {
     // Why: stale queued writes must not reapply an older Dock pin icon.
     if (generation !== macDockIconPersistenceGeneration) {
+      return
+    }
+    if (getOrcaBuildProfile() === 'corporate') {
+      await runMacCustomIconCommand(execFile, appBundlePath, getCorporateAppIconPath())
       return
     }
     if (iconId === 'classic') {

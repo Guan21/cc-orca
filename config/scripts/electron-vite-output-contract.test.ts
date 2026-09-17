@@ -18,6 +18,7 @@ import {
 } from '../build-plugins/bootstrap-fatal-exit-banner'
 import { createRequire } from 'node:module'
 import { electronViteConfig, resolveOrcaBuildProfileLiteral } from '../../electron.vite.config'
+import { transformProductDisplayNameHtml } from '../build-plugins/product-display-name-html'
 import { BOOTSTRAP_FATAL_EXIT_GUARD_KEY } from '../../src/main/startup/bootstrap-fatal-exit-guard'
 
 const targetConfig = readFileSync('config/electron-vite-target.config.cts', 'utf8')
@@ -133,6 +134,21 @@ describe('Electron Vite output contract', () => {
     expect(electronViteConfig.main?.define).toHaveProperty('globalThis.__ORCA_BUILD_PROFILE__')
     expect(electronViteConfig.preload?.define).toHaveProperty('globalThis.__ORCA_BUILD_PROFILE__')
     expect(electronViteConfig.renderer?.define).toHaveProperty('globalThis.__ORCA_BUILD_PROFILE__')
+  })
+
+  it('rewrites all static renderer HTML titles for corporate builds without changing defaults', () => {
+    const defaultHtml = [
+      '<title>Orca</title>',
+      '<title>Orca Web</title>',
+      '<title>Orca Agent Dashboard</title>'
+    ].join('\n')
+    const corporateHtml = transformProductDisplayNameHtml(defaultHtml, 'Secure Orca Lite')
+
+    expect(transformProductDisplayNameHtml(defaultHtml, 'Orca')).toContain('<title>Orca</title>')
+    expect(corporateHtml).toContain('<title>Secure Orca Lite</title>')
+    expect(corporateHtml).toContain('<title>Secure Orca Lite Web</title>')
+    expect(corporateHtml).toContain('<title>Secure Orca Lite - Agent Dashboard</title>')
+    expect(corporateHtml).not.toContain('<title>Orca')
   })
 
   it('exits when a static import fails before source error guards load', () => {
