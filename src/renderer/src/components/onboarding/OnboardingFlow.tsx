@@ -28,7 +28,9 @@ const stepCopy = {
     },
     get subtitle() {
       return translate(
-        'auto.components.onboarding.OnboardingFlow.322fc50a18',
+        getOrcaBuildProfile() === 'corporate'
+          ? 'auto.components.onboarding.OnboardingFlow.corporateAgentSubtitle'
+          : 'auto.components.onboarding.OnboardingFlow.322fc50a18',
         getOrcaBuildProfile() === 'corporate'
           ? "Secure Orca Lite supports Claude Code and Codex. Choose the one you'll reach for most."
           : "Orca works with every CLI agent. Choose the one you'll reach for most. Switch any time."
@@ -222,8 +224,11 @@ export default function OnboardingFlow({
           ref={flow.setLifecycleRootRef}
           role="dialog"
           aria-label={translate(
-            'auto.components.onboarding.OnboardingFlow.277ba45540',
-            `${productDisplayName} onboarding`
+            isCorporateBuild
+              ? 'auto.components.onboarding.OnboardingFlow.productOnboardingLabel'
+              : 'auto.components.onboarding.OnboardingFlow.277ba45540',
+            isCorporateBuild ? '{{productDisplayName}} onboarding' : 'Orca onboarding',
+            { productDisplayName }
           )}
           aria-modal="true"
           data-onboarding-modal
@@ -291,8 +296,11 @@ export default function OnboardingFlow({
               {stepIndex === 0 && (
                 <div className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
                   {translate(
-                    'auto.components.onboarding.OnboardingFlow.1b5e182e9f',
-                    `Welcome to ${productDisplayName}`
+                    isCorporateBuild
+                      ? 'auto.components.onboarding.OnboardingFlow.productWelcome'
+                      : 'auto.components.onboarding.OnboardingFlow.1b5e182e9f',
+                    isCorporateBuild ? 'Welcome to {{productDisplayName}}' : 'Welcome to Orca',
+                    { productDisplayName }
                   )}
                 </div>
               )}
