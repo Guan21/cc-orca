@@ -1,8 +1,9 @@
 import { translate } from '@/i18n/i18n'
 import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 import { translateSearchKeyword } from './settings-search-keywords'
+import { isCapabilityEnabledForBuildProfile } from '../../../../shared/corporate-build-profile'
 
-export const getGeneralSupportSearchEntries = createLocalizedCatalog(() => [
+const getDefaultGeneralSupportSearchEntries = createLocalizedCatalog(() => [
   {
     title: translate('auto.components.settings.general.search.36a72f0d9e', 'Star Orca on GitHub'),
     description: translate(
@@ -18,3 +19,11 @@ export const getGeneralSupportSearchEntries = createLocalizedCatalog(() => [
     ]
   }
 ])
+
+export function getGeneralSupportSearchEntries(): ReturnType<
+  typeof getDefaultGeneralSupportSearchEntries
+> {
+  return isCapabilityEnabledForBuildProfile('star-nag')
+    ? getDefaultGeneralSupportSearchEntries()
+    : []
+}

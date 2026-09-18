@@ -8,6 +8,7 @@ import { Separator } from '../ui/separator'
 import { SearchableSetting } from './SearchableSetting'
 import { SettingsSubsectionHeader } from './SettingsFormControls'
 import { translate } from '@/i18n/i18n'
+import { isCapabilityEnabledForBuildProfile } from '../../../../shared/corporate-build-profile'
 
 // Do not deep-link to /stargazers: GitHub 404s that page for users without repo write access.
 const ORCA_GITHUB_URL = 'https://github.com/stablyai/orca'
@@ -26,6 +27,15 @@ type GeneralSupportSectionProps = {
 }
 
 export function GeneralSupportSection({
+  hasPrecedingSections
+}: GeneralSupportSectionProps): React.JSX.Element | null {
+  if (!isCapabilityEnabledForBuildProfile('star-nag')) {
+    return null
+  }
+  return <GeneralSupportSectionContent hasPrecedingSections={hasPrecedingSections} />
+}
+
+function GeneralSupportSectionContent({
   hasPrecedingSections
 }: GeneralSupportSectionProps): React.JSX.Element {
   const mountedRef = useMountedRef()

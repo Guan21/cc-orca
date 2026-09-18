@@ -3,6 +3,7 @@ import { Check, ExternalLink, Loader2, Star, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
+import { isCapabilityEnabledForBuildProfile } from '../../../../shared/corporate-build-profile'
 
 const ORCA_REPO_URL = 'https://github.com/stablyai/orca'
 type StarNagMode = 'gh' | 'web'
@@ -168,7 +169,14 @@ function StarNagToast({
   )
 }
 
-export function StarNagToastHost(): null {
+export function StarNagToastHost(): React.JSX.Element | null {
+  if (!isCapabilityEnabledForBuildProfile('star-nag')) {
+    return null
+  }
+  return <StarNagToastHostContent />
+}
+
+function StarNagToastHostContent(): null {
   const activeToastIdRef = useRef<string | number | null>(null)
   const activeToastResolvedRef = useRef<(() => void) | null>(null)
 

@@ -313,16 +313,16 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
                 'Onboarding'
               )}
             </DropdownMenuItem>
-            <ExternalMenuItem
-              label={translate(
-                'auto.components.sidebar.SidebarSettingsHelpMenu.cdc87f897e',
-                'Docs'
-              )}
-              url={DOCS_URL}
-              icon={<BookOpen className="size-3.5" />}
-            />
             {!isCorporateBuild ? (
               <>
+                <ExternalMenuItem
+                  label={translate(
+                    'auto.components.sidebar.SidebarSettingsHelpMenu.cdc87f897e',
+                    'Docs'
+                  )}
+                  url={DOCS_URL}
+                  icon={<BookOpen className="size-3.5" />}
+                />
                 <ExternalMenuItem
                   label={translate(
                     'auto.components.sidebar.SidebarSettingsHelpMenu.5f83d86d92',
