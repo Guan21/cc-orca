@@ -1,6 +1,6 @@
 import React, { type ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildCommitMessageGenerationParams } from './source-control/ai/text-generation-dialog'
 import {
   getDefaultSourceControlTextGenerationSaveTargetKey,
@@ -37,6 +37,16 @@ vi.mock('@/components/ui/select', () => ({
     React.createElement('button', null, children),
   SelectValue: () => React.createElement('span')
 }))
+
+const previousBuildProfile = globalThis.__ORCA_BUILD_PROFILE__
+
+afterEach(() => {
+  if (previousBuildProfile === undefined) {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  } else {
+    globalThis.__ORCA_BUILD_PROFILE__ = previousBuildProfile
+  }
+})
 
 /** The mocked chips serialize their previews into an attribute, so quotes arrive escaped. */
 function escapeHtml(value: string): string {
@@ -108,6 +118,38 @@ describe('buildCommitMessageGenerationParams', () => {
     )
 
     expect(markup).toContain('You are generating a single git commit message.')
+  })
+
+  it('limits corporate dialog provider choices to approved agents', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const markup = renderToStaticMarkup(
+      React.createElement(SourceControlTextGenerationDialogForm, {
+        actionId: 'commitMessage',
+        generateLabel: 'Generate',
+        settings: null,
+        repo: null,
+        baseParams: {
+          agentId: 'codex',
+          model: 'gpt-5.4-mini',
+          commandInputTemplate: '{basePrompt}'
+        },
+        saveTargets: [],
+        onGenerate: () => {},
+        onOpenChange: () => {},
+        onSaveDefaults: () => {}
+      })
+    )
+
+    expect(markup).toContain('Claude Code')
+    expect(markup).toContain('Codex')
+    expect(markup).not.toContain('OpenCode')
+    expect(markup).not.toContain('Pi')
+    expect(markup).not.toContain('Amp')
+    expect(markup).not.toContain('Cursor')
+    expect(markup).not.toContain('Kimi')
+    expect(markup).not.toContain('GitHub Copilot')
+    expect(markup).not.toContain('Antigravity')
+    expect(markup).not.toContain('Custom command')
   })
 
   // Why: with no preview the chips fall back to the synthetic `123`, promising an unlinked

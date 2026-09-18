@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type React from 'react'
 import type { Repo } from '../../../../shared/repo-types'
+import { isCustomCommitMessageAgentAllowedForBuildProfile } from '../../../../shared/commit-message-agent-spec'
 import { normalizeSourceControlAiSettings } from '../../../../shared/source-control-ai'
 import type { SourceControlAiRepoUpdate } from '../../../../shared/source-control-ai-recipe-save'
 import { useAppStore } from '../../store'
@@ -31,6 +32,7 @@ export function RepositorySourceControlAiSection({
   updateRepo
 }: RepositorySourceControlAiSectionProps): React.JSX.Element {
   const settings = useAppStore((state) => state.settings)
+  const canUseCustomCommand = isCustomCommitMessageAgentAllowedForBuildProfile()
   const ownership = getSettingOwnershipSummary('repositorySourceControlAi')
   const source = normalizeSourceControlAiSettings(
     settings?.sourceControlAi,
@@ -86,12 +88,14 @@ export function RepositorySourceControlAiSection({
         source={source}
         onChange={updateEnablement}
       />
-      <RepositorySourceControlAiCustomCommand
-        value={displayRepoAi.customAgentCommand}
-        source={source}
-        onChange={updateCustomCommand}
-        onCommit={commitCustomCommand}
-      />
+      {canUseCustomCommand ? (
+        <RepositorySourceControlAiCustomCommand
+          value={displayRepoAi.customAgentCommand}
+          source={source}
+          onChange={updateCustomCommand}
+          onCommit={commitCustomCommand}
+        />
+      ) : null}
       <RepositorySourceControlAiActionRows
         repoId={repo.id}
         repoAi={displayRepoAi}

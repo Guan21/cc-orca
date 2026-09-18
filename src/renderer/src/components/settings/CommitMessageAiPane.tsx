@@ -14,6 +14,7 @@ import {
 import { SOURCE_CONTROL_TEXT_ACTION_IDS } from '../../../../shared/source-control-ai-actions'
 import {
   CUSTOM_AGENT_ID,
+  isCustomCommitMessageAgentAllowedForBuildProfile,
   isCustomAgentId,
   type CommitMessageModelCapability
 } from '../../../../shared/commit-message-agent-spec'
@@ -147,12 +148,14 @@ export function CommitMessageAiPane({
   }
 
   const sections: React.ReactNode[] = []
+  const canUseCustomCommand = isCustomCommitMessageAgentAllowedForBuildProfile()
   const customCommandInUse =
-    isCustomAgentId(config.agentId) ||
-    config.customAgentCommand.trim().length > 0 ||
-    SOURCE_CONTROL_TEXT_ACTION_IDS.some(
-      (actionId) => config.actions?.[actionId]?.agentId === CUSTOM_AGENT_ID
-    )
+    canUseCustomCommand &&
+    (isCustomAgentId(config.agentId) ||
+      config.customAgentCommand.trim().length > 0 ||
+      SOURCE_CONTROL_TEXT_ACTION_IDS.some(
+        (actionId) => config.actions?.[actionId]?.agentId === CUSTOM_AGENT_ID
+      ))
 
   if (
     matchesSettingsSearch(searchQuery, {
@@ -228,6 +231,7 @@ export function CommitMessageAiPane({
 
   if (
     config.enabled &&
+    canUseCustomCommand &&
     (customCommandInUse ||
       matchesSettingsSearch(searchQuery, {
         title: translate(

@@ -8,16 +8,28 @@ import {
   type CustomAgentId,
   getCommitMessageAgentCapability,
   isCustomAgentId,
+  isCustomCommitMessageAgentAllowedForBuildProfile,
   listCommitMessageAgentCapabilities
 } from '../../../../shared/commit-message-agent-spec'
+import {
+  getOrcaBuildProfile,
+  type OrcaBuildProfile
+} from '../../../../shared/corporate-build-profile'
 import { getAgentCatalog, type AgentCatalogEntry } from '@/lib/agent-catalog'
 import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 import { translate } from '@/i18n/i18n'
 
 export const SOURCE_CONTROL_TEXT_ACTION_ID_SET = new Set<string>(SOURCE_CONTROL_TEXT_ACTION_IDS)
-const TEXT_GENERATION_AGENT_ID_SET = new Set(
-  listCommitMessageAgentCapabilities().map((capability) => capability.id)
-)
+
+function getTextGenerationAgentCapabilities(
+  buildProfile: OrcaBuildProfile = getOrcaBuildProfile()
+) {
+  return listCommitMessageAgentCapabilities(buildProfile)
+}
+
+function getTextGenerationAgentIdSet(buildProfile: OrcaBuildProfile = getOrcaBuildProfile()) {
+  return new Set(getTextGenerationAgentCapabilities(buildProfile).map((capability) => capability.id))
+}
 
 export const getActionDescriptions = createLocalizedCatalog(
   (): Record<SourceControlActionId, string> => ({
@@ -103,19 +115,39 @@ export function getAgentCatalogForAction(
   if (!SOURCE_CONTROL_TEXT_ACTION_ID_SET.has(actionId)) {
     return getAgentCatalog()
   }
-  return getAgentCatalog().filter(
-    (agent) => TEXT_GENERATION_AGENT_ID_SET.has(agent.id) || agent.id === selectedAgent
+  const buildProfile = getOrcaBuildProfile()
+  const capabilityLabels = new Map(
+    getTextGenerationAgentCapabilities(buildProfile).map((capability) => [
+      capability.id,
+      capability.label
+    ])
   )
+  return getAgentCatalog()
+    .filter(
+      (agent) =>
+        capabilityLabels.has(agent.id) ||
+        (buildProfile !== 'corporate' && agent.id === selectedAgent)
+    )
+    .map((agent) => ({
+      ...agent,
+      label: capabilityLabels.get(agent.id) ?? agent.label
+    }))
 }
 
 function formatSupportedAgentLabels(): string {
-  return [
-    ...listCommitMessageAgentCapabilities().map((capability) => capability.label),
-    translate(
-      'auto.components.settings.source.control.action.recipe.options.customCommand',
-      'Custom command'
+  const buildProfile = getOrcaBuildProfile()
+  const labels = getTextGenerationAgentCapabilities(buildProfile).map(
+    (capability) => capability.label
+  )
+  if (isCustomCommitMessageAgentAllowedForBuildProfile(buildProfile)) {
+    labels.push(
+      translate(
+        'auto.components.settings.source.control.action.recipe.options.customCommand',
+        'Custom command'
+      )
     )
-  ].join(', ')
+  }
+  return labels.join(', ')
 }
 
 export function getSourceControlActionAgentSupportText(
@@ -140,7 +172,11 @@ export function getSourceControlActionAgentWarningText(
   }
 
   if (selectedAgent && !isCustomAgentId(selectedAgent)) {
-    if (TEXT_GENERATION_AGENT_ID_SET.has(selectedAgent)) {
+    const buildProfile = getOrcaBuildProfile()
+    if (getTextGenerationAgentIdSet(buildProfile).has(selectedAgent)) {
+      return null
+    }
+    if (buildProfile === 'corporate') {
       return null
     }
     const agentLabel = getAgentCatalog().find((agent) => agent.id === selectedAgent)?.label

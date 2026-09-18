@@ -1,8 +1,13 @@
 import type { TuiAgent } from './tui-agent'
-import { isTuiAgentEnabled } from './tui-agent-selection'
+import { getTuiAgentDisplayLabel, isTuiAgentEnabled } from './tui-agent-selection'
 import { labelFromModelId } from './model-id-label'
 import { buildPrimaryCommitMessageAgentSpecs } from './commit-message-agent-specs-primary'
 import { buildSecondaryCommitMessageAgentSpecs } from './commit-message-agent-specs-secondary'
+import {
+  getOrcaBuildProfile,
+  isTuiAgentAllowedForBuildProfile,
+  type OrcaBuildProfile
+} from './corporate-build-profile'
 import {
   BASIC_THINKING_LEVELS,
   CLAUDE_THINKING_LEVELS,
@@ -121,6 +126,12 @@ export function isCustomAgentId(id: string | null | undefined): id is CustomAgen
   return id === CUSTOM_AGENT_ID
 }
 
+export function isCustomCommitMessageAgentAllowedForBuildProfile(
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): boolean {
+  return profile !== 'corporate'
+}
+
 export function getCommitMessageAgentSpec(agentId: TuiAgent): CommitMessageAgentSpec | undefined {
   return COMMIT_MESSAGE_AGENT_SPECS[agentId]
 }
@@ -128,19 +139,26 @@ export function getCommitMessageAgentSpec(agentId: TuiAgent): CommitMessageAgent
 export function resolveCommitMessageAgentChoice(
   configuredAgentId: CommitMessageAgentChoice | null | undefined,
   defaultTuiAgent: DefaultTuiAgentPreference,
-  disabledTuiAgents?: Iterable<unknown> | null
+  disabledTuiAgents?: Iterable<unknown> | null,
+  buildProfile: OrcaBuildProfile = getOrcaBuildProfile()
 ): CommitMessageAgentChoice | null {
   if (configuredAgentId) {
-    return configuredAgentId
+    if (isCustomAgentId(configuredAgentId)) {
+      if (isCustomCommitMessageAgentAllowedForBuildProfile(buildProfile)) {
+        return configuredAgentId
+      }
+    } else if (isTuiAgentAllowedForBuildProfile(configuredAgentId, buildProfile)) {
+      return configuredAgentId
+    }
   }
   if (
     defaultTuiAgent &&
     defaultTuiAgent !== 'blank' &&
-    isTuiAgentEnabled(defaultTuiAgent, disabledTuiAgents)
+    isTuiAgentEnabled(defaultTuiAgent, disabledTuiAgents, buildProfile)
   ) {
     return getCommitMessageAgentSpec(defaultTuiAgent) ? defaultTuiAgent : null
   }
-  return isTuiAgentEnabled(DEFAULT_COMMIT_MESSAGE_AGENT_ID, disabledTuiAgents)
+  return isTuiAgentEnabled(DEFAULT_COMMIT_MESSAGE_AGENT_ID, disabledTuiAgents, buildProfile)
     ? DEFAULT_COMMIT_MESSAGE_AGENT_ID
     : null
 }
@@ -162,11 +180,12 @@ export function getCommitMessageModel(
 }
 
 function toCommitMessageAgentCapability(
-  spec: CommitMessageAgentSpec
+  spec: CommitMessageAgentSpec,
+  buildProfile: OrcaBuildProfile = getOrcaBuildProfile()
 ): CommitMessageAgentCapability {
   return {
     id: spec.id,
-    label: spec.label,
+    label: getTuiAgentDisplayLabel(spec.id, spec.label, buildProfile),
     modelSource: spec.modelSource,
     defaultModelId: spec.defaultModelId,
     // Why: renderer/settings should consume provider capabilities, not the
@@ -184,10 +203,13 @@ function toCommitMessageAgentCapability(
 }
 
 export function getCommitMessageAgentCapability(
-  agentId: TuiAgent
+  agentId: TuiAgent,
+  buildProfile: OrcaBuildProfile = getOrcaBuildProfile()
 ): CommitMessageAgentCapability | undefined {
   const spec = getCommitMessageAgentSpec(agentId)
-  return spec ? toCommitMessageAgentCapability(spec) : undefined
+  return spec && isTuiAgentAllowedForBuildProfile(agentId, buildProfile)
+    ? toCommitMessageAgentCapability(spec, buildProfile)
+    : undefined
 }
 
 export function getCommitMessageModelCapability(
@@ -198,12 +220,18 @@ export function getCommitMessageModelCapability(
 }
 
 /** Ordered list of agents that have a non-interactive mode wired up. */
-export function listCommitMessageAgentIds(): TuiAgent[] {
-  return Object.keys(COMMIT_MESSAGE_AGENT_SPECS) as TuiAgent[]
+export function listCommitMessageAgentIds(
+  buildProfile: OrcaBuildProfile = getOrcaBuildProfile()
+): TuiAgent[] {
+  return (Object.keys(COMMIT_MESSAGE_AGENT_SPECS) as TuiAgent[]).filter((id) =>
+    isTuiAgentAllowedForBuildProfile(id, buildProfile)
+  )
 }
 
-export function listCommitMessageAgentCapabilities(): CommitMessageAgentCapability[] {
-  return listCommitMessageAgentIds()
-    .map((id) => getCommitMessageAgentCapability(id))
+export function listCommitMessageAgentCapabilities(
+  buildProfile: OrcaBuildProfile = getOrcaBuildProfile()
+): CommitMessageAgentCapability[] {
+  return listCommitMessageAgentIds(buildProfile)
+    .map((id) => getCommitMessageAgentCapability(id, buildProfile))
     .filter((capability): capability is CommitMessageAgentCapability => Boolean(capability))
 }

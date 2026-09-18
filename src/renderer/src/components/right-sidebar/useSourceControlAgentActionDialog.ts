@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getAgentCatalog } from '@/lib/agent-catalog'
 import {
   pickSourceControlLaunchAgent,
   resolveSourceControlLaunchAgentScope
@@ -11,6 +10,11 @@ import { isTuiAgentEnabled } from '../../../../shared/tui-agent-selection'
 import type { TuiAgent } from '../../../../shared/tui-agent'
 import type { SourceControlAgentActionDialogProps } from './SourceControlAgentActionDialog'
 import type { UseSourceControlAgentActionDialogResult } from './source-control-agent-action-dialog-result'
+import {
+  getSourceControlDialogAgentLabel,
+  listSourceControlDialogAgentOptions,
+  normalizeSourceControlDialogSavedAgent
+} from './source-control-agent-dialog-agent-options'
 import { useSavedSourceControlAgentActionAutoStart } from './useSavedSourceControlAgentActionAutoStart'
 import {
   buildSourceControlAgentSaveTargets,
@@ -106,7 +110,11 @@ export function useSourceControlAgentActionDialog({
     setDetectedOpenCycle(null)
     setCommandTemplate(savedCommandInputTemplate ?? '{basePrompt}')
     setAgentArgs(savedAgentArgs ?? '')
-    setSelectedAgent(savedAgentId ?? null)
+    const selectableSavedAgent = normalizeSourceControlDialogSavedAgent(
+      savedAgentId,
+      disabledAgents
+    )
+    setSelectedAgent(selectableSavedAgent)
     setSaveLaunchRecipe(true)
     setSaveTargetValue(defaultSaveTargetValue)
     let stale = false
@@ -118,7 +126,7 @@ export function useSourceControlAgentActionDialog({
         (current) =>
           current ??
           pickSourceControlLaunchAgent({
-            savedAgent: savedAgentId,
+            savedAgent: selectableSavedAgent,
             defaultAgent: settings?.defaultTuiAgent,
             detectedAgents: nextAgents,
             disabledAgents
@@ -149,9 +157,10 @@ export function useSourceControlAgentActionDialog({
   )
   const agentOptions = useMemo(
     () =>
-      getAgentCatalog().filter(
-        (entry) => enabledDetectedAgents.includes(entry.id) || entry.id === selectedAgent
-      ),
+      listSourceControlDialogAgentOptions({
+        enabledDetectedAgents,
+        selectedAgent
+      }),
     [enabledDetectedAgents, selectedAgent]
   )
   const selectedAgentUnavailable = Boolean(
@@ -275,12 +284,9 @@ export function useSourceControlAgentActionDialog({
     if (!launchAgentScope.overridesGlobalAgent) {
       return null
     }
-    const catalog = getAgentCatalog()
-    const labelFor = (agentId: TuiAgent | null): string =>
-      catalog.find((entry) => entry.id === agentId)?.label ?? agentId ?? ''
     return {
-      effectiveAgentLabel: labelFor(launchAgentScope.effectiveAgentId),
-      globalAgentLabel: labelFor(launchAgentScope.globalAgentId)
+      effectiveAgentLabel: getSourceControlDialogAgentLabel(launchAgentScope.effectiveAgentId),
+      globalAgentLabel: getSourceControlDialogAgentLabel(launchAgentScope.globalAgentId)
     }
   }, [launchAgentScope])
 

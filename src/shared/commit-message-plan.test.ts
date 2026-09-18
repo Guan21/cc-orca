@@ -1,5 +1,15 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { planCommitMessageGeneration, planAgentBinary } from './commit-message-plan'
+
+const previousBuildProfile = globalThis.__ORCA_BUILD_PROFILE__
+
+afterEach(() => {
+  if (previousBuildProfile === undefined) {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  } else {
+    globalThis.__ORCA_BUILD_PROFILE__ = previousBuildProfile
+  }
+})
 
 describe('planCommitMessageGeneration', () => {
   it('plans Claude non-interactive generation with the prompt on stdin only', () => {
@@ -549,6 +559,41 @@ describe('planCommitMessageGeneration', () => {
         args: ['--message', '--model', 'gpt-5.5'],
         stdinPayload: 'PROMPT'
       }
+    })
+  })
+
+  it('rejects unsupported corporate providers before planning a spawn', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    expect(
+      planCommitMessageGeneration(
+        {
+          agentId: 'opencode',
+          model: 'opencode/deepseek-v4-flash-free'
+        },
+        'PROMPT'
+      )
+    ).toEqual({
+      ok: false,
+      error: 'Agent "opencode" is not allowed by the corporate build profile.'
+    })
+  })
+
+  it('rejects corporate custom commands before planning a spawn', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    expect(
+      planCommitMessageGeneration(
+        {
+          agentId: 'custom',
+          model: '',
+          customAgentCommand: 'cursor-agent --print {prompt}'
+        },
+        'PROMPT'
+      )
+    ).toEqual({
+      ok: false,
+      error: 'Custom command is not allowed by the corporate build profile.'
     })
   })
 

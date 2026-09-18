@@ -1,6 +1,6 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { SourceControlAiSettings } from '../../../../shared/source-control-ai-types'
 import {
@@ -20,6 +20,16 @@ import {
 } from './source-control-action-recipe-options'
 import { getCommitMessageAiPaneSearchEntries } from './commit-message-ai-search'
 import { TooltipProvider } from '../ui/tooltip'
+
+const previousBuildProfile = globalThis.__ORCA_BUILD_PROFILE__
+
+afterEach(() => {
+  if (previousBuildProfile === undefined) {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  } else {
+    globalThis.__ORCA_BUILD_PROFILE__ = previousBuildProfile
+  }
+})
 
 function renderPane(settings: GlobalSettings): string {
   return renderToStaticMarkup(
@@ -189,6 +199,42 @@ describe('CommitMessageAiPane', () => {
     expect(markup).toContain('Supported agents for this recipe:')
     expect(markup).toContain('Claude, Codex')
     expect(markup).toContain('Custom command')
+  })
+
+  it('hides unsupported Source Control AI providers and custom commands in corporate mode', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const markup = renderPane(
+      buildSettings({
+        sourceControlAi: {
+          enabled: true,
+          agentId: 'opencode',
+          selectedModelByAgent: { opencode: 'opencode/deepseek-v4-flash-free' },
+          selectedModelByAgentByHost: {},
+          discoveredModelsByAgent: {},
+          discoveredModelsByAgentByHost: {},
+          selectedThinkingByModel: {},
+          instructionsByOperation: {},
+          customAgentCommand: 'cursor-agent --print {prompt}',
+          actions: {
+            commitMessage: { agentId: 'custom', commandInputTemplate: '{basePrompt}' },
+            pullRequest: { agentId: 'copilot', commandInputTemplate: '{basePrompt}' }
+          },
+          prCreationDefaults: {},
+          launchActionDefaults: {}
+        }
+      })
+    )
+
+    expect(markup).toContain('Claude Code')
+    expect(markup).toContain('Codex')
+    expect(markup).not.toContain('OpenCode')
+    expect(markup).not.toContain('Pi')
+    expect(markup).not.toContain('Amp')
+    expect(markup).not.toContain('Cursor')
+    expect(markup).not.toContain('Kimi')
+    expect(markup).not.toContain('GitHub Copilot')
+    expect(markup).not.toContain('Antigravity')
+    expect(markup).not.toContain('Custom command')
   })
 
   it('marks an unsupported saved text-recipe agent with the supported alternatives', () => {
