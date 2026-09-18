@@ -692,7 +692,7 @@
           "a74c6d6b18": "not-installed"
         },
         "NotificationStep": {
-          "2c47f5465f": "Turn on Allow notifications for Orca in System Settings. This step updates automatically once enabled.",
+          "2c47f5465f": "Turn on Allow notifications for {{productName}} in System Settings. This step updates automatically once enabled.",
           "8124d085a6": "Open Mac Settings",
           "94562ba367": "macOS is asking for permission. Click Allow in the dialog and this step updates automatically.",
           "aa36281b00": "Open System Settings and make sure Orca is allowed to send notifications.",

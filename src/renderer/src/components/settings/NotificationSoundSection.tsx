@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { Label } from '../ui/label'
 import { Slider } from '../ui/slider'
 import {
@@ -94,6 +95,7 @@ export function NotificationSoundSection({
 
   const selectedSoundId = notificationSettings.customSoundId
   const soundOptions = getNotificationSoundOptions(notificationSettings.customSoundPath)
+  const productName = getProductDisplayName()
 
   return (
     <div className="space-y-2 py-2">
@@ -110,7 +112,8 @@ export function NotificationSoundSection({
         <p className="text-xs text-muted-foreground">
           {translate(
             'auto.components.settings.NotificationsPane.2a2033c388',
-            'Choose the alert Orca plays when a desktop notification is delivered.'
+            'Choose the alert {{productName}} plays when a desktop notification is delivered.',
+            { productName }
           )}
         </p>
       </div>

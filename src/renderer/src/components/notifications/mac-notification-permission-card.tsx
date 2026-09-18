@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BellRing, Check, Settings, TriangleAlert } from 'lucide-react'
 import type { NotificationDeliveryProbeResult } from '../../../../shared/notification-settings-types'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 
@@ -115,6 +116,8 @@ export function MacNotificationPermissionCard({
 }: {
   state: MacNotificationPermissionState | null
 }): React.JSX.Element | null {
+  const productName = getProductDisplayName()
+
   if (state === 'checking') {
     return (
       <section className="rounded-xl border border-border bg-muted/20 px-5 py-4 text-[13px] text-muted-foreground">
@@ -157,7 +160,8 @@ export function MacNotificationPermissionCard({
               <BellRing className="size-4" />
               {translate(
                 'auto.components.onboarding.NotificationStep.95d99b52fa',
-                'Allow notifications for Orca'
+                'Allow notifications for {{productName}}',
+                { productName }
               )}
             </div>
             <p className="max-w-[58ch] text-[13px] leading-relaxed text-muted-foreground">
@@ -197,13 +201,15 @@ export function MacNotificationPermissionCard({
               <TriangleAlert className="size-4" />
               {translate(
                 'auto.components.onboarding.NotificationStep.90b5d2e363',
-                'macOS is not delivering Orca notifications'
+                'macOS is not delivering {{productName}} notifications',
+                { productName }
               )}
             </div>
             <p className="max-w-[58ch] text-[13px] leading-relaxed text-amber-700/80 dark:text-amber-200/80">
               {translate(
                 'auto.components.onboarding.mac.notification.permission.card.721d2bedb6',
-                'Turn on Allow notifications for Orca in System Settings.'
+                'Turn on Allow notifications for {{productName}} in System Settings.',
+                { productName }
               )}
             </p>
           </div>

@@ -231,6 +231,7 @@ describe('notifications:probeDelivery', () => {
 
 describe('triggerStartupNotificationRegistration', () => {
   const originalPlatform = process.platform
+  const previousBuildProfile = globalThis.__ORCA_BUILD_PROFILE__
 
   function getStartupNotificationEventHandler(eventName: string): (...args: unknown[]) => void {
     const call = notificationOnMock.mock.calls.find((c: unknown[]) => c[0] === eventName)
@@ -241,6 +242,7 @@ describe('triggerStartupNotificationRegistration', () => {
   }
 
   beforeEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     vi.useFakeTimers()
     vi.clearAllTimers()
     notificationCtorMock.mockClear()
@@ -254,6 +256,11 @@ describe('triggerStartupNotificationRegistration', () => {
   })
 
   afterEach(() => {
+    if (previousBuildProfile === undefined) {
+      delete globalThis.__ORCA_BUILD_PROFILE__
+    } else {
+      globalThis.__ORCA_BUILD_PROFILE__ = previousBuildProfile
+    }
     Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true })
   })
 
@@ -269,6 +276,22 @@ describe('triggerStartupNotificationRegistration', () => {
     expect(notificationCtorMock).toHaveBeenCalledWith({
       title: 'Orca is ready to notify you',
       body: 'Allow notifications so Orca can alert you when agents finish or terminals need attention.'
+    })
+    expect(notificationShowMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('uses the corporate product name in the welcome notification', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const store = {
+      getUI: () => ({ notificationPermissionRequested: undefined }),
+      updateUI: vi.fn()
+    }
+
+    triggerStartupNotificationRegistration(store as never)
+
+    expect(notificationCtorMock).toHaveBeenCalledWith({
+      title: 'Secure Orca Lite is ready to notify you',
+      body: 'Allow notifications so Secure Orca Lite can alert you when agents finish or terminals need attention.'
     })
     expect(notificationShowMock).toHaveBeenCalledTimes(1)
   })

@@ -1,4 +1,5 @@
 import { toast } from 'sonner'
+import { getProductDisplayName } from '../../../shared/product-display-name'
 import { translate } from '@/i18n/i18n'
 
 // Why: agent completions can dispatch in bursts; one in-app pointer at the
@@ -15,15 +16,18 @@ export function showBlockedNotificationFallbackToast(): void {
     return
   }
   shownThisSession = true
+  const productName = getProductDisplayName()
   toast.warning(
     translate(
       'auto.lib.blocked.notification.fallback.de50bef680',
-      'macOS is blocking Orca notifications'
+      'macOS is blocking {{productName}} notifications',
+      { productName }
     ),
     {
       description: translate(
         'auto.components.onboarding.mac.notification.permission.card.721d2bedb6',
-        'Turn on Allow notifications for Orca in System Settings.'
+        'Turn on Allow notifications for {{productName}} in System Settings.',
+        { productName }
       ),
       action: {
         label: translate(

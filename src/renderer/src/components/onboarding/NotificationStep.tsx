@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { BellRing, FileAudio, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -174,6 +175,7 @@ export function NotificationStep({
   const customPath = notificationSettings.customSoundPath
   const selectedSoundId = notificationSettings.customSoundId
   const soundOptions = getNotificationSoundOptions(customPath)
+  const productName = getProductDisplayName()
 
   return (
     <div ref={setSelectPortalHost} className="space-y-5">
@@ -187,7 +189,8 @@ export function NotificationStep({
           <p className="text-[13px] leading-relaxed text-muted-foreground">
             {translate(
               'auto.components.onboarding.NotificationStep.0fe570690c',
-              'Pick the alert Orca plays after a desktop notification is delivered.'
+              'Pick the alert {{productName}} plays after a desktop notification is delivered.',
+              { productName }
             )}
           </p>
         </div>
