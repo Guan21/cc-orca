@@ -52,6 +52,10 @@ const windowsArtifactName = isCorporateBuild
 const macDmgArtifactName = isCorporateBuild
   ? 'secure-orca-lite-macos-${arch}.${ext}'
   : 'orca-macos-${arch}.${ext}'
+const packagedIcon = isCorporateBuild
+  ? 'resources/build/corporate/icon.icns'
+  : 'resources/build/icon.icns'
+const corporateWindowsIcon = 'resources/build/corporate/icon.ico'
 const localBuildVersion =
   isMacRelease || isWinDevChannel ? undefined : process.env.ORCA_LOCAL_BUILD_VERSION
 const isHourlyChannel = isMacHourly || isWinHourly
@@ -81,6 +85,22 @@ const featureWallResources = {
   from: 'resources/onboarding/feature-wall',
   to: 'onboarding/feature-wall'
 }
+const corporateIdentityResources = isCorporateBuild
+  ? [
+      {
+        from: 'resources/build/corporate/icon.png',
+        to: 'build/corporate/icon.png'
+      },
+      {
+        from: 'resources/tray/corporate-menu-barTemplate.png',
+        to: 'tray/corporate-menu-barTemplate.png'
+      },
+      {
+        from: 'resources/tray/corporate-menu-barTemplate@2x.png',
+        to: 'tray/corporate-menu-barTemplate@2x.png'
+      }
+    ]
+  : []
 // Why: freshness detection needs immutable identity metadata from this exact
 // app build, but never needs the skill package bytes or a runtime network read.
 const skillFreshnessResources = {
@@ -408,6 +428,7 @@ module.exports = {
   },
   win: {
     executableName: 'Orca',
+    ...(isCorporateBuild ? { icon: corporateWindowsIcon } : {}),
     // Why: Windows installers are signed after electron-builder packaging by
     // SignPath, so the packager cannot infer the updater publisherName.
     //
@@ -432,6 +453,7 @@ module.exports = {
     ...(isWinDevChannel ? { verifyUpdateCodeSignature: false } : {}),
     extraResources: [
       ...commonExtraResources,
+      ...corporateIdentityResources,
       ...createPackagedRuntimeNodeModuleResources('win32'),
       winSpeechNativeResource,
       {
@@ -476,29 +498,21 @@ module.exports = {
       role: 'Editor',
       rank: 'Alternate'
     })),
-    icon: 'resources/build/icon.icns',
+    icon: packagedIcon,
     entitlements: 'resources/build/entitlements.mac.plist',
     entitlementsInherit: 'resources/build/entitlements.mac.plist',
     extendInfo: {
-      NSAppleEventsUsageDescription:
-        'Orca allows terminal-launched developer tools to automate local apps when you request it.',
-      NSBluetoothAlwaysUsageDescription:
-        'Orca allows terminal-launched developer tools to access Bluetooth devices when you request it.',
-      NSBluetoothPeripheralUsageDescription:
-        'Orca allows terminal-launched developer tools to access Bluetooth devices when you request it.',
-      NSCameraUsageDescription: "Application requests access to the device's camera.",
-      NSLocationUsageDescription:
-        'Orca allows terminal-launched developer tools to access location when you request it.',
-      NSLocalNetworkUsageDescription:
-        'Orca allows terminal-launched developer tools to discover and connect to local development servers when you request it.',
-      NSMicrophoneUsageDescription: "Application requests access to the device's microphone.",
-      NSAudioCaptureUsageDescription:
-        'Orca allows terminal-launched developer tools to capture desktop audio when you request it.',
+      NSAppleEventsUsageDescription: `${productName} allows terminal-launched developer tools to automate local apps when you request it.`,
+      NSBluetoothAlwaysUsageDescription: `${productName} allows terminal-launched developer tools to access Bluetooth devices when you request it.`,
+      NSBluetoothPeripheralUsageDescription: `${productName} allows terminal-launched developer tools to access Bluetooth devices when you request it.`,
+      NSCameraUsageDescription: `${productName} requests access to the device's camera.`,
+      NSLocationUsageDescription: `${productName} allows terminal-launched developer tools to access location when you request it.`,
+      NSLocalNetworkUsageDescription: `${productName} allows terminal-launched developer tools to discover and connect to local development servers when you request it.`,
+      NSMicrophoneUsageDescription: `${productName} requests access to the device's microphone.`,
+      NSAudioCaptureUsageDescription: `${productName} allows terminal-launched developer tools to capture desktop audio when you request it.`,
       NSBonjourServices: ['_http._tcp', '_https._tcp'],
-      NSDocumentsFolderUsageDescription:
-        "Application requests access to the user's Documents folder.",
-      NSDownloadsFolderUsageDescription:
-        "Application requests access to the user's Downloads folder."
+      NSDocumentsFolderUsageDescription: `${productName} requests access to the user's Documents folder.`,
+      NSDownloadsFolderUsageDescription: `${productName} requests access to the user's Downloads folder.`
     },
     // Why: local macOS validation builds should launch without Apple release
     // credentials. Hardened runtime + notarization stay enabled only on the
@@ -515,6 +529,7 @@ module.exports = {
     notarize: isMacRelease,
     extraResources: [
       ...commonExtraResources,
+      ...corporateIdentityResources,
       ...createPackagedRuntimeNodeModuleResources('darwin'),
       macSpeechNativeResource,
       {
@@ -573,7 +588,7 @@ module.exports = {
     executableName: 'orca-ide',
     // Why: the icns source lets electron-builder emit standard hicolor PNG
     // sizes; a single 1024px PNG is ignored by some Linux docks/launchers.
-    icon: 'resources/build/icon.icns',
+    icon: packagedIcon,
     desktop: {
       entry: {
         // Why: Electron reports WM_CLASS=orca for the visible Linux window;
@@ -583,6 +598,7 @@ module.exports = {
     },
     extraResources: [
       ...commonExtraResources,
+      ...corporateIdentityResources,
       ...createPackagedRuntimeNodeModuleResources('linux'),
       linuxSpeechNativeResource,
       {

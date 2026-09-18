@@ -253,6 +253,25 @@ describe('createSystemTray', () => {
     }
   })
 
+  it('uses corporate macOS menu bar template assets for corporate builds', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    setPlatform('darwin')
+    const { createSystemTray } = await loadModule()
+    const options = createOptions()
+
+    createSystemTray(options)
+
+    expect(createFromPathMock).toHaveBeenNthCalledWith(
+      1,
+      expect.stringMatching(/resources\/tray\/corporate-menu-barTemplate\.png$/)
+    )
+    expect(createFromPathMock).toHaveBeenNthCalledWith(
+      2,
+      expect.stringMatching(/resources\/tray\/corporate-menu-barTemplate@2x\.png$/)
+    )
+    expect(builtMenuItems().map((item) => item.label)).toContain('Open Secure Orca Lite')
+  })
+
   it('uses the corporate product display name for production tray copy', async () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
     setPlatform('win32')

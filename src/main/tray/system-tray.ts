@@ -7,6 +7,7 @@ import { translateMain } from '../i18n/main-i18n'
 import { composeTrayAttentionIcon, tintTrayTemplateForAttention } from './tray-attention-icon'
 import { stampTrayDevBadge } from './tray-dev-badge'
 import { getProductDisplayName } from '../../shared/product-display-name'
+import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
 
 export type SystemTrayOptions = {
   /** App icon id from settings; the tray reuses the app icon image. */
@@ -56,6 +57,16 @@ function baseTooltip(): string {
 // Why: on Windows the notification area expects a 16px icon; the app icon PNG
 // is larger, so downscale to avoid a cropped/blurry tray glyph.
 const TRAY_ICON_SIZE = 16
+const CORPORATE_TRAY_ICON_PATH = 'tray/corporate-menu-barTemplate.png'
+const CORPORATE_TRAY_RETINA_ICON_PATH = 'tray/corporate-menu-barTemplate@2x.png'
+
+function getCorporateTrayResourcePath(relativePath: string): string {
+  const resourcesPath = process.resourcesPath
+  if (typeof resourcesPath === 'string' && resourcesPath.length > 0) {
+    return `${resourcesPath}/${relativePath}`.split('\\').join('/')
+  }
+  return `resources/${relativePath}`
+}
 
 // Why: centralize which image the tray shows so both creation and attention
 // toggling stay in sync. No-ops safely when the tray or base image is missing.
@@ -127,14 +138,21 @@ function scheduleTrayImage(): void {
 }
 
 function createMacMenuBarImage(): NativeImage | null {
-  const image = nativeImage.createFromPath(menuBarIconPath)
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
+  const imagePath = isCorporateBuild
+    ? getCorporateTrayResourcePath(CORPORATE_TRAY_ICON_PATH)
+    : menuBarIconPath
+  const retinaImagePath = isCorporateBuild
+    ? getCorporateTrayResourcePath(CORPORATE_TRAY_RETINA_ICON_PATH)
+    : menuBarIconRetinaPath
+  const image = nativeImage.createFromPath(imagePath)
   const { width, height } = image.getSize()
   if (width <= 0 || height <= 0) {
     console.warn('[system-tray] macOS menu bar icon could not be loaded')
     return null
   }
 
-  const retinaImage = nativeImage.createFromPath(menuBarIconRetinaPath)
+  const retinaImage = nativeImage.createFromPath(retinaImagePath)
   const retinaSize = retinaImage.getSize()
   if (retinaSize.width > 0 && retinaSize.height > 0) {
     try {

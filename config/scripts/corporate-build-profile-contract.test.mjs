@@ -14,9 +14,7 @@ const MUTABLE_PACKAGING_ENV = [
 
 function withPackagingEnv(env, assert) {
   const configPath = require.resolve('../electron-builder.config.cjs')
-  const original = Object.fromEntries(
-    MUTABLE_PACKAGING_ENV.map((key) => [key, process.env[key]])
-  )
+  const original = Object.fromEntries(MUTABLE_PACKAGING_ENV.map((key) => [key, process.env[key]]))
   try {
     for (const key of MUTABLE_PACKAGING_ENV) {
       delete process.env[key]
@@ -35,6 +33,16 @@ function withPackagingEnv(env, assert) {
     delete require.cache[configPath]
     require('../electron-builder.config.cjs')
   }
+}
+
+function extraResourceSources(extraResources) {
+  return extraResources.map((resource) => resource.from)
+}
+
+function tccDescriptions(extendInfo) {
+  return Object.entries(extendInfo)
+    .filter(([key, value]) => key.startsWith('NS') && typeof value === 'string')
+    .map(([, value]) => value)
 }
 
 describe('corporate build profile package contract', () => {
@@ -80,15 +88,23 @@ describe('corporate build profile package contract', () => {
     expect(builderConfig).toContain('orcaBuildProfile')
     expect(builderConfig).toContain("process.env.ORCA_BUILD_PROFILE === 'corporate'")
     expect(builderConfig).toContain('stampPackagedCliMetadata')
-    expect(builderConfig).toContain(
-      "[verify-skills-cli-runtime] skipped corporate build profile"
-    )
+    expect(builderConfig).toContain('[verify-skills-cli-runtime] skipped corporate build profile')
   })
 
   it('keeps default packaging identity and artifact names unchanged', () => {
     withPackagingEnv({}, (config) => {
       expect(config.productName).toBe('Orca')
       expect(config.appId).toBe('com.stablyai.orca')
+      expect(config.win.icon).toBeUndefined()
+      expect(config.mac.icon).toBe('resources/build/icon.icns')
+      expect(config.linux.icon).toBe('resources/build/icon.icns')
+      expect(extraResourceSources(config.win.extraResources)).not.toContain(
+        'resources/build/corporate/icon.png'
+      )
+      expect(extraResourceSources(config.mac.extraResources)).not.toContain(
+        'resources/tray/corporate-menu-barTemplate.png'
+      )
+      expect(config.mac.extendInfo.NSAppleEventsUsageDescription).toContain('Orca')
       expect(config.nsis.artifactName).toBe('orca-windows-setup.${ext}')
       expect(config.dmg.artifactName).toBe('orca-macos-${arch}.${ext}')
       expect(config.publish).toEqual({
@@ -104,6 +120,27 @@ describe('corporate build profile package contract', () => {
     withPackagingEnv({ ORCA_BUILD_PROFILE: 'corporate' }, (config) => {
       expect(config.productName).toBe('Secure Orca Lite')
       expect(config.appId).toBe('dev.orca.secure-lite')
+      expect(config.win.icon).toBe('resources/build/corporate/icon.ico')
+      expect(config.mac.icon).toBe('resources/build/corporate/icon.icns')
+      expect(config.linux.icon).toBe('resources/build/corporate/icon.icns')
+      for (const extraResources of [
+        config.win.extraResources,
+        config.mac.extraResources,
+        config.linux.extraResources
+      ]) {
+        expect(extraResourceSources(extraResources)).toEqual(
+          expect.arrayContaining([
+            'resources/build/corporate/icon.png',
+            'resources/tray/corporate-menu-barTemplate.png',
+            'resources/tray/corporate-menu-barTemplate@2x.png'
+          ])
+        )
+      }
+      expect(config.mac.extendInfo.NSAppleEventsUsageDescription).toContain('Secure Orca Lite')
+      expect(config.mac.extendInfo.NSAppleEventsUsageDescription).not.toContain('Orca allows')
+      for (const description of tccDescriptions(config.mac.extendInfo)) {
+        expect(description).toContain('Secure Orca Lite')
+      }
       expect(config.nsis.artifactName).toBe('secure-orca-lite-windows-setup.${ext}')
       expect(config.dmg.artifactName).toBe('secure-orca-lite-macos-${arch}.${ext}')
       expect(config.publish).toBeNull()
