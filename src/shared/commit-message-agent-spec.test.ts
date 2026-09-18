@@ -8,6 +8,7 @@ import {
   getCommitMessageModelCapability,
   getCommitMessageModel,
   isCustomAgentId,
+  isCustomCommitMessageAgentAllowedForBuildProfile,
   listCommitMessageAgentCapabilities,
   listCommitMessageAgentIds,
   resolveCommitMessageAgentChoice
@@ -192,6 +193,17 @@ describe('COMMIT_MESSAGE_AGENT_SPECS', () => {
     expect(codex).not.toHaveProperty('binary')
     expect(codex).not.toHaveProperty('buildArgs')
     expect(getCommitMessageModelCapability('codex', 'gpt-5.4-mini')?.thinkingLevels).toBeDefined()
+  })
+
+  it('limits corporate Source Control AI capabilities to approved agents', () => {
+    expect(listCommitMessageAgentCapabilities('corporate').map(({ id, label }) => [id, label])).toEqual(
+      [
+        ['claude', 'Claude Code'],
+        ['codex', 'Codex']
+      ]
+    )
+    expect(isCustomCommitMessageAgentAllowedForBuildProfile('corporate')).toBe(false)
+    expect(isCustomCommitMessageAgentAllowedForBuildProfile('default')).toBe(true)
   })
 })
 

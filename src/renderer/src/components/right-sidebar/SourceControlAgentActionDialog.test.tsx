@@ -58,6 +58,7 @@ vi.mock('sonner', () => ({
 }))
 import { useAppStore, type AppState } from '@/store'
 import { SourceControlAgentActionDialog } from './SourceControlAgentActionDialog'
+const previousBuildProfile = globalThis.__ORCA_BUILD_PROFILE__
 let container: HTMLDivElement
 let root: Root
 let initialState: AppState
@@ -185,6 +186,11 @@ describe('SourceControlAgentActionDialog', () => {
     })
     container.remove()
     useAppStore.setState(initialState, true)
+    if (previousBuildProfile === undefined) {
+      delete globalThis.__ORCA_BUILD_PROFILE__
+    } else {
+      globalThis.__ORCA_BUILD_PROFILE__ = previousBuildProfile
+    }
   })
   it('hides the dialog and auto-starts once when the saved global launch recipe matches', async () => {
     renderControlledDialog()
@@ -236,6 +242,21 @@ describe('SourceControlAgentActionDialog', () => {
     )
     expect(mocks.onStart).not.toHaveBeenCalled()
     expect(container.textContent).toContain('Launch agent')
+  })
+  it('normalizes a stale corporate saved launch provider to an allowed agent', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    mocks.ensureDetectedAgents.mockResolvedValue(['cursor', 'codex'])
+    resetStore(settingsWithGlobalRecipe())
+
+    renderControlledDialog({ savedAgentId: 'cursor' })
+    await vi.waitFor(() => expect(mocks.ensureDetectedAgents).toHaveBeenCalledTimes(1))
+    await vi.waitFor(() =>
+      expect(container.querySelector('[data-agent-value]')?.getAttribute('data-agent-value')).toBe(
+        'codex'
+      )
+    )
+
+    expect(mocks.onStart).not.toHaveBeenCalled()
   })
   it('reveals the dialog and remains open when auto-start fails', async () => {
     mocks.onStart.mockResolvedValue(false)

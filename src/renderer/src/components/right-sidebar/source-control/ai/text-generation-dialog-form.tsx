@@ -11,10 +11,11 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { getAgentCatalog, AgentIcon } from '@/lib/agent-catalog'
+import { AgentIcon } from '@/lib/agent-catalog'
 import { planSourceControlTextGeneration } from '@/lib/source-control-generation-plan'
 import {
   CUSTOM_AGENT_ID,
+  isCustomCommitMessageAgentAllowedForBuildProfile,
   isCustomAgentId,
   listCommitMessageAgentCapabilities
 } from '../../../../../../shared/commit-message-agent-spec'
@@ -74,10 +75,6 @@ export function getDefaultSourceControlTextGenerationSaveTargetKey(
   return defaultTarget ? sourceControlTextGenerationSaveTargetKey(defaultTarget.target) : 'global'
 }
 
-function agentLabel(agentId: TuiAgent): string {
-  return getAgentCatalog().find((agent) => agent.id === agentId)?.label ?? agentId
-}
-
 export function SourceControlTextGenerationDialogForm({
   actionId,
   generateLabel,
@@ -92,8 +89,11 @@ export function SourceControlTextGenerationDialogForm({
   onSaveDefaults
 }: SourceControlTextGenerationDialogFormProps): React.JSX.Element {
   const capabilities = useMemo(() => listCommitMessageAgentCapabilities(), [])
+  const canUseCustomAgent = isCustomCommitMessageAgentAllowedForBuildProfile()
   const showCustomAgent = Boolean(
-    baseParams && (isCustomAgentId(baseParams.agentId) || baseParams.customAgentCommand?.trim())
+    canUseCustomAgent &&
+      baseParams &&
+      (isCustomAgentId(baseParams.agentId) || baseParams.customAgentCommand?.trim())
   )
   const [agentId, setAgentId] = useState<CommitMessageGenerationAgentChoice>(
     baseParams?.agentId ?? ''
@@ -243,7 +243,7 @@ export function SourceControlTextGenerationDialogForm({
                 <SelectItem key={capability.id} value={capability.id}>
                   <span className="flex items-center gap-2">
                     <AgentIcon agent={capability.id} size={14} />
-                    {agentLabel(capability.id)}
+                    {capability.label}
                   </span>
                 </SelectItem>
               ))}

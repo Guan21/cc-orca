@@ -2,7 +2,11 @@ import { Terminal } from 'lucide-react'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { TuiAgent } from '../../../../shared/tui-agent'
 import type { CustomAgentId } from '../../../../shared/commit-message-agent-spec'
-import { CUSTOM_AGENT_ID, isCustomAgentId } from '../../../../shared/commit-message-agent-spec'
+import {
+  CUSTOM_AGENT_ID,
+  isCustomAgentId,
+  isCustomCommitMessageAgentAllowedForBuildProfile
+} from '../../../../shared/commit-message-agent-spec'
 import {
   SOURCE_CONTROL_ACTION_LABELS,
   type SourceControlActionId
@@ -74,6 +78,7 @@ export function SourceControlActionRecipeRow({
   const agentOptions = getAgentCatalogForAction(actionId, selectedAgent)
   const agentWarningText = getSourceControlActionAgentWarningText(actionId, selectedAgent)
   const agentSupportText = getSourceControlActionAgentSupportText(actionId)
+  const canUseCustomAgent = isCustomCommitMessageAgentAllowedForBuildProfile()
 
   return (
     <div className="rounded-md border border-border px-3 py-3">
@@ -102,7 +107,7 @@ export function SourceControlActionRecipeRow({
                   )}
                 </span>
               </SelectItem>
-              {SOURCE_CONTROL_TEXT_ACTION_ID_SET.has(actionId) ? (
+              {SOURCE_CONTROL_TEXT_ACTION_ID_SET.has(actionId) && canUseCustomAgent ? (
                 <SelectItem value={CUSTOM_AGENT_ID}>
                   <span className="flex items-center gap-2">
                     <Terminal className="size-3.5 text-muted-foreground" />

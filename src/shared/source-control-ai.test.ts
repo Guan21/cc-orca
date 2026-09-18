@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { getDefaultSettings } from './constants'
 import {
   clearSourceControlAiModelChoiceForHost,
@@ -18,6 +18,16 @@ import type {
   SourceControlAiOperation
 } from './source-control-ai-types'
 import type { GlobalSettings } from './global-settings-types'
+
+const previousBuildProfile = globalThis.__ORCA_BUILD_PROFILE__
+
+afterEach(() => {
+  if (previousBuildProfile === undefined) {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  } else {
+    globalThis.__ORCA_BUILD_PROFILE__ = previousBuildProfile
+  }
+})
 
 function settings(): GlobalSettings {
   const base = getDefaultSettings('/tmp')
@@ -750,6 +760,59 @@ describe('source-control AI resolution', () => {
           commandInputTemplate: null
         }
       }
+    })
+  })
+
+  it('normalizes a stale unsupported provider to an allowed corporate provider', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const base = settings()
+    base.defaultTuiAgent = 'codex'
+    base.sourceControlAi = {
+      ...base.sourceControlAi!,
+      agentId: 'opencode',
+      selectedModelByAgent: { opencode: 'opencode/deepseek-v4-flash-free', codex: 'gpt-5.5' }
+    }
+
+    expect(
+      resolveSourceControlAiForOperation({
+        settings: base,
+        repo: null,
+        operation: 'commitMessage',
+        discoveryHostKey: 'local'
+      })
+    ).toMatchObject({
+      ok: true,
+      value: { params: { agentId: 'codex', model: 'gpt-5.5' } }
+    })
+  })
+
+  it('does not let corporate custom-command recipes bypass the provider allowlist', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const base = settings()
+    base.defaultTuiAgent = 'claude'
+    base.sourceControlAi = {
+      ...base.sourceControlAi!,
+      agentId: 'custom',
+      customAgentCommand: 'cursor-agent --print {prompt}',
+      actions: {
+        ...base.sourceControlAi!.actions,
+        commitMessage: {
+          agentId: 'custom',
+          commandInputTemplate: '{basePrompt}'
+        }
+      }
+    }
+
+    expect(
+      resolveSourceControlAiForOperation({
+        settings: base,
+        repo: null,
+        operation: 'commitMessage',
+        discoveryHostKey: 'local'
+      })
+    ).toMatchObject({
+      ok: true,
+      value: { params: { agentId: 'claude', model: 'sonnet' } }
     })
   })
 })

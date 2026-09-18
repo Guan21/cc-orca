@@ -1,7 +1,10 @@
 import type React from 'react'
 import { Terminal } from 'lucide-react'
 import type { TuiAgent } from '../../../../shared/tui-agent'
-import { CUSTOM_AGENT_ID } from '../../../../shared/commit-message-agent-spec'
+import {
+  CUSTOM_AGENT_ID,
+  isCustomCommitMessageAgentAllowedForBuildProfile
+} from '../../../../shared/commit-message-agent-spec'
 import type {
   RepoSourceControlAiOverrides,
   SourceControlAiSettings
@@ -73,6 +76,7 @@ export function RepositorySourceControlAiActionRows({
   onActionDiscard,
   onActionSave
 }: RepositorySourceControlAiActionRowsProps): React.JSX.Element {
+  const canUseCustomAgent = isCustomCommitMessageAgentAllowedForBuildProfile()
   return (
     <div className="space-y-3">
       <Label className="text-xs font-medium">
@@ -186,7 +190,7 @@ export function RepositorySourceControlAiActionRows({
                         )}
                       </span>
                     </SelectItem>
-                    {SOURCE_CONTROL_TEXT_ACTION_ID_SET.has(actionId) ? (
+                    {SOURCE_CONTROL_TEXT_ACTION_ID_SET.has(actionId) && canUseCustomAgent ? (
                       <SelectItem value={CUSTOM_AGENT_ID}>
                         <span className="flex items-center gap-2">
                           <Terminal className="size-3.5 text-muted-foreground" />
