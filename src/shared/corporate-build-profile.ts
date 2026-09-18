@@ -21,6 +21,7 @@ export type CorporateBuildCapability =
   | 'plugins'
   | 'skills'
   | 'speech'
+  | 'star-nag'
   | 'ssh-remote'
   | 'telemetry'
 
@@ -88,6 +89,7 @@ const CORPORATE_DISABLED_CAPABILITIES = new Set<CorporateBuildCapability>([
   'plugins',
   'skills',
   'speech',
+  'star-nag',
   'ssh-remote',
   'telemetry'
 ])

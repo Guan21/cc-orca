@@ -78,6 +78,7 @@ describe('StarNagToastHost', () => {
   let toastIdCounter = 0
 
   beforeEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     customToastMock.mockReset()
     customToastMock.mockImplementation(() => `toast-${++toastIdCounter}`)
     toastDismissMock.mockReset()
@@ -105,6 +106,7 @@ describe('StarNagToastHost', () => {
   })
 
   afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     if (root) {
       act(() => root?.unmount())
     }
@@ -113,6 +115,16 @@ describe('StarNagToastHost', () => {
     root = null
     container = null
     toastContainer = null
+  })
+
+  it('does not subscribe or show upstream star prompts in corporate builds', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    ;({ root, container } = renderHost())
+
+    expect(starNag.onShow).not.toHaveBeenCalled()
+    expect(starNag.onHide).not.toHaveBeenCalled()
+    expect(customToastMock).not.toHaveBeenCalled()
   })
 
   it('renders exact onboarding toast copy and confirms only after direct star succeeds', async () => {

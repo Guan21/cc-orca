@@ -286,13 +286,13 @@ describe('SidebarSettingsHelpMenu', () => {
     expect(html).toContain('>X<')
   })
 
-  it('hides upstream community links and uses corporate restart copy in corporate builds', () => {
+  it('hides upstream help and community links and uses corporate restart copy in corporate builds', () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
 
     const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
 
     expect(html).toContain('Restart application')
-    expect(html).toContain('Docs')
+    expect(html).not.toContain('Docs')
     expect(html).not.toContain('Restart Orca')
     expect(html).not.toContain('Discord')
     expect(html).not.toContain('>X<')

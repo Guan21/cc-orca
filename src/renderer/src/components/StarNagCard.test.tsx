@@ -43,6 +43,7 @@ describe('StarNagCard', () => {
   let shell: ShellApi
 
   beforeEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     showCallback = null
     starNag = {
       onShow: vi.fn((callback: ShowCallback) => {
@@ -62,12 +63,23 @@ describe('StarNagCard', () => {
   })
 
   afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     if (root) {
       act(() => root?.unmount())
     }
     container?.remove()
     root = null
     container = null
+  })
+
+  it('does not subscribe or render in corporate builds', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    ;({ root, container } = renderCard())
+
+    expect(starNag.onShow).not.toHaveBeenCalled()
+    expect(starNag.onHide).not.toHaveBeenCalled()
+    expect(container.textContent).toBe('')
   })
 
   it('switches to the explicit GitHub fallback when direct starring fails', async () => {

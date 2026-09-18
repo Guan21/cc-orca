@@ -117,12 +117,9 @@ describe('corporate build profile', () => {
   it.each([
     'claude --model sonnet --permission-mode default',
     'codex --sandbox workspace-write --ask-for-approval on-request'
-  ])(
-    'allows corporate native permission-preserving launch args: %s',
-    (command) => {
-      expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
-    }
-  )
+  ])('allows corporate native permission-preserving launch args: %s', (command) => {
+    expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).not.toThrow()
+  })
 
   it.each([
     'claude --permission-mode default',
@@ -191,21 +188,20 @@ describe('corporate build profile', () => {
     'codex -- "prompt"',
     'bash -lc "claude"',
     'pwsh -Command "codex"'
-  ])(
-    'rejects final corporate agent commands without explicit safe policy: %s',
-    (command) => {
-      expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).toThrow(
-        PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY
-      )
-    }
-  )
+  ])('rejects final corporate agent commands without explicit safe policy: %s', (command) => {
+    expect(() => assertAgentLaunchAllowedForBuildProfile({ command }, 'corporate')).toThrow(
+      PERMISSION_BYPASS_NOT_ALLOWED_BY_ORG_POLICY
+    )
+  })
 
   it('disables non-P0 corporate capabilities without affecting the default build', () => {
     expect(isCapabilityEnabledForBuildProfile('mobile', 'corporate')).toBe(false)
     expect(isCapabilityEnabledForBuildProfile('computer-use', 'corporate')).toBe(false)
     expect(isCapabilityEnabledForBuildProfile('ssh-remote', 'corporate')).toBe(false)
     expect(isCapabilityEnabledForBuildProfile('plugins', 'corporate')).toBe(false)
+    expect(isCapabilityEnabledForBuildProfile('star-nag', 'corporate')).toBe(false)
     expect(isCapabilityEnabledForBuildProfile('mobile', 'default')).toBe(true)
+    expect(isCapabilityEnabledForBuildProfile('star-nag', 'default')).toBe(true)
   })
 
   it('maps obvious CLI command groups to disabled corporate capabilities', () => {

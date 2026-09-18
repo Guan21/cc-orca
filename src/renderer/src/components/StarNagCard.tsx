@@ -5,6 +5,7 @@ import { Button } from './ui/button'
 import { useAppStore } from '../store'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { translate } from '@/i18n/i18n'
+import { isCapabilityEnabledForBuildProfile } from '../../../shared/corporate-build-profile'
 
 const ORCA_REPO_URL = 'https://github.com/stablyai/orca'
 type StarNagMode = 'gh' | 'web'
@@ -21,6 +22,13 @@ type StarNagMode = 'gh' | 'web'
  * component does no threshold math or gh-CLI checks locally.
  */
 export function StarNagCard(): React.JSX.Element | null {
+  if (!isCapabilityEnabledForBuildProfile('star-nag')) {
+    return null
+  }
+  return <StarNagCardContent />
+}
+
+function StarNagCardContent(): React.JSX.Element | null {
   const [visible, setVisible] = useState(false)
   const [busy, setBusy] = useState(false)
   const [mode, setMode] = useState<StarNagMode>('gh')
