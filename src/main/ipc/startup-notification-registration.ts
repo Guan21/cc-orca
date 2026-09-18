@@ -1,4 +1,5 @@
 import { Notification } from 'electron'
+import { getProductDisplayName } from '../../shared/product-display-name'
 import type { Store } from '../persistence'
 import { activeNotifications, logNativeNotificationFailure } from './native-notification-lifecycle'
 import { recordNotificationDeliveryOutcome } from './notification-permission-probe'
@@ -19,10 +20,11 @@ export function triggerStartupNotificationRegistration(store: Store): void {
     return
   }
   store.updateUI({ notificationPermissionRequested: true })
+  const productName = getProductDisplayName()
 
   const notification = new Notification({
-    title: 'Orca is ready to notify you',
-    body: 'Allow notifications so Orca can alert you when agents finish or terminals need attention.'
+    title: `${productName} is ready to notify you`,
+    body: `Allow notifications so ${productName} can alert you when agents finish or terminals need attention.`
   })
 
   // Why: prevent GC from collecting the notification and its click handler while it's still visible.

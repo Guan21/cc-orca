@@ -9,6 +9,7 @@ import {
   resolveNotificationVolumeDraftState,
   sendNotificationSettingsTestNotification
 } from './NotificationsPane'
+import { getSystemNotificationSettingsCopy } from './notification-settings-copy'
 
 const { toastError, toastMessage, toastSuccess } = vi.hoisted(() => ({
   toastError: vi.fn(),
@@ -39,13 +40,21 @@ function createSettings(): GlobalSettings {
 }
 
 describe('NotificationsPane', () => {
+  const previousBuildProfile = globalThis.__ORCA_BUILD_PROFILE__
+
   beforeEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     toastError.mockClear()
     toastMessage.mockClear()
     toastSuccess.mockClear()
   })
 
   afterEach(() => {
+    if (previousBuildProfile === undefined) {
+      delete globalThis.__ORCA_BUILD_PROFILE__
+    } else {
+      globalThis.__ORCA_BUILD_PROFILE__ = previousBuildProfile
+    }
     vi.unstubAllGlobals()
   })
 
@@ -57,6 +66,38 @@ describe('NotificationsPane', () => {
     expect(html).toContain('Notification Sound')
     expect(getNotificationSoundOptions(null).map((option) => option.title)).toEqual(
       expect.arrayContaining(['System Default', 'Two Tone', 'Bong', 'Ding'])
+    )
+  })
+
+  it('keeps default notification settings product copy on Orca', () => {
+    const html = renderToStaticMarkup(
+      <NotificationsPane settings={createSettings()} updateSettings={vi.fn()} />
+    )
+
+    expect(html).toContain('Choose the alert Orca plays when a desktop notification is delivered.')
+    expect(getSystemNotificationSettingsCopy('darwin')?.failureDescription).toBe(
+      'Enable Allow notifications for Orca in System Settings.'
+    )
+    expect(getSystemNotificationSettingsCopy('win32')?.failureDescription).toBe(
+      'Enable notifications for Orca in Windows Settings.'
+    )
+  })
+
+  it('uses the corporate product name in notification settings product copy', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const html = renderToStaticMarkup(
+      <NotificationsPane settings={createSettings()} updateSettings={vi.fn()} />
+    )
+
+    expect(html).toContain(
+      'Choose the alert Secure Orca Lite plays when a desktop notification is delivered.'
+    )
+    expect(getSystemNotificationSettingsCopy('darwin')?.failureDescription).toBe(
+      'Enable Allow notifications for Secure Orca Lite in System Settings.'
+    )
+    expect(getSystemNotificationSettingsCopy('win32')?.failureDescription).toBe(
+      'Enable notifications for Secure Orca Lite in Windows Settings.'
     )
   })
 
@@ -114,6 +155,39 @@ describe('NotificationsPane', () => {
       | undefined
     toastOptions?.action?.onClick?.()
     expect(notifications.openSystemSettings).toHaveBeenCalledTimes(1)
+  })
+
+  it('uses corporate product copy in macOS test notification guidance', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const notifications = {
+      getPermissionStatus: vi.fn(async () => ({
+        supported: true,
+        platform: 'darwin' as NodeJS.Platform,
+        requested: true
+      })),
+      dispatch: vi.fn(async (_args: NotificationDispatchRequest) => ({ delivered: true })),
+      playSound: vi.fn(),
+      openSystemSettings: vi.fn(),
+      requestPermission: vi.fn()
+    }
+    vi.stubGlobal('window', {
+      Notification: { permission: 'denied' },
+      api: {
+        notifications,
+        shell: { pickAudio: vi.fn() }
+      }
+    })
+
+    await sendNotificationSettingsTestNotification(createSettings().notifications, 50)
+
+    expect(toastMessage).toHaveBeenCalledWith(
+      'Test notification requested',
+      expect.objectContaining({
+        description:
+          'If no macOS banner appeared, enable Allow notifications for Secure Orca Lite.',
+        action: expect.objectContaining({ label: 'Open Settings' })
+      })
+    )
   })
 
   it('confirms delivered test notifications on platforms where show means displayed', async () => {

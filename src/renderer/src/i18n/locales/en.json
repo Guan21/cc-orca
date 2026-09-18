@@ -885,7 +885,7 @@
       "blocked": {
         "notification": {
           "fallback": {
-            "de50bef680": "macOS is blocking Orca notifications"
+            "de50bef680": "macOS is blocking {{productName}} notifications"
           }
         }
       },
@@ -7568,7 +7568,7 @@
           "2a42dd8d6f": "Notification sound volume",
           "4aa5085cd7": "Custom:",
           "c258cb96dc": "Choose notification sound",
-          "2a2033c388": "Choose the alert Orca plays when a desktop notification is delivered.",
+          "2a2033c388": "Choose the alert {{productName}} plays when a desktop notification is delivered.",
           "88686e6ca8": "Notification Sound",
           "b6fc369244": "A background terminal emits a bell character.",
           "591fe605b9": "Terminal Bell",
@@ -7579,11 +7579,11 @@
           "0fadad17ce": "Notification sound could not be played",
           "406feb0aa6": "Test notification was not delivered",
           "6fc3781729": "Notifications are disabled",
-          "4676a95bc3": "Check your desktop notification settings for Orca.",
+          "4676a95bc3": "Check your desktop notification settings for {{productName}}.",
           "0cb93240b8": "System did not show the notification",
           "145227ca2b": "Open Settings",
           "d3d54e0915": "Test notification sent",
-          "115437bc35": "If no macOS banner appeared, enable Allow notifications for Orca.",
+          "115437bc35": "If no macOS banner appeared, enable Allow notifications for {{productName}}.",
           "7f45542625": "Test notification requested",
           "98d70fb261": "Custom notification sound could not be played",
           "c83b05a055": "Notifications are not supported on this system",
@@ -9943,12 +9943,12 @@
             "57e34a31cd": "wav",
             "5362074f19": "mp3",
             "6e08f78315": "audio",
-            "c718793e95": "Choose the built-in, system, or local audio file Orca plays for desktop notifications.",
+            "c718793e95": "Choose the built-in, system, or local audio file {{productName}} plays for desktop notifications.",
             "ea8cb8d9ce": "Notification Sound",
             "4ada6bfde9": "filtering",
             "fa60d8e4ab": "suppress",
             "a4c3b29a3c": "focused",
-            "7247b97a31": "Avoid notifying when Orca is focused on the active worktree.",
+            "7247b97a31": "Avoid notifying when {{productName}} is focused on the active worktree.",
             "96562a72c6": "Suppress While Focused",
             "a2ab73b325": "attention",
             "ae0487f8fd": "bell",
@@ -9964,7 +9964,7 @@
             "adbc3a0fcf": "native",
             "72539aede4": "system",
             "51ae2183e1": "desktop",
-            "0534c76311": "Master switch for Orca desktop notifications.",
+            "0534c76311": "Master switch for {{productName}} desktop notifications.",
             "4a210b2f72": "Enable Notifications"
           }
         },
@@ -13460,7 +13460,7 @@
           "3bede04483": "Send Test Notification",
           "dc897423e1": "Choose notification sound",
           "53aaffe49a": "Notification Sound",
-          "0fe570690c": "Pick the alert Orca plays after a desktop notification is delivered.",
+          "0fe570690c": "Pick the alert {{productName}} plays after a desktop notification is delivered.",
           "0af746e41f": "Choose a sound",
           "8124d085a6": "Open Mac Settings",
           "aa36281b00": "Open System Settings and make sure Orca is allowed to send notifications.",
@@ -13473,11 +13473,11 @@
           "56b836215c": "Checking notification permission…",
           "fd84d3e9b8": "Notifications are enabled",
           "4f7bce5644": "macOS will alert you when agents finish or terminals need attention.",
-          "95d99b52fa": "Allow notifications for Orca",
+          "95d99b52fa": "Allow notifications for {{productName}}",
           "94562ba367": "macOS is asking for permission. Click Allow in the dialog and this step updates automatically.",
           "4f6a1da718": "Open System Settings",
-          "90b5d2e363": "macOS is not delivering Orca notifications",
-          "2c47f5465f": "Turn on Allow notifications for Orca in System Settings. This step updates automatically once enabled."
+          "90b5d2e363": "macOS is not delivering {{productName}} notifications",
+          "2c47f5465f": "Turn on Allow notifications for {{productName}} in System Settings. This step updates automatically once enabled."
         },
         "OnboardingFlow": {
           "1b5e182e9f": "Welcome to Orca",
@@ -13577,7 +13577,7 @@
               "card": {
                 "f696515944": "Click Allow in the macOS dialog.",
                 "3d18cf71f9": "Updates automatically.",
-                "721d2bedb6": "Turn on Allow notifications for Orca in System Settings."
+                "721d2bedb6": "Turn on Allow notifications for {{productName}} in System Settings."
               }
             }
           }

@@ -1,6 +1,7 @@
 import { translate } from '@/i18n/i18n'
 import { translateSearchKeyword } from './settings-search-keywords'
 import { createLocalizedCatalog } from '@/i18n/localized-catalog'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export const getNotificationsPaneSearchEntries = createLocalizedCatalog(() => [
   {
@@ -10,7 +11,8 @@ export const getNotificationsPaneSearchEntries = createLocalizedCatalog(() => [
     ),
     description: translate(
       'auto.components.settings.notifications.search.0534c76311',
-      'Master switch for Orca desktop notifications.'
+      'Master switch for {{productName}} desktop notifications.',
+      { productName: getProductDisplayName() }
     ),
     keywords: [
       ...translateSearchKeyword(
@@ -86,7 +88,8 @@ export const getNotificationsPaneSearchEntries = createLocalizedCatalog(() => [
     ),
     description: translate(
       'auto.components.settings.notifications.search.7247b97a31',
-      'Avoid notifying when Orca is focused on the active worktree.'
+      'Avoid notifying when {{productName}} is focused on the active worktree.',
+      { productName: getProductDisplayName() }
     ),
     keywords: [
       ...translateSearchKeyword(
@@ -114,7 +117,8 @@ export const getNotificationsPaneSearchEntries = createLocalizedCatalog(() => [
     ),
     description: translate(
       'auto.components.settings.notifications.search.c718793e95',
-      'Choose the built-in, system, or local audio file Orca plays for desktop notifications.'
+      'Choose the built-in, system, or local audio file {{productName}} plays for desktop notifications.',
+      { productName: getProductDisplayName() }
     ),
     keywords: [
       ...translateSearchKeyword(

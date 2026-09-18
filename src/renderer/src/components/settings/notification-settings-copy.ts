@@ -1,5 +1,6 @@
 import { toast } from 'sonner'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { translate } from '@/i18n/i18n'
 
 type SystemNotificationSettingsCopy = {
@@ -10,17 +11,18 @@ type SystemNotificationSettingsCopy = {
 export function getSystemNotificationSettingsCopy(
   platform: NodeJS.Platform
 ): SystemNotificationSettingsCopy | null {
+  const productName = getProductDisplayName()
   if (platform === 'darwin') {
     return {
       failureTitle: 'macOS did not show the notification',
-      failureDescription: 'Enable Allow notifications for Orca in System Settings.'
+      failureDescription: `Enable Allow notifications for ${productName} in System Settings.`
     }
   }
 
   if (platform === 'win32') {
     return {
       failureTitle: 'Windows did not show the notification',
-      failureDescription: 'Enable notifications for Orca in Windows Settings.'
+      failureDescription: `Enable notifications for ${productName} in Windows Settings.`
     }
   }
 
@@ -65,6 +67,7 @@ export async function sendNotificationSettingsTestNotification(
   options?: SendTestNotificationOptions
 ): Promise<NotificationTestOutcome> {
   const permissionStatus = await window.api.notifications.getPermissionStatus()
+  const productName = getProductDisplayName()
   if (!permissionStatus.supported) {
     toast.error(
       translate(
@@ -109,7 +112,8 @@ export async function sendNotificationSettingsTestNotification(
         {
           description: translate(
             'auto.components.settings.NotificationsPane.115437bc35',
-            'If no macOS banner appeared, enable Allow notifications for Orca.'
+            'If no macOS banner appeared, enable Allow notifications for {{productName}}.',
+            { productName }
           ),
           action: {
             label: translate(
@@ -157,7 +161,8 @@ export async function sendNotificationSettingsTestNotification(
         {
           description: translate(
             'auto.components.settings.NotificationsPane.4676a95bc3',
-            'Check your desktop notification settings for Orca.'
+            'Check your desktop notification settings for {{productName}}.',
+            { productName }
           )
         }
       )
