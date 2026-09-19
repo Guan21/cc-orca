@@ -9,6 +9,7 @@ import { getStatusBarToggles } from './appearance-status-bar-search'
 import { getUsagePercentageDisplayEntry } from './appearance-usage-percentage-search'
 import { getMenuBarIconEntries, getSystemTrayEntries } from './appearance-system-presence-search'
 import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export {
   getMenuBarIconEntries,
@@ -17,13 +18,52 @@ export {
   getUsagePercentageDisplayEntry
 }
 
+function getThemeDescription(): string {
+  const productName = getProductDisplayName()
+  return productName === 'Orca'
+    ? translate(
+        'auto.components.settings.appearance.search.0709c794f7',
+        'Choose how Orca looks in the app window.'
+      )
+    : translate(
+        'auto.components.settings.appearance.search.theme.corporateDescription',
+        'Choose how {{productName}} looks in the app window.',
+        { productName }
+      )
+}
+
+function getLanguageDescription(): string {
+  const productName = getProductDisplayName()
+  return productName === 'Orca'
+    ? translate(
+        'settings.appearance.language.description',
+        'Choose the language used by the Orca interface.'
+      )
+    : translate(
+        'settings.appearance.language.corporateDescription',
+        'Choose the language used by the {{productName}} interface.',
+        { productName }
+      )
+}
+
+function getTypographyDescription(): string {
+  const productName = getProductDisplayName()
+  return productName === 'Orca'
+    ? translate(
+        'auto.components.settings.appearance.search.07c7c38fac',
+        'Choose the font used by the Orca interface.'
+      )
+    : translate(
+        'auto.components.settings.appearance.search.typography.corporateDescription',
+        'Choose the font used by the {{productName}} interface.',
+        { productName }
+      )
+}
+
 export const getThemeEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
   {
     title: translate('auto.components.settings.appearance.search.71e06350b4', 'Theme'),
-    description: translate(
-      'auto.components.settings.appearance.search.0709c794f7',
-      'Choose how Orca looks in the app window.'
-    ),
+    description: getThemeDescription(),
     keywords: [
       ...translateSearchKeyword('auto.components.settings.appearance.search.262fe1d24f', 'dark'),
       ...translateSearchKeyword('auto.components.settings.appearance.search.44d873fd18', 'light'),
@@ -35,16 +75,9 @@ export const getThemeEntries = createLocalizedCatalog((): SettingsSearchEntry[] 
 export const getLanguageEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
   {
     title: translate('settings.appearance.language.title', 'Language'),
-    description: translate(
-      'settings.appearance.language.description',
-      'Choose the language used by the Orca interface.'
-    ),
+    description: getLanguageDescription(),
     keywords: [
       ...translateSearchKeyword('settings.appearance.language.title', 'Language'),
-      ...translateSearchKeyword(
-        'settings.appearance.language.description',
-        'Choose the language used by the Orca interface.'
-      ),
       ...translateSearchKeyword('settings.appearance.language.system', 'System'),
       ...translateSearchKeyword('settings.appearance.language.english', 'English'),
       ...translateSearchKeyword('settings.appearance.language.chinese', '中文（简体）'),
@@ -92,10 +125,7 @@ export const getZoomEntries = createLocalizedCatalog((): SettingsSearchEntry[] =
 export const getTypographyEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
   {
     title: translate('auto.components.settings.appearance.search.ddb991024d', 'IDE Font'),
-    description: translate(
-      'auto.components.settings.appearance.search.07c7c38fac',
-      'Choose the font used by the Orca interface.'
-    ),
+    description: getTypographyDescription(),
     keywords: [
       ...translateSearchKeyword('auto.components.settings.appearance.search.24094af355', 'font'),
       ...translateSearchKeyword(
@@ -150,7 +180,8 @@ export const getTitlebarEntries = createLocalizedCatalog((): SettingsSearchEntry
     title: translate('auto.components.settings.appearance.search.fdd31b00d0', 'Titlebar App Name'),
     description: translate(
       'auto.components.settings.appearance.search.18b4c4c30b',
-      'Show Orca in the titlebar.'
+      'Show {{productName}} in the titlebar.',
+      { productName: getProductDisplayName() }
     ),
     keywords: [
       ...translateSearchKeyword(

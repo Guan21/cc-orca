@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { i18n } from '@/i18n/i18n'
 import { getLanguageEntries } from './appearance-search'
@@ -34,4 +34,66 @@ describe('getLanguageEntries', () => {
     await i18n.changeLanguage('en')
     expect(matchesSettingsSearch('Français', getLanguageEntries()[0])).toBe(true)
   })
+})
+
+describe('appearance product copy', () => {
+  afterEach(() => {
+    delete (globalThis as { __ORCA_BUILD_PROFILE__?: unknown }).__ORCA_BUILD_PROFILE__
+  })
+
+  it.each([
+    ['default', 'Orca'],
+    ['corporate', 'Secure Orca Lite']
+  ] as const)('uses the %s product name in visible search descriptions', async (profile, name) => {
+    ;(globalThis as { __ORCA_BUILD_PROFILE__?: typeof profile }).__ORCA_BUILD_PROFILE__ = profile
+    vi.resetModules()
+    const { getLanguageEntries, getThemeEntries, getTitlebarEntries, getTypographyEntries } =
+      await import('./appearance-search')
+    const { getMenuBarIconEntries, getSystemTrayEntries } =
+      await import('./appearance-system-presence-search')
+
+    expect(getThemeEntries()[0]?.description).toBe(`Choose how ${name} looks in the app window.`)
+    expect(getLanguageEntries()[0]?.description).toBe(
+      `Choose the language used by the ${name} interface.`
+    )
+    expect(getTypographyEntries()[0]?.description).toBe(
+      `Choose the font used by the ${name} interface.`
+    )
+    expect(getTitlebarEntries()[0]?.description).toBe(`Show ${name} in the titlebar.`)
+    expect(getSystemTrayEntries({ showSystemTray: true })[0]?.description).toBe(
+      `When enabled, closing the window keeps ${name} running in the system tray instead of quitting.`
+    )
+    expect(getMenuBarIconEntries({ showMenuBarIcon: true })[0]?.description).toBe(
+      `Keep ${profile === 'default' ? 'an' : 'a'} ${name} shortcut and activity indicator in the macOS menu bar.`
+    )
+  })
+
+  it.each([
+    [
+      'default',
+      "Choisissez la langue utilisée par l'interface d'Orca.",
+      "Choisissez la police utilisée par l'interface d'Orca.",
+      "Choisissez l'apparence d'Orca dans la fenêtre de l'app."
+    ],
+    [
+      'corporate',
+      "Choisissez la langue utilisée par l'interface de Secure Orca Lite.",
+      "Choisissez la police utilisée par l'interface de Secure Orca Lite.",
+      "Choisissez l'apparence de Secure Orca Lite dans la fenêtre de l'app."
+    ]
+  ] as const)(
+    'keeps French %s product grammar intact',
+    async (profile, language, typography, theme) => {
+      ;(globalThis as { __ORCA_BUILD_PROFILE__?: typeof profile }).__ORCA_BUILD_PROFILE__ = profile
+      vi.resetModules()
+      const { i18n: isolatedI18n } = await import('@/i18n/i18n')
+      await isolatedI18n.changeLanguage('fr')
+      const { getLanguageEntries, getThemeEntries, getTypographyEntries } =
+        await import('./appearance-search')
+
+      expect(getLanguageEntries()[0]?.description).toBe(language)
+      expect(getTypographyEntries()[0]?.description).toBe(typography)
+      expect(getThemeEntries()[0]?.description).toBe(theme)
+    }
+  )
 })

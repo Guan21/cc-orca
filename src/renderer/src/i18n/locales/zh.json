@@ -15,6 +15,7 @@
       "language": {
         "title": "语言",
         "description": "选择 Orca 界面使用的语言。",
+        "corporateDescription": "选择 {{productName}} 界面使用的语言。",
         "system": "系统",
         "english": "English",
         "chinese": "中文（简体）",
@@ -5627,7 +5628,7 @@
           "dc29f3cc0d": "侧边栏",
           "ea943d0db0": "选择窗口底部显示的指示器。您还可以右键单击状态栏进行相同的切换。",
           "3e4175e5c6": "状态栏",
-          "2df8f79aa5": "在标题栏中显示 Orca。",
+          "2df8f79aa5": "在标题栏中显示 {{productName}}。",
           "9868f39007": "标题栏应用程序名称",
           "4de76f6902": "控制应用程序标题栏中显示的内容。",
           "6a272ca553": "标题栏",
@@ -5660,7 +5661,7 @@
           "workspaceCardLayoutGuidance": "从工作区侧边栏管理。",
           "872af9556e": "系统托盘",
           "2edf606c46": "关闭时最小化到托盘",
-          "b707773a0d": "启用后，关闭窗口会让 Orca 继续在系统托盘中运行，而不是退出。",
+          "b707773a0d": "启用后，关闭窗口会让 {{productName}} 继续在系统托盘中运行，而不是退出。",
           "interfaceDefaultFont": "默认字体",
           "terminalDefaultFont": "默认字体",
           "interfaceTitle": "界面",
@@ -7881,7 +7882,7 @@
             "51f957ce39": "名称",
             "36e006efc1": "应用程序",
             "bed343b03e": "标题栏",
-            "18b4c4c30b": "在标题栏中显示 Orca。",
+            "18b4c4c30b": "在标题栏中显示 {{productName}}。",
             "fdd31b00d0": "标题栏应用程序名称",
             "c1bca1885a": "文件浏览器",
             "9f2df826ac": "被忽略",
@@ -7896,6 +7897,9 @@
             "a0e09aed9c": "字体",
             "24094af355": "字体",
             "07c7c38fac": "选择 Orca 界面使用的字体。",
+            "typography": {
+              "corporateDescription": "选择 {{productName}} 界面使用的字体。"
+            },
             "ddb991024d": "IDE字体",
             "0c83659f48": "捷径",
             "0952091186": "比例",
@@ -7906,6 +7910,9 @@
             "44d873fd18": "浅色",
             "262fe1d24f": "深色",
             "0709c794f7": "选择 Orca 在应用程序窗口中的外观。",
+            "theme": {
+              "corporateDescription": "选择 {{productName}} 在应用程序窗口中的外观。"
+            },
             "71e06350b4": "主题",
             "dc02c8759d": "工作区",
             "43cfba3b95": "服务器",
@@ -7979,7 +7986,7 @@
               "detailed": "详细"
             },
             "9a115966d3": "关闭时最小化到托盘",
-            "4d5b9427b5": "启用后，关闭窗口会让 Orca 继续在系统托盘中运行，而不是退出。",
+            "4d5b9427b5": "启用后，关闭窗口会让 {{productName}} 继续在系统托盘中运行，而不是退出。",
             "showPinnedWorktreesInGroups": {
               "title": "也在原来的列表中显示已固定的工作树",
               "description": "已固定的工作树会保留在 Pinned 中，同时也显示在全部、项目、状态和 PR 中。"
@@ -15015,8 +15022,8 @@
       "cantLoadPage": "无法加载此页面",
       "certificateNameMismatch": "证书与 {{value0}} 不匹配。",
       "certificateDateInvalid": "{{value0}} 的证书在当前日期和时间无效。",
-      "certificateAuthorityInvalid": "Orca 不信任签发 {{value0}} 证书的机构。",
-      "certificateVerificationFailed": "Orca 无法验证 {{value0}} 的证书。",
+      "certificateAuthorityInvalid": "{{productName}} 不信任签发 {{value0}} 证书的机构。",
+      "certificateVerificationFailed": "{{productName}} 无法验证 {{value0}} 的证书。",
       "trustedCertificateGuidance": "进行本地开发时，请尽可能使用受信任的本地证书。",
       "retry": "重试",
       "copyAddress": "复制地址",
@@ -15028,7 +15035,7 @@
       "certificateChallengeExpired": "此证书审批已过期。请重试该页面以请求新的审批。",
       "certificateChallengeChanged": "证书请求已更改。请重试该页面并查看新的警告。",
       "certificateChallengeUnavailable": "此证书请求已不可用。请重试该页面以重新请求。",
-      "certificateProceedFailed": "Orca 无法批准此证书请求。请重试该页面后再试。"
+      "certificateProceedFailed": "{{productName}} 无法批准此证书请求。请重试该页面后再试。"
     }
   },
   "runtimeRpc": {

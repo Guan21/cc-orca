@@ -5,6 +5,7 @@ import type {
 } from '../../../../../shared/browser-guest-events'
 import type { BrowserLoadError } from '../../../../../shared/browser-workspace-types'
 import { isChromiumCertificateErrorCode } from '../../../../../shared/browser-certificate-errors'
+import { getProductDisplayName } from '../../../../../shared/product-display-name'
 import { translate } from '@/i18n/i18n'
 import { BROWSER_GUEST_RECOVERY_ERROR_CODE } from '../host-guest/browser-page-guest-recovery'
 
@@ -16,7 +17,7 @@ export type LoadFailureMeta = {
 type BrowserLoadErrorLike = BrowserLoadError | null
 
 // Unknown Chromium permissions keep their raw name instead of disappearing behind invented copy.
-function humanizePermission(permission: string): string {
+function humanizePermission(permission: string, productName: string): string {
   switch (permission) {
     case 'media':
       return 'camera or microphone access'
@@ -37,7 +38,7 @@ function humanizePermission(permission: string): string {
     case 'keyboardLock':
       return 'permission to capture keyboard input'
     case 'openExternal':
-      return 'permission to open a link outside Orca'
+      return `permission to open a link outside ${productName}`
     case 'fileSystem':
       return 'access to your files or folders'
     case 'hid':
@@ -61,7 +62,8 @@ function humanizePermission(permission: string): string {
 
 export function formatPermissionNotice(event: BrowserPermissionDeniedEvent): string {
   const target = event.origin === 'unknown' ? 'this page' : event.origin
-  return `${target} asked for ${humanizePermission(event.permission)}, and Orca denied it.`
+  const productName = getProductDisplayName()
+  return `${target} asked for ${humanizePermission(event.permission, productName)}, and ${productName} denied it.`
 }
 
 export function formatPopupNotice(event: BrowserPopupEvent): string | null {
@@ -72,7 +74,7 @@ export function formatPopupNotice(event: BrowserPopupEvent): string | null {
   if (event.action === 'opened-external') {
     return `${target} opened a new window in your default browser.`
   }
-  return `${target} tried to open a popup Orca does not support here.`
+  return `${target} tried to open a popup ${getProductDisplayName()} does not support here.`
 }
 
 export function formatDownloadFinishedNotice(event: BrowserDownloadFinishedEvent): string {
@@ -129,16 +131,18 @@ export function formatLoadFailureDescription(
       )
     }
     if (loadError.code === -202) {
+      const productName = getProductDisplayName()
       return translate(
         'browser.loadFailure.certificateAuthorityInvalid',
-        "Orca doesn't trust the authority that issued the certificate for {{value0}}.",
-        { value0: host }
+        "{{productName}} doesn't trust the authority that issued the certificate for {{value0}}.",
+        { productName, value0: host }
       )
     }
+    const productName = getProductDisplayName()
     return translate(
       'browser.loadFailure.certificateVerificationFailed',
-      "Orca couldn't verify the certificate for {{value0}}.",
-      { value0: host }
+      "{{productName}} couldn't verify the certificate for {{value0}}.",
+      { productName, value0: host }
     )
   }
   if (meta.isLocalhostLike) {
