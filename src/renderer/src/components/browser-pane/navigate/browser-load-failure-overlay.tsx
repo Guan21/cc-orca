@@ -9,6 +9,7 @@ import type {
   BrowserCertificateProceedResult,
   BrowserLoadError
 } from '../../../../../shared/browser-workspace-types'
+import { getProductDisplayName } from '../../../../../shared/product-display-name'
 import { isEligibleLocalCertificateHost } from '../../../../../shared/browser-url'
 import { normalizeCertificateError } from '../../../../../shared/browser-certificate-errors'
 import {
@@ -108,7 +109,8 @@ function formatCertificateProceedFailure(
   if (reason === 'request-failed') {
     return translate(
       'browser.loadFailure.certificateProceedFailed',
-      'Orca could not approve this certificate request. Retry the page and try again.'
+      '{{productName}} could not approve this certificate request. Retry the page and try again.',
+      { productName: getProductDisplayName() }
     )
   }
   return translate(

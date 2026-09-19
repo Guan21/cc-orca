@@ -3,6 +3,7 @@ import type {
   DocPreviewFileFailureReason
 } from '../../../../../shared/doc-preview-scheme'
 import { translate } from '@/i18n/i18n'
+import { getProductDisplayName } from '../../../../../shared/product-display-name'
 
 export function docPreviewFailureDetail(reason: DocPreviewFileFailureReason | null): string {
   if (reason === 'too-large') {
@@ -15,7 +16,8 @@ export function docPreviewFailureDetail(reason: DocPreviewFileFailureReason | nu
   // — only a subresource can be refused for its format, and that failure is a notice, not a panel.
   return translate(
     'auto.components.editor.HtmlDocPreview.documentUnreadablePanel',
-    'Orca could not read this file from the workspace.'
+    '{{productName}} could not read this file from the workspace.',
+    { productName: getProductDisplayName() }
   )
 }
 
@@ -52,8 +54,8 @@ export function docPreviewAssetNotice(failures: DocPreviewFileFailure[]): string
   }
   return translate(
     'auto.components.editor.HtmlDocPreview.assetUnreadableNotice',
-    'Orca could not read {{path}} from the workspace.',
-    { path: first.relativePath }
+    '{{productName}} could not read {{path}} from the workspace.',
+    { productName: getProductDisplayName(), path: first.relativePath }
   )
 }
 

@@ -29,6 +29,7 @@ afterEach(() => {
   cleanup()
   vi.useRealTimers()
   vi.clearAllMocks()
+  delete (globalThis as { __ORCA_BUILD_PROFILE__?: unknown }).__ORCA_BUILD_PROFILE__
 })
 
 describe('BrowserLoadFailureOverlay', () => {
@@ -375,5 +376,33 @@ describe('BrowserLoadFailureOverlay', () => {
     )
     expect(screen.getByRole('button', { name: 'Proceed Anyway (Unsafe)' })).toBeEnabled()
     expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('uses the corporate product name when certificate approval fails', async () => {
+    ;(globalThis as { __ORCA_BUILD_PROFILE__?: 'corporate' }).__ORCA_BUILD_PROFILE__ = 'corporate'
+    callbacks.onProceedCertificate.mockRejectedValue(new Error('transport failed'))
+
+    render(
+      <BrowserLoadFailureOverlay
+        loadError={{
+          code: -202,
+          description: 'ERR_CERT_AUTHORITY_INVALID',
+          validatedUrl: 'https://localhost:3443/app'
+        }}
+        externalUrl={null}
+        currentUrl="https://localhost:3443/app"
+        httpsRecoveryUrl={null}
+        certificateFailure={certificateFailure}
+        expectedBrowserPageId="page-1"
+        {...callbacks}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Proceed Anyway (Unsafe)' }))
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Secure Orca Lite could not approve this certificate request.'
+      )
+    )
   })
 })

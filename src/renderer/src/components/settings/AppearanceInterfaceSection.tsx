@@ -33,6 +33,7 @@ import { translate } from '@/i18n/i18n'
 import type { UiLanguage } from '../../../../shared/ui-language'
 import { matchesSettingsSearch, normalizeSettingsSearchQuery } from './settings-search'
 import { usePluginLanguagePacks } from '@/store/plugin-language-packs'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 type AppearanceInterfaceSectionProps = {
   settings: GlobalSettings
@@ -75,6 +76,7 @@ export function AppearanceInterfaceSection({
   ]
   const showAdvanced = !isSearching || matchesSettingsSearch(searchQuery, advancedEntries)
   const languageTitle = translate('settings.appearance.language.title', 'Language')
+  const productName = getProductDisplayName()
 
   return (
     <div className="divide-y divide-border/40">
@@ -236,7 +238,8 @@ export function AppearanceInterfaceSection({
                   // both non-obvious from the label alone.
                   description={translate(
                     'auto.components.settings.AppearancePane.b707773a0d',
-                    'When enabled, closing the window keeps Orca running in the system tray instead of quitting.'
+                    'When enabled, closing the window keeps {{productName}} running in the system tray instead of quitting.',
+                    { productName }
                   )}
                   checked={settings.minimizeToTrayOnClose === true}
                   onChange={() =>
@@ -256,10 +259,7 @@ export function AppearanceInterfaceSection({
                   label={translate('settings.appearance.menuBarIcon.title', 'Show Menu Bar Icon')}
                   // Why: this opt-out removes only the status item; macOS Dock
                   // activation and the close-keeps-running lifecycle stay intact.
-                  description={translate(
-                    'settings.appearance.menuBarIcon.description',
-                    'Keep an Orca shortcut and activity indicator in the macOS menu bar.'
-                  )}
+                  description={menuBarIconEntry?.description}
                   checked={settings.showMenuBarIcon !== false}
                   onChange={() =>
                     updateSettings({ showMenuBarIcon: settings.showMenuBarIcon === false })

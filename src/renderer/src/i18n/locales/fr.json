@@ -14,8 +14,8 @@
       "cantLoadPage": "Impossible de charger cette page",
       "certificateNameMismatch": "Le certificat ne correspond pas à {{value0}}.",
       "certificateDateInvalid": "Le certificat de {{value0}} n'est pas valide à la date et à l'heure actuelles.",
-      "certificateAuthorityInvalid": "Orca ne fait pas confiance à l'autorité qui a émis le certificat de {{value0}}.",
-      "certificateVerificationFailed": "Orca n'a pas pu vérifier le certificat de {{value0}}.",
+      "certificateAuthorityInvalid": "{{productName}} ne fait pas confiance à l'autorité qui a émis le certificat de {{value0}}.",
+      "certificateVerificationFailed": "{{productName}} n'a pas pu vérifier le certificat de {{value0}}.",
       "trustedCertificateGuidance": "Pour le développement local, utilisez si possible un certificat local de confiance.",
       "retry": "Réessayer",
       "copyAddress": "Copier l'adresse",
@@ -27,7 +27,7 @@
       "certificateChallengeExpired": "Cette approbation de certificat a expiré. Rechargez la page pour en demander une nouvelle.",
       "certificateChallengeChanged": "La demande de certificat a changé. Rechargez la page et examinez le nouvel avertissement.",
       "certificateChallengeUnavailable": "Cette demande de certificat n'est plus disponible. Rechargez la page pour en demander une nouvelle.",
-      "certificateProceedFailed": "Orca n'a pas pu approuver cette demande de certificat. Rechargez la page et réessayez."
+      "certificateProceedFailed": "{{productName}} n'a pas pu approuver cette demande de certificat. Rechargez la page et réessayez."
     },
     "guestRecovery": {
       "title": "Page du navigateur arrêtée",
@@ -42,6 +42,7 @@
       "language": {
         "title": "Langue",
         "description": "Choisissez la langue utilisée par l'interface d'Orca.",
+        "corporateDescription": "Choisissez la langue utilisée par l'interface de {{productName}}.",
         "system": "Système",
         "english": "English",
         "chinese": "中文（简体）",
@@ -6308,7 +6309,7 @@
           "3057983501": "Non assigné",
           "872af9556e": "Zone de notification",
           "2edf606c46": "Réduire dans la zone de notification à la fermeture",
-          "b707773a0d": "Quand activé, fermer la fenêtre laisse Orca tourner dans la zone de notification au lieu de quitter.",
+          "b707773a0d": "Quand activé, fermer la fenêtre laisse {{productName}} tourner dans la zone de notification au lieu de quitter.",
           "0cd9b8228f": "Choisissez l'icône d'app affichée dans le Dock et le sélecteur de fenêtres.",
           "ca1590d42f": "Icône de l'app",
           "61d842eca0": "Afficher le raccourci Orca Mobile dans la barre latérale. Il reste accessible depuis la Toolbox.",
@@ -6321,7 +6322,7 @@
           "dc29f3cc0d": "Barre latérale",
           "ea943d0db0": "Choisissez les indicateurs affichés en bas de la fenêtre. Un clic droit sur la barre d'état donne accès aux mêmes options.",
           "3e4175e5c6": "Barre d'état",
-          "2df8f79aa5": "Afficher Orca dans la barre de titre.",
+          "2df8f79aa5": "Afficher {{productName}} dans la barre de titre.",
           "9868f39007": "Nom de l'app dans la barre de titre",
           "4de76f6902": "Contrôler ce qui apparaît dans la barre de titre de l'application.",
           "6a272ca553": "Barre de titre",
@@ -8636,7 +8637,7 @@
         "appearance": {
           "search": {
             "9a115966d3": "Réduire dans la zone de notification à la fermeture",
-            "4d5b9427b5": "Quand activé, fermer la fenêtre laisse Orca tourner dans la zone de notification au lieu de quitter.",
+            "4d5b9427b5": "Quand activé, fermer la fenêtre laisse {{productName}} tourner dans la zone de notification au lieu de quitter.",
             "468448bba4": "aquarelle",
             "f586abfa35": "bleu",
             "651f35b2c6": "sélecteur",
@@ -8669,7 +8670,7 @@
             "51f957ce39": "nom",
             "36e006efc1": "app",
             "bed343b03e": "barre de titre",
-            "18b4c4c30b": "Afficher Orca dans la barre de titre.",
+            "18b4c4c30b": "Afficher {{productName}} dans la barre de titre.",
             "fdd31b00d0": "Nom de l'app dans la barre de titre",
             "c1bca1885a": "explorateur de fichiers",
             "9f2df826ac": "ignoré",
@@ -8684,6 +8685,9 @@
             "a0e09aed9c": "police",
             "24094af355": "police",
             "07c7c38fac": "Choisissez la police utilisée par l'interface d'Orca.",
+            "typography": {
+              "corporateDescription": "Choisissez la police utilisée par l'interface de {{productName}}."
+            },
             "ddb991024d": "Police de l'IDE",
             "0c83659f48": "raccourci",
             "0952091186": "échelle",
@@ -8694,6 +8698,9 @@
             "44d873fd18": "clair",
             "262fe1d24f": "sombre",
             "0709c794f7": "Choisissez l'apparence d'Orca dans la fenêtre de l'app.",
+            "theme": {
+              "corporateDescription": "Choisissez l'apparence de {{productName}} dans la fenêtre de l'app."
+            },
             "71e06350b4": "Thème",
             "dc02c8759d": "espace de travail",
             "43cfba3b95": "serveur",

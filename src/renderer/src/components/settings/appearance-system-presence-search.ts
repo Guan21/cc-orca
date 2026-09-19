@@ -4,6 +4,7 @@ import { getRendererAppPlatform } from '@/lib/renderer-app-platform'
 import { isWebClientLocation } from '@/lib/web-client-location'
 import type { SettingsSearchEntry } from './settings-search'
 import { translateSearchKeyword } from './settings-search-keywords'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 const getSystemTrayEntryCatalog = createLocalizedCatalog((): SettingsSearchEntry[] => [
   {
@@ -13,7 +14,8 @@ const getSystemTrayEntryCatalog = createLocalizedCatalog((): SettingsSearchEntry
     ),
     description: translate(
       'auto.components.settings.appearance.search.4d5b9427b5',
-      'When enabled, closing the window keeps Orca running in the system tray instead of quitting.'
+      'When enabled, closing the window keeps {{productName}} running in the system tray instead of quitting.',
+      { productName: getProductDisplayName() }
     ),
     keywords: [
       ...translateSearchKeyword('auto.components.settings.appearance.search.tray.tray', 'tray', {
@@ -47,13 +49,24 @@ const getSystemTrayEntryCatalog = createLocalizedCatalog((): SettingsSearchEntry
   }
 ])
 
+function getMenuBarIconDescription(): string {
+  const productName = getProductDisplayName()
+  return productName === 'Orca'
+    ? translate(
+        'settings.appearance.menuBarIcon.description',
+        'Keep an Orca shortcut and activity indicator in the macOS menu bar.'
+      )
+    : translate(
+        'settings.appearance.menuBarIcon.corporateDescription',
+        'Keep a {{productName}} shortcut and activity indicator in the macOS menu bar.',
+        { productName }
+      )
+}
+
 const getMenuBarIconEntryCatalog = createLocalizedCatalog((): SettingsSearchEntry[] => [
   {
     title: translate('settings.appearance.menuBarIcon.title', 'Show Menu Bar Icon'),
-    description: translate(
-      'settings.appearance.menuBarIcon.description',
-      'Keep an Orca shortcut and activity indicator in the macOS menu bar.'
-    ),
+    description: getMenuBarIconDescription(),
     keywords: [
       ...translateSearchKeyword('settings.appearance.menuBarIcon.keyword.menuBar', 'menu bar', {
         englishOnly: true

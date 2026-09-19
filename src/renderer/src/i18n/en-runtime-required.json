@@ -1143,7 +1143,7 @@
         },
         "AppearancePane": {
           "0f28e7b30c": "Choose how Orca looks in the app window.",
-          "2df8f79aa5": "Show Orca in the titlebar.",
+          "2df8f79aa5": "Show {{productName}} in the titlebar.",
           "42554f615f": "Choose the font used by the Orca interface.",
           "4de76f6902": "Control what appears in the application titlebar.",
           "5db6ba961f": "Show the Orca Mobile button at the top of the left sidebar.",
