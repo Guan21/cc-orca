@@ -28,6 +28,8 @@ import { getOrcaBuildProfile } from '../../../shared/corporate-build-profile'
 export function TitlebarLeftControls({ layout }: { layout: AppChromeLayout }): React.JSX.Element {
   const productDisplayName = getProductDisplayName()
   const showProductLogo = getOrcaBuildProfile() !== 'corporate'
+  const showCustomChromeProductName =
+    hasCustomTitleBar && !showProductLogo && layout.showSidebar && layout.showTitlebarAppName
   const toggleSidebar = useAppStore((s) => s.toggleSidebar)
   const updateSettings = useAppStore((s) => s.updateSettings)
   const canGoBackWorktree = useAppStore(canGoBackWorktreeHistory)
@@ -68,6 +70,24 @@ export function TitlebarLeftControls({ layout }: { layout: AppChromeLayout }): R
                 {translate('auto.App.8b0b8eb54f', 'Application menu')}
               </TooltipContent>
             </Tooltip>
+            {showCustomChromeProductName ? (
+              <ContextMenu>
+                <ContextMenuTrigger asChild>
+                  <div className="titlebar-app-name" aria-label={productDisplayName}>
+                    <span className="titlebar-app-name-main">{productDisplayName}</span>
+                  </div>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem
+                    onSelect={() => {
+                      void updateSettings({ showTitlebarAppName: false })
+                    }}
+                  >
+                    {translate('auto.App.e81217c1b7', 'Hide App Name')}
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            ) : null}
           </>
         ) : (
           <div className="pl-2" />

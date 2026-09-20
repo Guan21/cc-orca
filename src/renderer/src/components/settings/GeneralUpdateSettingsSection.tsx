@@ -11,8 +11,17 @@ import { getUpdateCheckClickOptions, getUpdateCheckHint } from '@/lib/update-che
 import { GeneralRemoteServerUpdates } from './GeneralRemoteServerUpdates'
 import { ReleaseChannelSection } from './ReleaseChannelSection'
 import { getReleaseNotesUrlForVersion } from '../../../../shared/release-channel'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
-export function GeneralUpdateSettingsSection(): React.JSX.Element {
+export function GeneralUpdateSettingsSection(): React.JSX.Element | null {
+  if (getOrcaBuildProfile() === 'corporate') {
+    return null
+  }
+
+  return <GeneralUpdateSettingsContent />
+}
+
+function GeneralUpdateSettingsContent(): React.JSX.Element {
   const updateStatus = useAppStore((s) => s.updateStatus)
   // Why: older hosts omit `version` from errors, so retain the last target for correct copy.
   const updateVersionRef = useRef<string | null>(null)

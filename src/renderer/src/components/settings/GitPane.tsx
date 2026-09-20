@@ -23,11 +23,18 @@ import {
 } from './keep-local-main-up-to-date-setting'
 import { translate } from '@/i18n/i18n'
 import { SettingsRow, SettingsSegmentedControl } from './SettingsFormControls'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export { getGitPaneSearchEntries }
 
-const KEEP_LOCAL_MAIN_UP_TO_DATE_DESCRIPTION =
-  'When you create a workspace, Orca refreshes the remote base and safely fast-forwards your matching local branch, such as main or master. This keeps commands like git diff main...HEAD from comparing against stale history. Orca skips the update if that branch has uncommitted changes or local-only commits.'
+function getKeepLocalMainUpToDateDescription(): string {
+  const productDisplayName = getProductDisplayName()
+  return translate(
+    'auto.components.settings.GitPane.keepLocalMainUpToDateDescription',
+    'When you create a workspace, {{value0}} refreshes the remote base and safely fast-forwards your matching local branch, such as main or master. This keeps commands like git diff main...HEAD from comparing against stale history. {{value0}} skips the update if that branch has uncommitted changes or local-only commits.',
+    { value0: productDisplayName }
+  )
+}
 const KEEP_LOCAL_MAIN_UP_TO_DATE_KEYWORDS = [
   'main',
   'master',
@@ -147,6 +154,7 @@ export function GitPane({
   const storeSearchQuery = useAppStore((s) => s.settingsSearchQuery)
   const searchQuery = settingsSearchQuery ?? storeSearchQuery
   const keepLocalMainUpToDateTitle = getKeepLocalMainUpToDateTitle()
+  const keepLocalMainUpToDateDescription = getKeepLocalMainUpToDateDescription()
 
   const isBranchPrefixInputMode = settings.branchPrefix !== 'none'
   // Local draft for the editable custom prefix: updateSettings persists through
@@ -243,14 +251,14 @@ export function GitPane({
     ) : null,
     matchesSettingsSearch(searchQuery, {
       title: keepLocalMainUpToDateTitle,
-      description: KEEP_LOCAL_MAIN_UP_TO_DATE_DESCRIPTION,
+      description: keepLocalMainUpToDateDescription,
       keywords: KEEP_LOCAL_MAIN_UP_TO_DATE_KEYWORDS
     }) ? (
       <SearchableSetting
         key="refresh-base-ref"
         id={KEEP_LOCAL_MAIN_UP_TO_DATE_SECTION_ID}
         title={keepLocalMainUpToDateTitle}
-        description={KEEP_LOCAL_MAIN_UP_TO_DATE_DESCRIPTION}
+        description={keepLocalMainUpToDateDescription}
         keywords={KEEP_LOCAL_MAIN_UP_TO_DATE_KEYWORDS}
         className="flex items-center justify-between gap-4 py-2"
       >
@@ -259,7 +267,8 @@ export function GitPane({
           <p className="text-xs text-muted-foreground">
             {translate(
               'auto.components.settings.GitPane.976afc6b3e',
-              'When you create a workspace, Orca refreshes the remote base and safely fast-forwards your matching local branch, such as'
+              'When you create a workspace, {{value0}} refreshes the remote base and safely fast-forwards your matching local branch, such as',
+              { value0: getProductDisplayName() }
             )}{' '}
             <code>{translate('auto.components.settings.GitPane.ffba483bae', 'main')}</code>{' '}
             {translate('auto.components.settings.GitPane.5bf885be48', 'or')}{' '}
@@ -273,7 +282,8 @@ export function GitPane({
             </code>{' '}
             {translate(
               'auto.components.settings.GitPane.36e3de3619',
-              'from comparing against stale history. Orca skips the update if that branch has uncommitted changes or local-only commits.'
+              'from comparing against stale history. {{value0}} skips the update if that branch has uncommitted changes or local-only commits.',
+              { value0: getProductDisplayName() }
             )}
           </p>
         </div>

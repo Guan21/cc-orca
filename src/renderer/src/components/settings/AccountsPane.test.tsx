@@ -1,6 +1,6 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import { i18n } from '../../i18n/i18n'
@@ -22,8 +22,25 @@ function renderPane(
 
 describe('AccountsPane', () => {
   beforeEach(async () => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     await i18n.changeLanguage('en')
     useAppStore.setState({ settingsSearchQuery: '', runtimeEnvironments: [] })
+  })
+
+  afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  })
+
+  it('uses corporate product identity in provider account copy', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const markup = renderPane(getDefaultSettings('/tmp'))
+
+    expect(markup).toContain('Secure Orca Lite can use your normal Claude login')
+    expect(markup).toContain('Secure Orca Lite can use your normal Codex login')
+    expect(markup).toContain('quick switching in Secure Orca Lite')
+    expect(markup).not.toContain('Optional. Orca can use your normal Claude login')
+    expect(markup).not.toContain('Optional. Orca can use your normal Codex login')
   })
 
   it('hides the WSL account location controls on platforms without WSL support', () => {

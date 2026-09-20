@@ -14,13 +14,21 @@ import { SidebarTaskNavButton } from './SidebarTaskNavButton'
 import { HideSidebarMenu } from './sidebar-nav-controls'
 import { translate } from '@/i18n/i18n'
 import { lazyWithRetry } from '@/lib/lazy-with-retry'
+import {
+  getOrcaBuildProfile,
+  type OrcaBuildProfile
+} from '../../../../shared/corporate-build-profile'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 
 export { getSetupGuideSidebarEntryReady, shouldShowSetupGuideEntry } from './SetupGuideSidebarEntry'
 
 export function shouldShowMobileButton(
-  settings: Partial<Pick<GlobalSettings, 'showMobileButton'>> | null | undefined
+  settings: Partial<Pick<GlobalSettings, 'showMobileButton'>> | null | undefined,
+  buildProfile: OrcaBuildProfile = getOrcaBuildProfile()
 ): boolean {
+  if (buildProfile === 'corporate') {
+    return false
+  }
   return settings?.showMobileButton !== false
 }
 

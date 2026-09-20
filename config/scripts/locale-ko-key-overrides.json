@@ -2136,7 +2136,7 @@
     "ko": "{assistantMessage}"
   },
   "auto.components.settings.AutoRenameBranchFromWorkSetting.d9b65054ef": {
-    "ko": ") 작업을 요약하는 짧은 이름으로 변경됩니다. Orca가 직접 이름 붙인 브랜치만 이름을 바꾸며, 푸시된 후에는 이름을 바꾸지 않습니다."
+    "ko": ") 작업을 요약하는 짧은 이름으로 변경됩니다. {{value0}}가 직접 이름 붙인 브랜치만 이름을 바꾸며, 푸시된 후에는 이름을 바꾸지 않습니다."
   },
   "auto.components.settings.AutoRenameBranchPromptEditor.ebb942a2ec": {
     "ko": "fix-login-flow"

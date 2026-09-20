@@ -29,6 +29,7 @@ import { SourceControlActionRecipeRow } from './SourceControlActionRecipeRow'
 import { SourceControlActionRepoOverrideNote } from './SourceControlActionRepoOverrideNote'
 import { useSourceControlActionRecipeDraftState } from './source-control-action-recipe-draft-state'
 import { translate } from '@/i18n/i18n'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 type SourceControlAiActionRecipeDefaultsProps = {
   config: SourceControlAiSettings
@@ -96,6 +97,7 @@ export function SourceControlAiActionRecipeDefaults({
   writeConfig
 }: SourceControlAiActionRecipeDefaultsProps): React.JSX.Element | null {
   const allRepos = useRepos()
+  const productDisplayName = getProductDisplayName()
   // Recomputes on every keystroke in the sibling recipe textareas otherwise, so
   // memoize the filter and the O(actions × repos) override scan on `repos`.
   const repos = useMemo(() => allRepos.filter((repo) => !isFolderRepo(repo)), [allRepos])
@@ -189,7 +191,8 @@ export function SourceControlAiActionRecipeDefaults({
         <p className="text-xs text-muted-foreground">
           {translate(
             'auto.components.settings.SourceControlAiActionRecipeDefaults.bf84dea6af',
-            'Use variables only when you want Orca to inject context. Leave the agent as default to follow your normal agent preference.'
+            'Use variables only when you want {{value0}} to inject context. Leave the agent as default to follow your normal agent preference.',
+            { value0: productDisplayName }
           )}
         </p>
       </div>

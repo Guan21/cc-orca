@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import {
   createAutoSaveDelayDraftState,
   getDesktopPlatformFromUserAgent,
@@ -9,6 +9,10 @@ import {
   updateAutoSaveDelayDraftState
 } from './GeneralPane'
 import { matchesSettingsSearch } from './settings-search'
+
+afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
+})
 
 describe('GeneralPane auto-save delay drafts', () => {
   it('keeps a committed draft tied to the current persisted source while settings save is pending', () => {
@@ -115,6 +119,15 @@ describe('GeneralPane search entries', () => {
     expect(matchesSettingsSearch('default project runtime', entries)).toBe(false)
     expect(matchesSettingsSearch('windows host', entries)).toBe(false)
     expect(matchesSettingsSearch('wsl', entries)).toBe(false)
+  })
+
+  it('omits updater search entries in corporate builds', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const entries = getGeneralPaneSearchEntries()
+
+    expect(matchesSettingsSearch('check for updates', entries)).toBe(false)
+    expect(matchesSettingsSearch('release notes', entries)).toBe(false)
   })
 })
 

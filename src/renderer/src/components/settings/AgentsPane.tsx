@@ -32,6 +32,7 @@ import {
   resolveTuiAgentLaunchArgs,
   resolveTuiAgentLaunchEnv
 } from '../../../../shared/tui-agent-launch-defaults'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import {
   applyAgentPermissionMode,
   resolveAgentPermissionModeSummary,
@@ -76,6 +77,7 @@ export function AgentPermissionsSetting({
   onChange: (mode: Exclude<AgentPermissionMode, 'mixed'>) => void
 }): React.JSX.Element {
   const visibleMode: Exclude<AgentPermissionMode, 'mixed'> = mode === 'manual' ? 'manual' : 'yolo'
+  const productDisplayName = getProductDisplayName()
   return (
     <section className="space-y-3">
       <SettingsSubsectionHeader
@@ -106,7 +108,8 @@ export function AgentPermissionsSetting({
         }
         description={translate(
           'auto.components.settings.AgentsPane.agentPermissionsDescription',
-          'Choose whether Orca launches agents with fewer permission prompts or with manual checks.'
+          'Choose whether {{value0}} launches agents with fewer permission prompts or with manual checks.',
+          { value0: productDisplayName }
         )}
         action={
           <SettingsSegmentedControl<AgentPermissionMode>

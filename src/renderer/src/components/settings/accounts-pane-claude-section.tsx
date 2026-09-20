@@ -12,6 +12,7 @@ import {
 } from './provider-account-visibility'
 import { formatAccountTimestamp, getClaudeAccountRuntimeLabel } from './accounts-pane-runtime'
 import type { AccountsPaneSectionModel } from './accounts-pane-types'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export function renderClaudeAccountsSection(model: AccountsPaneSectionModel): React.JSX.Element {
   const {
@@ -30,6 +31,7 @@ export function renderClaudeAccountsSection(model: AccountsPaneSectionModel): Re
     visibleClaudeAccounts,
     wslCapabilitiesLoading
   } = model
+  const productDisplayName = getProductDisplayName()
   return (
     <section key="claude-accounts" id="accounts-claude" className="space-y-4 scroll-mt-6">
       <div className="space-y-1">
@@ -40,7 +42,8 @@ export function renderClaudeAccountsSection(model: AccountsPaneSectionModel): Re
         <p className="text-xs text-muted-foreground">
           {translate(
             'auto.components.settings.AccountsPane.72b36ea174',
-            'Optional. Orca can use your normal Claude login; add accounts only if you want quick switching without moving chat sessions.'
+            'Optional. {{value0}} can use your normal Claude login; add accounts only if you want quick switching without moving chat sessions.',
+            { value0: productDisplayName }
           )}
         </p>
       </div>
@@ -169,8 +172,8 @@ export function renderClaudeAccountsSection(model: AccountsPaneSectionModel): Re
                   )
                 : translate(
                     'auto.components.settings.AccountsPane.3fe7862418',
-                    "No managed Claude accounts for {{value0}}. Orca will use that environment's system default Claude login until you add one here.",
-                    { value0: accountRuntimeSentenceLabel }
+                    "No managed Claude accounts for {{value0}}. {{value1}} will use that environment's system default Claude login until you add one here.",
+                    { value0: accountRuntimeSentenceLabel, value1: productDisplayName }
                   )}
             </div>
           ) : (

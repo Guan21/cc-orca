@@ -138,6 +138,14 @@ describe('settings navigation metadata', () => {
     expect(ids({ isWebClient: true })).not.toContain('orca-account')
   })
 
+  it('filters upstream account and mobile setup surfaces from corporate metadata', () => {
+    const corporateIds = ids({ buildProfile: 'corporate' })
+
+    expect(corporateIds).not.toContain('orca-account')
+    expect(corporateIds).not.toContain('mobile')
+    expect(corporateIds).toContain('accounts')
+  })
+
   it('puts web-safe AI capability panes at the top while hiding desktop-only panes', () => {
     expect(ids({ isWebClient: true }).slice(0, 6)).toEqual([
       'agents',

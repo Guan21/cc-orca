@@ -1,6 +1,7 @@
 import { translate } from '@/i18n/i18n'
 import type { ComputerAwakeMode } from '../../../../shared/computer-awake-mode'
 import { searchKeywords } from './settings-search-keywords'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 const AGENT_AWAKE_TITLE_KEY = 'auto.components.settings.agent-awake-copy.modeTitle'
 const AGENT_AWAKE_DESCRIPTION_WINDOWS_KEY =
@@ -34,7 +35,8 @@ export function getAgentAwakeDescription(
 
   return translate(
     AGENT_AWAKE_DESCRIPTION_DEFAULT_KEY,
-    'Choose On, Agent, or Off. Agent mode stays awake while agents are working. Orca also asks this device to stay awake when the lid is closed, subject to its power policy.'
+    'Choose On, Agent, or Off. Agent mode stays awake while agents are working. {{value0}} also asks this device to stay awake when the lid is closed, subject to its power policy.',
+    { value0: getProductDisplayName() }
   )
 }
 

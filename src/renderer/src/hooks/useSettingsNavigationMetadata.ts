@@ -109,6 +109,7 @@ const SETTINGS_SECTION_CAPABILITY = {
   'computer-use': 'computer-use',
   'mobile-emulator': 'emulator',
   mobile: 'mobile',
+  'orca-account': 'cloud-relay',
   plugins: 'plugins',
   servers: 'cloud-relay',
   'share-skills': 'skills',

@@ -9,12 +9,14 @@ import { ShareSkillsSettingsPane } from './ShareSkillsSettingsPane'
 import { SettingsSection } from './SettingsSection'
 import { translate } from '@/i18n/i18n'
 import type { SettingsRenderContext } from './settings-render-context'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export function renderOrcaAccountSettingsSection(
   context: SettingsRenderContext
 ): React.JSX.Element | null {
   const { model, navigation, view } = context
-  return model.showDesktopOnlySettings ? (
+  return model.showDesktopOnlySettings && getOrcaBuildProfile() !== 'corporate' ? (
     <SettingsSection
       id="orca-account"
       title={translate('auto.components.settings.orcaAccount.title', 'Orca Account')}
@@ -31,13 +33,15 @@ export function renderOrcaAccountSettingsSection(
 
 export function renderSetupGuideSettingsSection(context: SettingsRenderContext): React.JSX.Element {
   const { navigation, view } = context
+  const productDisplayName = getProductDisplayName()
   return (
     <SettingsSection
       id="setup-guide"
       title={translate('auto.components.settings.Settings.6d119427ef', 'Onboarding checklist')}
       description={translate(
         'auto.components.settings.Settings.6855b0f77d',
-        'Finish the core workflows that make Orca useful for parallel agent work.'
+        'Finish the core workflows that make {{value0}} useful for parallel agent work.',
+        { value0: productDisplayName }
       )}
       searchEntries={navigation.getSectionSearchEntries('setup-guide')}
       bodyClassName="overflow-hidden rounded-none border-0 bg-transparent p-0 shadow-none"
@@ -100,7 +104,7 @@ export function renderMobileSettingsSection(
   context: SettingsRenderContext
 ): React.JSX.Element | null {
   const { model, navigation, view } = context
-  return model.showDesktopOnlySettings ? (
+  return model.showDesktopOnlySettings && getOrcaBuildProfile() !== 'corporate' ? (
     <SettingsSection
       id="mobile"
       title={translate('auto.components.settings.Settings.c40dadaac8', 'Mobile')}

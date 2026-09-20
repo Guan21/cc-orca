@@ -7,7 +7,7 @@ import type { TuiAgent } from '../../../../shared/tui-agent'
 import { AGENT_CATALOG } from '@/lib/agent-catalog'
 import { useAppStore } from '../../store'
 import { getAgentGeneratedTabTitlesTitle } from './agent-generated-tab-title-copy'
-import { getAgentStatusHooksTitle } from './agent-status-hooks-copy'
+import { getAgentStatusHooksDescription, getAgentStatusHooksTitle } from './agent-status-hooks-copy'
 import { getAgentAwakeDescription, getAgentAwakeTitle } from './agent-awake-copy'
 import { AgentAwakeSetting } from './AgentAwakeSetting'
 import { AgentRuntimeSetting } from './AgentRuntimeSetting'
@@ -174,6 +174,14 @@ describe('AgentsPane', () => {
     renderPane(getDefaultSettings('/tmp'))
 
     expect(detectedAgentsMock.lastTarget).toEqual({ kind: 'local' })
+  })
+
+  it('uses corporate product identity in visible agent settings copy', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    expect(getAgentStatusHooksDescription()).toContain('Secure Orca Lite-managed hooks')
+    expect(getAgentAwakeDescription()).toContain('Secure Orca Lite also asks this device')
+    expect(getAgentStatusHooksDescription()).not.toContain('Orca-managed hooks')
   })
 
   it('scopes agent detection to the active remote server', () => {

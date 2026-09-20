@@ -270,6 +270,9 @@ describe('createSystemTray', () => {
       expect.stringMatching(/resources\/tray\/corporate-menu-barTemplate@2x\.png$/)
     )
     expect(builtMenuItems().map((item) => item.label)).toContain('Open Secure Orca Lite')
+    expect(builtMenuItems().map((item) => item.label)).not.toContain('Check for Updates...')
+    builtMenuItems().forEach((item) => item.click?.())
+    expect(options.onCheckForUpdates).not.toHaveBeenCalled()
   })
 
   it('uses the corporate product display name for production tray copy', async () => {

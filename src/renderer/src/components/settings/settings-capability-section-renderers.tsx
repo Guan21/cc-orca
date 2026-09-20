@@ -7,6 +7,7 @@ import { VoicePane } from './VoicePane'
 import { SettingsSection } from './SettingsSection'
 import { translate } from '@/i18n/i18n'
 import type { SettingsRenderContext } from './settings-render-context'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export function renderAgentsSettingsSection(context: SettingsRenderContext): React.JSX.Element {
   const { model, navigation, terminal, view } = context
@@ -36,13 +37,15 @@ export function renderAgentsSettingsSection(context: SettingsRenderContext): Rea
 
 export function renderAccountsSettingsSection(context: SettingsRenderContext): React.JSX.Element {
   const { model, navigation, terminal, view } = context
+  const productDisplayName = getProductDisplayName()
   return (
     <SettingsSection
       id="accounts"
       title={translate('auto.components.settings.Settings.ad6c529693', 'AI Provider Accounts')}
       description={translate(
         'auto.components.settings.Settings.21f09426ea',
-        'Optional. Orca works with your existing provider logins; add accounts only if you want Orca to help switch between them.'
+        'Optional. {{value0}} works with your existing provider logins; add accounts only if you want {{value0}} to help switch between them.',
+        { value0: productDisplayName }
       )}
       badge={translate('auto.hooks.useSettingsNavigationMetadata.7c79d3b7bf', 'Optional')}
       searchEntries={navigation.getSectionSearchEntries('accounts')}
@@ -66,13 +69,15 @@ export function renderOrchestrationSettingsSection(
   context: SettingsRenderContext
 ): React.JSX.Element {
   const { model, navigation, view } = context
+  const productDisplayName = getProductDisplayName()
   return (
     <SettingsSection
       id="orchestration"
       title={translate('auto.components.settings.Settings.00c3a7950d', 'Orchestration')}
       description={translate(
         'auto.components.settings.Settings.475980f53d',
-        'Coordinate multiple coding agents through Orca.'
+        'Coordinate multiple coding agents through {{value0}}.',
+        { value0: productDisplayName }
       )}
       searchEntries={navigation.getSectionSearchEntries('orchestration')}
     >

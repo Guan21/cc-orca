@@ -292,6 +292,7 @@ describe('SidebarSettingsHelpMenu', () => {
     const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
 
     expect(html).toContain('Restart application')
+    expect(html).not.toContain('Check for Updates')
     expect(html).not.toContain('Docs')
     expect(html).not.toContain('Restart Orca')
     expect(html).not.toContain('Discord')
@@ -299,6 +300,19 @@ describe('SidebarSettingsHelpMenu', () => {
     expect(html).not.toContain('GitHub')
     expect(html).not.toContain('Send Feedback')
     expect(html).not.toContain('Changelog')
+  })
+
+  it('does not expose updater actions in corporate builds', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const container = await renderMenu()
+
+    expect(
+      Array.from(container.querySelectorAll<HTMLButtonElement>('[data-testid="menu-item"]')).some(
+        (element) => element.textContent?.includes('Check for Updates')
+      )
+    ).toBe(false)
+    expect(mocks.updaterCheck).not.toHaveBeenCalled()
   })
 
   it('renders Check for Updates menu item', () => {

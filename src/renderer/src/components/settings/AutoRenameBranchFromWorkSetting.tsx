@@ -23,6 +23,7 @@ import { getAutoRenameBranchAdvancedSearchEntries } from './auto-rename-branch-s
 import { SearchableSetting } from './SearchableSetting'
 import { matchesSettingsSearch, normalizeSettingsSearchQuery } from './settings-search'
 import { translate } from '@/i18n/i18n'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 type AutoRenameBranchFromWorkSettingProps = {
   settings: GlobalSettings
@@ -60,6 +61,7 @@ export function AutoRenameBranchFromWorkSetting({
 }: AutoRenameBranchFromWorkSettingProps): React.JSX.Element {
   const storeSearchQuery = useAppStore((state) => state.settingsSearchQuery)
   const searchQuery = settingsSearchQuery ?? storeSearchQuery
+  const productDisplayName = getProductDisplayName()
   const config = readSourceControlSettings(settings)
   const [optionsOpen, setOptionsOpen] = useState(false)
   const advancedSearchOpen = shouldOpenAutoRenameBranchAdvanced(searchQuery)
@@ -159,7 +161,8 @@ export function AutoRenameBranchFromWorkSetting({
           <p className="text-xs text-muted-foreground">
             {translate(
               'auto.components.settings.AutoRenameBranchFromWorkSetting.12ea4a408d',
-              'When an agent starts working in a new workspace, Orca renames its auto-generated branch (e.g.'
+              'When an agent starts working in a new workspace, {{value0}} renames its auto-generated branch (e.g.',
+              { value0: productDisplayName }
             )}{' '}
             <code>
               {translate(
@@ -169,7 +172,8 @@ export function AutoRenameBranchFromWorkSetting({
             </code>
             {translate(
               'auto.components.settings.AutoRenameBranchFromWorkSetting.d9b65054ef',
-              ') to a short name summarizing the task. Only branches Orca named itself are renamed, and never after they have been pushed.'
+              ') to a short name summarizing the task. Only branches {{value0}} named itself are renamed, and never after they have been pushed.',
+              { value0: productDisplayName }
             )}
           </p>
         </div>
@@ -227,7 +231,8 @@ export function AutoRenameBranchFromWorkSetting({
                   </code>{' '}
                   {translate(
                     'auto.components.settings.AutoRenameBranchFromWorkSetting.69bf4830c2',
-                    "to include Orca's"
+                    "to include {{value0}}'s",
+                    { value0: productDisplayName }
                   )}{' '}
                   <Popover>
                     <PopoverTrigger asChild>

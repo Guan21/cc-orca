@@ -8,6 +8,7 @@ vi.mock('./GeneralRemoteServerUpdates', () => ({ GeneralRemoteServerUpdates: () 
 vi.mock('./ReleaseChannelSection', () => ({ ReleaseChannelSection: () => null }))
 
 beforeEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
   useAppStore.setState({
     updateStatus: { state: 'available', version: '1.4.200', changelog: null }
   })
@@ -24,8 +25,18 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
   cleanup()
   useAppStore.setState({ updateStatus: { state: 'idle' } })
+})
+
+it('is unavailable in corporate builds', () => {
+  globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+  render(<GeneralUpdateSettingsSection />)
+
+  expect(screen.queryByRole('button', { name: 'Check for Updates' })).toBeNull()
+  expect(screen.queryByText('Updates')).toBeNull()
 })
 
 it('describes the available action as a download', () => {

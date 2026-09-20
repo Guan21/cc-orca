@@ -255,7 +255,27 @@ describe('registerAppMenu', () => {
     expect(appearanceSubmenu).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ label: 'Show Orca Mobile Button' })])
     )
+    expect(helpSubmenu).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: 'Check for Updates...' })])
+    )
   })
+
+  it.each(['darwin', 'linux', 'win32'] as const)(
+    'hides Check for Updates in corporate app menus on %s',
+    (platform) => {
+      vi.spyOn(process, 'platform', 'get').mockReturnValue(platform)
+      globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+      registerAppMenu(buildMenuOptions())
+
+      const template = getTemplate()
+      const appSubmenu = platform === 'darwin' ? getSubmenu(template, 'Orca') : []
+      const helpSubmenu = getSubmenu(template, 'Help')
+
+      expect([...appSubmenu, ...helpSubmenu]).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ label: 'Check for Updates...' })])
+      )
+    }
+  )
 
   // Why: pin the platform on every case — CI runs this suite on Linux only, so an
   // unpinned test leaves the other platforms' branches entirely uncovered.
