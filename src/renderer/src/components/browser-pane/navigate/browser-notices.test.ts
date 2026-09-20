@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import {
   formatByteCount,
   formatDownloadFinishedNotice,
@@ -11,6 +11,10 @@ import {
 import { BROWSER_GUEST_RECOVERY_ERROR_CODE } from '../host-guest/browser-page-guest-recovery'
 
 describe('browser notice formatting', () => {
+  afterEach(() => {
+    delete (globalThis as { __ORCA_BUILD_PROFILE__?: unknown }).__ORCA_BUILD_PROFILE__
+  })
+
   it('formats denied permissions with safe copy', () => {
     expect(
       formatPermissionNotice({
@@ -209,5 +213,34 @@ describe('browser notice formatting', () => {
     expect(isCertificateLoadError(loadError(-219))).toBe(true)
     expect(isCertificateLoadError(loadError(-215))).toBe(false)
     expect(formatLoadFailureRecoveryHint(meta, loadError(-202))).toBeNull()
+  })
+
+  it('uses the corporate product name throughout browser runtime notices', () => {
+    ;(globalThis as { __ORCA_BUILD_PROFILE__?: 'corporate' }).__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    expect(
+      formatPermissionNotice({
+        browserPageId: 'browser-1',
+        permission: 'openExternal',
+        origin: 'https://example.com'
+      })
+    ).toBe(
+      'https://example.com asked for permission to open a link outside Secure Orca Lite, and Secure Orca Lite denied it.'
+    )
+    expect(
+      formatPopupNotice({ browserPageId: 'browser-1', origin: 'unknown', action: 'blocked' })
+    ).toBe('A site tried to open a popup Secure Orca Lite does not support here.')
+    expect(
+      formatLoadFailureDescription(
+        {
+          code: -202,
+          description: 'certificate error',
+          validatedUrl: 'https://localhost:3443/'
+        },
+        { host: 'localhost:3443', isLocalhostLike: true }
+      )
+    ).toBe(
+      "Secure Orca Lite doesn't trust the authority that issued the certificate for localhost:3443."
+    )
   })
 })

@@ -15,6 +15,7 @@
       "language": {
         "title": "言語",
         "description": "Orca インターフェースで使用される言語を選択します。",
+        "corporateDescription": "{{productName}} インターフェースで使用される言語を選択します。",
         "system": "システム",
         "english": "English",
         "chinese": "中文（简体）",
@@ -5561,7 +5562,7 @@
           "dc29f3cc0d": "サイドバー",
           "ea943d0db0": "ウィンドウの下部に表示されるインジケーターを選択します。ステータスバーを右クリックして同じ切り替えを行うこともできます。",
           "3e4175e5c6": "ステータスバー",
-          "2df8f79aa5": "タイトルバーに Orca を表示します。",
+          "2df8f79aa5": "タイトルバーに {{productName}} を表示します。",
           "9868f39007": "タイトルバーアプリ名",
           "4de76f6902": "アプリケーションのタイトルバーに表示される内容を制御します。",
           "6a272ca553": "タイトルバー",
@@ -5594,7 +5595,7 @@
           "workspaceCardLayoutGuidance": "ワークスペースサイドバーで管理されます。",
           "872af9556e": "システムトレイ",
           "2edf606c46": "閉じるときにトレイへ最小化",
-          "b707773a0d": "有効にすると、ウィンドウを閉じても Orca は終了せず、システムトレイで実行を続けます。",
+          "b707773a0d": "有効にすると、ウィンドウを閉じても {{productName}} は終了せず、システムトレイで実行を続けます。",
           "interfaceDefaultFont": "デフォルトフォント",
           "terminalDefaultFont": "デフォルトフォント",
           "interfaceTitle": "インターフェース",
@@ -7848,7 +7849,7 @@
             "51f957ce39": "名前",
             "36e006efc1": "アプリ",
             "bed343b03e": "タイトルバー",
-            "18b4c4c30b": "タイトルバーに Orca を表示します。",
+            "18b4c4c30b": "タイトルバーに {{productName}} を表示します。",
             "fdd31b00d0": "タイトルバーアプリ名",
             "c1bca1885a": "ファイルエクスプローラー",
             "9f2df826ac": "無視されました",
@@ -7863,6 +7864,9 @@
             "a0e09aed9c": "書体",
             "24094af355": "フォント",
             "07c7c38fac": "Orca インターフェースで使用されるフォントを選択します。",
+            "typography": {
+              "corporateDescription": "{{productName}} インターフェースで使用されるフォントを選択します。"
+            },
             "ddb991024d": "IDE フォント",
             "0c83659f48": "ショートカット",
             "0952091186": "倍率",
@@ -7873,6 +7877,9 @@
             "44d873fd18": "ライト",
             "262fe1d24f": "ダーク",
             "0709c794f7": "アプリウィンドウで Orca がどのように見えるかを選択します。",
+            "theme": {
+              "corporateDescription": "アプリウィンドウで {{productName}} がどのように見えるかを選択します。"
+            },
             "71e06350b4": "テーマ",
             "dc02c8759d": "ワークスペース",
             "43cfba3b95": "サーバー",
@@ -7946,7 +7953,7 @@
               "detailed": "詳細"
             },
             "9a115966d3": "閉じるときにトレイへ最小化",
-            "4d5b9427b5": "有効にすると、ウィンドウを閉じても Orca は終了せず、システムトレイで実行を続けます。",
+            "4d5b9427b5": "有効にすると、ウィンドウを閉じても {{productName}} は終了せず、システムトレイで実行を続けます。",
             "showPinnedWorktreesInGroups": {
               "title": "ピン留めしたワークツリーを元のリストにも表示",
               "description": "ピン留めしたワークツリーを Pinned に残したまま、すべて、プロジェクト、ステータス、PR にも表示します。"
@@ -14911,8 +14918,8 @@
       "cantLoadPage": "このページを読み込めません",
       "certificateNameMismatch": "証明書が {{value0}} と一致しません。",
       "certificateDateInvalid": "{{value0}} の証明書は現在の日時では有効ではありません。",
-      "certificateAuthorityInvalid": "Orca は {{value0}} の証明書を発行した認証局を信頼していません。",
-      "certificateVerificationFailed": "Orca は {{value0}} の証明書を検証できませんでした。",
+      "certificateAuthorityInvalid": "{{productName}} は {{value0}} の証明書を発行した認証局を信頼していません。",
+      "certificateVerificationFailed": "{{productName}} は {{value0}} の証明書を検証できませんでした。",
       "trustedCertificateGuidance": "ローカル開発では、可能な限り信頼されたローカル証明書を使用してください。",
       "retry": "再試行",
       "copyAddress": "アドレスをコピー",
@@ -14924,7 +14931,7 @@
       "certificateChallengeExpired": "この証明書の承認は期限切れです。ページを再試行して、承認をもう一度リクエストしてください。",
       "certificateChallengeChanged": "証明書のリクエストが変更されました。ページを再試行して、警告の内容を改めて確認してください。",
       "certificateChallengeUnavailable": "この証明書のリクエストは利用できなくなりました。ページを再試行して、もう一度リクエストしてください。",
-      "certificateProceedFailed": "Orca はこの証明書のリクエストを承認できませんでした。ページを再試行して、もう一度お試しください。"
+      "certificateProceedFailed": "{{productName}} はこの証明書のリクエストを承認できませんでした。ページを再試行して、もう一度お試しください。"
     }
   },
   "runtimeRpc": {

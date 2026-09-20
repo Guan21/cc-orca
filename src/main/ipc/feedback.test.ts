@@ -59,7 +59,30 @@ describe('submitFeedback', () => {
     handlers.clear()
     fetchMock.mockReset()
     fetchMock.mockResolvedValue(okResponse())
+    delete (globalThis as { __ORCA_BUILD_PROFILE__?: unknown }).__ORCA_BUILD_PROFILE__
   })
+
+  it.each(['feedback', 'crash'] as const)(
+    'does not reach the upstream endpoint for corporate %s submissions',
+    async (submissionType) => {
+      ;(globalThis as { __ORCA_BUILD_PROFILE__?: 'corporate' }).__ORCA_BUILD_PROFILE__ = 'corporate'
+
+      await expect(
+        submitFeedback({
+          feedback: 'private report',
+          submissionType,
+          submitAnonymously: true,
+          githubLogin: null,
+          githubEmail: null
+        })
+      ).resolves.toEqual({
+        ok: false,
+        status: null,
+        error: 'Remote submission is disabled in corporate builds.'
+      })
+      expect(fetchMock).not.toHaveBeenCalled()
+    }
+  )
 
   afterEach(() => {
     vi.useRealTimers()

@@ -15,6 +15,7 @@
       "language": {
         "title": "언어",
         "description": "Orca 인터페이스에서 사용되는 언어를 선택합니다.",
+        "corporateDescription": "{{productName}} 인터페이스에서 사용되는 언어를 선택합니다.",
         "system": "시스템",
         "english": "English",
         "chinese": "中文（简体）",
@@ -5556,7 +5557,7 @@
           "3057983501": "할당되지 않음",
           "872af9556e": "시스템 트레이",
           "2edf606c46": "닫을 때 트레이로 최소화",
-          "b707773a0d": "활성화하면 창을 닫아도 Orca가 종료되지 않고 시스템 트레이에서 계속 실행됩니다.",
+          "b707773a0d": "활성화하면 창을 닫아도 {{productName}}가 종료되지 않고 시스템 트레이에서 계속 실행됩니다.",
           "0cd9b8228f": "Dock 및 창 전환기에 표시된 앱 아이콘을 선택합니다.",
           "ca1590d42f": "앱 아이콘",
           "61d842eca0": "사이드바에 Orca Mobile 바로가기를 표시합니다. 도구 상자에서는 계속 사용할 수 있습니다.",
@@ -5569,7 +5570,7 @@
           "dc29f3cc0d": "사이드바",
           "ea943d0db0": "창 하단에 표시되는 표시기를 선택합니다. 동일한 토글에 대해 상태 표시줄을 마우스 오른쪽 버튼으로 클릭할 수도 있습니다.",
           "3e4175e5c6": "상태 표시줄",
-          "2df8f79aa5": "제목 표시줄에 Orca를 표시합니다.",
+          "2df8f79aa5": "제목 표시줄에 {{productName}}를 표시합니다.",
           "9868f39007": "제목 표시줄 앱 이름",
           "4de76f6902": "애플리케이션 제목 표시줄에 나타나는 내용을 제어합니다.",
           "6a272ca553": "제목 표시줄",
@@ -7816,7 +7817,7 @@
             "51f957ce39": "이름",
             "36e006efc1": "앱",
             "bed343b03e": "제목 표시줄",
-            "18b4c4c30b": "제목 표시줄에 Orca를 표시합니다.",
+            "18b4c4c30b": "제목 표시줄에 {{productName}}를 표시합니다.",
             "fdd31b00d0": "제목 표시줄 앱 이름",
             "c1bca1885a": "파일 탐색기",
             "9f2df826ac": "무시됨",
@@ -7831,6 +7832,9 @@
             "a0e09aed9c": "서체",
             "24094af355": "폰트",
             "07c7c38fac": "Orca 인터페이스에서 사용되는 글꼴을 선택합니다.",
+            "typography": {
+              "corporateDescription": "{{productName}} 인터페이스에서 사용되는 글꼴을 선택합니다."
+            },
             "ddb991024d": "IDE 글꼴",
             "0c83659f48": "단축키",
             "0952091186": "배율",
@@ -7841,6 +7845,9 @@
             "44d873fd18": "라이트",
             "262fe1d24f": "다크",
             "0709c794f7": "Orca가 앱 창에 표시되는 방식을 선택합니다.",
+            "theme": {
+              "corporateDescription": "{{productName}}가 앱 창에 표시되는 방식을 선택합니다."
+            },
             "71e06350b4": "테마",
             "dc02c8759d": "워크스페이스",
             "43cfba3b95": "서버",
@@ -7903,7 +7910,7 @@
               "description": "왼쪽 사이드바를 terminal에 맞추거나 기본값을 유지하거나 은은한 색조를 적용합니다."
             },
             "9a115966d3": "닫을 때 트레이로 최소화",
-            "4d5b9427b5": "활성화하면 창을 닫아도 Orca가 종료되지 않고 시스템 트레이에서 계속 실행됩니다.",
+            "4d5b9427b5": "활성화하면 창을 닫아도 {{productName}}가 종료되지 않고 시스템 트레이에서 계속 실행됩니다.",
             "workspaceCardLayout": {
               "title": "워크스페이스 카드 레이아웃",
               "description": "워크스페이스 카드는 컴팩트 또는 상세 레이아웃을 사용할 수 있습니다.",
@@ -15050,8 +15057,8 @@
       "cantLoadPage": "이 페이지를 불러올 수 없습니다",
       "certificateNameMismatch": "인증서가 {{value0}}과(와) 일치하지 않습니다.",
       "certificateDateInvalid": "{{value0}}의 인증서가 현재 날짜와 시간에는 유효하지 않습니다.",
-      "certificateAuthorityInvalid": "Orca는 {{value0}}의 인증서를 발급한 인증 기관을 신뢰하지 않습니다.",
-      "certificateVerificationFailed": "Orca가 {{value0}}의 인증서를 확인하지 못했습니다.",
+      "certificateAuthorityInvalid": "{{productName}}는 {{value0}}의 인증서를 발급한 인증 기관을 신뢰하지 않습니다.",
+      "certificateVerificationFailed": "{{productName}}가 {{value0}}의 인증서를 확인하지 못했습니다.",
       "trustedCertificateGuidance": "로컬 개발에서는 가능하면 신뢰할 수 있는 로컬 인증서를 사용하세요.",
       "retry": "다시 시도",
       "copyAddress": "주소 복사",
@@ -15063,7 +15070,7 @@
       "certificateChallengeExpired": "이 인증서 승인이 만료되었습니다. 페이지를 다시 시도해 새로 요청하세요.",
       "certificateChallengeChanged": "인증서 요청이 변경되었습니다. 페이지를 다시 시도하고 새 경고를 확인하세요.",
       "certificateChallengeUnavailable": "이 인증서 요청은 더 이상 사용할 수 없습니다. 페이지를 다시 시도해 새로 요청하세요.",
-      "certificateProceedFailed": "Orca가 이 인증서 요청을 승인하지 못했습니다. 페이지를 다시 시도한 후 다시 요청하세요."
+      "certificateProceedFailed": "{{productName}}가 이 인증서 요청을 승인하지 못했습니다. 페이지를 다시 시도한 후 다시 요청하세요."
     }
   },
   "runtimeRpc": {

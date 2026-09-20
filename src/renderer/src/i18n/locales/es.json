@@ -15,6 +15,7 @@
       "language": {
         "title": "Idioma",
         "description": "Elija el idioma utilizado por la interfaz de Orca.",
+        "corporateDescription": "Elija el idioma utilizado por la interfaz de {{productName}}.",
         "system": "Sistema",
         "english": "Inglés",
         "chinese": "中文（简体）",
@@ -5576,7 +5577,7 @@
           "dc29f3cc0d": "Barra lateral",
           "ea943d0db0": "Elige qué indicadores aparecen en la parte inferior de la ventana. También puedes hacer clic derecho en la barra de estado para cambiar lo mismo.",
           "3e4175e5c6": "Barra de estado",
-          "2df8f79aa5": "Muestra Orca en la barra de título.",
+          "2df8f79aa5": "Muestra {{productName}} en la barra de título.",
           "9868f39007": "Nombre de la aplicación de la barra de título",
           "4de76f6902": "Controla lo que aparece en la barra de título de la aplicación.",
           "6a272ca553": "Barra de título",
@@ -5609,7 +5610,7 @@
           "workspaceCardLayoutGuidance": "Gestionado desde la barra lateral del espacio de trabajo.",
           "872af9556e": "Bandeja del sistema",
           "2edf606c46": "Minimizar a la bandeja al cerrar",
-          "b707773a0d": "Cuando está activado, cerrar la ventana mantiene Orca en ejecución en la bandeja del sistema en lugar de salir.",
+          "b707773a0d": "Cuando está activado, cerrar la ventana mantiene {{productName}} en ejecución en la bandeja del sistema en lugar de salir.",
           "interfaceDefaultFont": "Fuente predeterminada",
           "terminalDefaultFont": "Fuente predeterminada",
           "interfaceTitle": "Interfaz",
@@ -7826,7 +7827,7 @@
             "51f957ce39": "nombre",
             "36e006efc1": "aplicación",
             "bed343b03e": "barra de título",
-            "18b4c4c30b": "Muestra Orca en la barra de título.",
+            "18b4c4c30b": "Muestra {{productName}} en la barra de título.",
             "fdd31b00d0": "Nombre de la aplicación de la barra de título",
             "c1bca1885a": "explorador de archivos",
             "9f2df826ac": "ignorado",
@@ -7841,6 +7842,9 @@
             "a0e09aed9c": "tipo de letra",
             "24094af355": "fuente",
             "07c7c38fac": "Elija la fuente utilizada por la interfaz de Orca.",
+            "typography": {
+              "corporateDescription": "Elija la fuente utilizada por la interfaz de {{productName}}."
+            },
             "ddb991024d": "Fuente IDE",
             "0c83659f48": "atajo",
             "0952091186": "escala",
@@ -7851,6 +7855,9 @@
             "44d873fd18": "claro",
             "262fe1d24f": "oscuro",
             "0709c794f7": "Elige cómo se ve Orca en la ventana de la aplicación.",
+            "theme": {
+              "corporateDescription": "Elige cómo se ve {{productName}} en la ventana de la aplicación."
+            },
             "71e06350b4": "Tema",
             "dc02c8759d": "espacio de trabajo",
             "43cfba3b95": "servidor",
@@ -7924,7 +7931,7 @@
               "detailed": "detallado"
             },
             "9a115966d3": "Minimizar a la bandeja al cerrar",
-            "4d5b9427b5": "Cuando está activado, cerrar la ventana mantiene Orca en ejecución en la bandeja del sistema en lugar de salir.",
+            "4d5b9427b5": "Cuando está activado, cerrar la ventana mantiene {{productName}} en ejecución en la bandeja del sistema en lugar de salir.",
             "showPinnedWorktreesInGroups": {
               "title": "Mostrar también los worktrees fijados en sus listas originales",
               "description": "Los worktrees fijados permanecen en Fijados y también aparecen en Todos, Proyecto, Estado y PR."
@@ -14876,8 +14883,8 @@
       "cantLoadPage": "No se puede cargar esta página",
       "certificateNameMismatch": "El certificado no coincide con {{value0}}.",
       "certificateDateInvalid": "El certificado de {{value0}} no es válido en la fecha y hora actuales.",
-      "certificateAuthorityInvalid": "Orca no confía en la autoridad que emitió el certificado de {{value0}}.",
-      "certificateVerificationFailed": "Orca no pudo verificar el certificado de {{value0}}.",
+      "certificateAuthorityInvalid": "{{productName}} no confía en la autoridad que emitió el certificado de {{value0}}.",
+      "certificateVerificationFailed": "{{productName}} no pudo verificar el certificado de {{value0}}.",
       "trustedCertificateGuidance": "Para el desarrollo local, usa un certificado local de confianza siempre que sea posible.",
       "retry": "Reintentar",
       "copyAddress": "Copiar dirección",
@@ -14889,7 +14896,7 @@
       "certificateChallengeExpired": "Esta aprobación de certificado caducó. Vuelve a intentarlo con la página para solicitar una nueva.",
       "certificateChallengeChanged": "La solicitud de certificado cambió. Vuelve a intentarlo con la página y revisa la nueva advertencia.",
       "certificateChallengeUnavailable": "Esta solicitud de certificado ya no está disponible. Vuelve a intentarlo con la página para solicitar una nueva.",
-      "certificateProceedFailed": "Orca no pudo aprobar esta solicitud de certificado. Vuelve a intentarlo con la página e inténtalo de nuevo."
+      "certificateProceedFailed": "{{productName}} no pudo aprobar esta solicitud de certificado. Vuelve a intentarlo con la página e inténtalo de nuevo."
     }
   },
   "runtimeRpc": {

@@ -92,6 +92,7 @@ describe('diagnostics IPC handlers', () => {
     uploadDiagnosticBundleMock.mockReset()
     delete (globalThis as { ORCA_BUILD_IDENTITY?: unknown }).ORCA_BUILD_IDENTITY
     delete (globalThis as { ORCA_DIAGNOSTICS_TOKEN_URL?: unknown }).ORCA_DIAGNOSTICS_TOKEN_URL
+    delete (globalThis as { __ORCA_BUILD_PROFILE__?: unknown }).__ORCA_BUILD_PROFILE__
     process.env.ORCA_DIAGNOSTICS_TOKEN_URL = 'https://diagnostics.example.com/diagnostics/token'
     getDiagnosticsStatusMock.mockReturnValue({
       localFileEnabled: true,
@@ -162,6 +163,22 @@ describe('diagnostics IPC handlers', () => {
       payload: bundle.payload,
       bundleSubmissionId: bundle.bundleSubmissionId
     })
+  })
+
+  it('does not upload diagnostics from a corporate build with an upstream endpoint', async () => {
+    ;(globalThis as { __ORCA_BUILD_PROFILE__?: 'corporate' }).__ORCA_BUILD_PROFILE__ = 'corporate'
+    const bundle = makeBundle({ bundleSubmissionId: 'bundleabcdefghijklmnop' })
+    collectDiagnosticBundleMock.mockReturnValue(bundle)
+    const collect = handlers.get('diagnostics:collectBundle')!
+    const openPreview = handlers.get('diagnostics:openBundlePreview')!
+    const upload = handlers.get('diagnostics:uploadBundle')!
+
+    await collect({}, 30)
+    await openPreview({}, bundle.bundleSubmissionId)
+    await expect(upload({}, bundle.bundleSubmissionId)).rejects.toThrow(
+      'sending diagnostics is not configured for this build'
+    )
+    expect(uploadDiagnosticBundleMock).not.toHaveBeenCalled()
   })
 
   it('returns a quiet cancellation when the user declines upload confirmation', async () => {

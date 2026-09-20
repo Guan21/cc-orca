@@ -25,8 +25,8 @@
       "cantLoadPage": "Can't load this page",
       "certificateNameMismatch": "The certificate doesn't match {{value0}}.",
       "certificateDateInvalid": "The certificate for {{value0}} isn't valid at the current date and time.",
-      "certificateAuthorityInvalid": "Orca doesn't trust the authority that issued the certificate for {{value0}}.",
-      "certificateVerificationFailed": "Orca couldn't verify the certificate for {{value0}}.",
+      "certificateAuthorityInvalid": "{{productName}} doesn't trust the authority that issued the certificate for {{value0}}.",
+      "certificateVerificationFailed": "{{productName}} couldn't verify the certificate for {{value0}}.",
       "trustedCertificateGuidance": "For local development, use a trusted local certificate when possible.",
       "retry": "Retry",
       "copyAddress": "Copy Address",
@@ -38,7 +38,7 @@
       "certificateChallengeExpired": "This certificate approval expired. Retry the page to request a new one.",
       "certificateChallengeChanged": "The certificate request changed. Retry the page and review the new warning.",
       "certificateChallengeUnavailable": "This certificate request is no longer available. Retry the page to request a new one.",
-      "certificateProceedFailed": "Orca could not approve this certificate request. Retry the page and try again.",
+      "certificateProceedFailed": "{{productName}} could not approve this certificate request. Retry the page and try again.",
       "sshRoutedHint": "This page browses through the workspace's SSH host — the host may be disconnected or unable to reach this site.",
       "recheckSshRoute": "Run connection check"
     },
@@ -125,6 +125,7 @@
       "language": {
         "title": "Language",
         "description": "Choose the language used by the Orca interface.",
+        "corporateDescription": "Choose the language used by the {{productName}} interface.",
         "system": "System",
         "english": "English",
         "chinese": "中文（简体）",
@@ -149,6 +150,7 @@
       "menuBarIcon": {
         "title": "Show Menu Bar Icon",
         "description": "Keep an Orca shortcut and activity indicator in the macOS menu bar.",
+        "corporateDescription": "Keep a {{productName}} shortcut and activity indicator in the macOS menu bar.",
         "keyword": {
           "menuBar": "menu bar",
           "statusItem": "status item",
@@ -6605,7 +6607,7 @@
           "3057983501": "Unassigned",
           "872af9556e": "System Tray",
           "2edf606c46": "Minimize to Tray on Close",
-          "b707773a0d": "When enabled, closing the window keeps Orca running in the system tray instead of quitting.",
+          "b707773a0d": "When enabled, closing the window keeps {{productName}} running in the system tray instead of quitting.",
           "0cd9b8228f": "Choose the app icon shown in the Dock and window switcher.",
           "ca1590d42f": "App Icon",
           "61d842eca0": "Show the Orca Mobile shortcut in the sidebar. It remains available from Toolbox.",
@@ -6618,7 +6620,7 @@
           "dc29f3cc0d": "Sidebar",
           "ea943d0db0": "Choose which indicators appear at the bottom of the window. You can also right-click the status bar for the same toggles.",
           "3e4175e5c6": "Status Bar",
-          "2df8f79aa5": "Show Orca in the titlebar.",
+          "2df8f79aa5": "Show {{productName}} in the titlebar.",
           "9868f39007": "Titlebar App Name",
           "4de76f6902": "Control what appears in the application titlebar.",
           "6a272ca553": "Titlebar",
@@ -8972,7 +8974,7 @@
         "appearance": {
           "search": {
             "9a115966d3": "Minimize to Tray on Close",
-            "4d5b9427b5": "When enabled, closing the window keeps Orca running in the system tray instead of quitting.",
+            "4d5b9427b5": "When enabled, closing the window keeps {{productName}} running in the system tray instead of quitting.",
             "468448bba4": "watercolor",
             "f586abfa35": "blue",
             "651f35b2c6": "switcher",
@@ -9005,7 +9007,7 @@
             "51f957ce39": "name",
             "36e006efc1": "app",
             "bed343b03e": "titlebar",
-            "18b4c4c30b": "Show Orca in the titlebar.",
+            "18b4c4c30b": "Show {{productName}} in the titlebar.",
             "fdd31b00d0": "Titlebar App Name",
             "c1bca1885a": "file explorer",
             "9f2df826ac": "ignored",
@@ -9020,6 +9022,9 @@
             "a0e09aed9c": "typeface",
             "24094af355": "font",
             "07c7c38fac": "Choose the font used by the Orca interface.",
+            "typography": {
+              "corporateDescription": "Choose the font used by the {{productName}} interface."
+            },
             "ddb991024d": "IDE Font",
             "0c83659f48": "shortcut",
             "0952091186": "scale",
@@ -9030,6 +9035,9 @@
             "44d873fd18": "light",
             "262fe1d24f": "dark",
             "0709c794f7": "Choose how Orca looks in the app window.",
+            "theme": {
+              "corporateDescription": "Choose how {{productName}} looks in the app window."
+            },
             "71e06350b4": "Theme",
             "dc02c8759d": "workspace",
             "43cfba3b95": "server",
@@ -15205,11 +15213,11 @@
         },
         "HtmlDocPreview": {
           "documentTooLargePanel": "This document is too large to preview. Open it in the editor instead.",
-          "documentUnreadablePanel": "Orca could not read this file from the workspace.",
+          "documentUnreadablePanel": "{{productName}} could not read this file from the workspace.",
           "multipleAssetsFailedNotice": "{{count}} files in this document could not be loaded.",
           "assetTooLargeNotice": "{{path}} is too large to load in this preview.",
           "assetUnsupportedNotice": "This workspace cannot send {{path}} to a preview.",
-          "assetUnreadableNotice": "Orca could not read {{path}} from the workspace.",
+          "assetUnreadableNotice": "{{productName}} could not read {{path}} from the workspace.",
           "previewAriaLabel": "HTML preview",
           "reloadPreviewControl": "Reload preview",
           "previewUnavailableTitle": "Preview unavailable",

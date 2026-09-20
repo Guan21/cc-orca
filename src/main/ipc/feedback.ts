@@ -1,5 +1,6 @@
 import os from 'node:os'
 import { app, ipcMain, net } from 'electron'
+import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
 import {
   appendFeedbackImagesToFormData,
   readFeedbackImagesDelivered,
@@ -119,9 +120,7 @@ async function postFeedback(
       signal: controller.signal
     }
     const response = await net.fetch(url, init)
-    if (readResponse) {
-      await readResponse(response)
-    }
+    await readResponse?.(response)
     // Why: a response parser may tolerate malformed legacy bodies, but it must
     // not turn the deadline's aborted body into a confirmed delivery.
     if (controller.signal.aborted) {
@@ -282,6 +281,9 @@ async function submitFeedbackWithDiagnosticBundle(
 export async function submitFeedback(
   args: InternalFeedbackSubmitArgs
 ): Promise<FeedbackSubmitResult> {
+  if (getOrcaBuildProfile() === 'corporate') {
+    return { ok: false, status: null, error: 'Remote submission is disabled in corporate builds.' }
+  }
   // Why: buildSubmitBody drops images on the crash lane, so validating them
   // there would abort a crash report over attachments it never meant to send.
   if (args.submissionType !== 'crash' && args.images !== undefined) {
