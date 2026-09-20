@@ -112,7 +112,7 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     label: options.appMenuLabel ?? app.name,
     submenu: [
       { role: 'about' },
-      checkForUpdatesItem,
+      ...(!isCorporateBuild ? [checkForUpdatesItem] : []),
       settingsItem,
       { type: 'separator' },
       { role: 'services' },
@@ -278,7 +278,7 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
         : ([
             { type: 'separator' },
             { role: 'about' },
-            checkForUpdatesItem
+            ...(!isCorporateBuild ? [checkForUpdatesItem] : [])
           ] satisfies Electron.MenuItemConstructorOptions[]))
     ]
   }

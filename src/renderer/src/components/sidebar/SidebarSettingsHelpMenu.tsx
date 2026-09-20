@@ -356,23 +356,29 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
                 <DropdownMenuSeparator />
               </>
             ) : null}
-            <DropdownMenuItem
-              disabled={updateStatus.state === 'checking' || updateStatus.state === 'downloading'}
-              onPointerDown={handleCheckForUpdatesPointerDown}
-              onSelect={handleCheckForUpdates}
-              title={updateCheckHint}
-            >
-              {updateStatus.state === 'checking' ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <RefreshCw className="size-3.5" />
-              )}
-              {translate(
-                'auto.components.sidebar.SidebarSettingsHelpMenu.29c56f30ee',
-                'Check for Updates'
-              )}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            {!isCorporateBuild ? (
+              <>
+                <DropdownMenuItem
+                  disabled={
+                    updateStatus.state === 'checking' || updateStatus.state === 'downloading'
+                  }
+                  onPointerDown={handleCheckForUpdatesPointerDown}
+                  onSelect={handleCheckForUpdates}
+                  title={updateCheckHint}
+                >
+                  {updateStatus.state === 'checking' ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-3.5" />
+                  )}
+                  {translate(
+                    'auto.components.sidebar.SidebarSettingsHelpMenu.29c56f30ee',
+                    'Check for Updates'
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            ) : null}
             <DropdownMenuItem onSelect={handleRestartOrca} disabled={isRestartingOrca}>
               <RotateCw className="size-3.5" />
               {translate(

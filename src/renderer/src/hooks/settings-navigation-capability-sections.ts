@@ -12,6 +12,7 @@ import { getOrchestrationPaneSearchEntries } from '@/components/settings/orchest
 import { getVoicePaneSearchEntries } from '@/components/settings/voice-pane-search'
 import { translate } from '@/i18n/i18n'
 import type { SettingsNavSection } from '@/lib/settings-navigation-types'
+import { getProductDisplayName } from '../../../shared/product-display-name'
 import {
   Blocks,
   Bot,
@@ -32,6 +33,7 @@ export function buildCapabilitySettingsSections({
   isLinearConnected
 }: SettingsNavigationBuildOptions): SettingsNavSection[] {
   const showDesktopOnlySettings = !isWebClient
+  const productDisplayName = getProductDisplayName()
   return [
     {
       id: 'agents',
@@ -55,7 +57,7 @@ export function buildCapabilitySettingsSections({
       ),
       description: translate(
         'auto.hooks.useSettingsNavigationMetadata.b1c2f8b0ac',
-        'Optional account switching and usage setup for Claude, Codex, Gemini, OpenCode Go, MiniMax, and Grok.'
+        'Optional account switching and usage setup for supported AI providers.'
       ),
       icon: UserCog,
       searchEntries: getAccountsPaneSearchEntries(),
@@ -67,7 +69,8 @@ export function buildCapabilitySettingsSections({
       title: translate('auto.hooks.useSettingsNavigationMetadata.58a868e8e4', 'Orchestration'),
       description: translate(
         'auto.hooks.useSettingsNavigationMetadata.cd50cec5d7',
-        'Coordinate multiple coding agents through Orca.'
+        'Coordinate multiple coding agents through {{value0}}.',
+        { value0: productDisplayName }
       ),
       icon: Network,
       searchEntries: getOrchestrationPaneSearchEntries({
@@ -151,7 +154,8 @@ export function buildSetupSettingsSections({
       ),
       description: translate(
         'auto.hooks.useSettingsNavigationMetadata.5f32ac08f3',
-        'Finish the onboarding checklist for core Orca workflows.'
+        'Finish the onboarding checklist for core {{value0}} workflows.',
+        { value0: getProductDisplayName() }
       ),
       icon: buildProfile === 'corporate' ? ListChecks : OrcaLogoSettingsIcon,
       searchEntries: [
@@ -168,7 +172,8 @@ export function buildSetupSettingsSections({
             translate('auto.hooks.useSettingsNavigationMetadata.ea0b1bc7b8', 'setup guide'),
             translate(
               'auto.hooks.useSettingsNavigationMetadata.0505d0df29',
-              'get started with Orca'
+              'get started with {{value0}}',
+              { value0: getProductDisplayName() }
             ),
             translate('auto.hooks.useSettingsNavigationMetadata.724c440e72', 'getting started')
           ]

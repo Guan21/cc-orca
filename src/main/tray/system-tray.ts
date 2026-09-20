@@ -250,6 +250,7 @@ export function createSystemTray(opts: SystemTrayOptions): Tray | null {
   }
 
   devIndicator = opts.isDevInstance ? { label: opts.devInstanceLabel } : null
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
 
   if (process.platform === 'darwin') {
     baseTrayImage = createMacMenuBarImage()
@@ -291,10 +292,14 @@ export function createSystemTray(opts: SystemTrayOptions): Tray | null {
             label: translateMain('menu.settings', 'Settings'),
             click: safeMenuAction(() => opts.onOpenSettings())
           },
-          {
-            label: translateMain('menu.checkForUpdates', 'Check for Updates...'),
-            click: safeMenuAction(() => opts.onCheckForUpdates())
-          },
+          ...(!isCorporateBuild
+            ? [
+                {
+                  label: translateMain('menu.checkForUpdates', 'Check for Updates...'),
+                  click: safeMenuAction(() => opts.onCheckForUpdates())
+                }
+              ]
+            : []),
           { type: 'separator' }
         ] as Electron.MenuItemConstructorOptions[])
       : []),

@@ -208,9 +208,11 @@ describe('SidebarNav', () => {
       }
     })
     document.body.innerHTML = ''
+    delete globalThis.__ORCA_BUILD_PROFILE__
   })
 
   beforeEach(async () => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
     vi.clearAllMocks()
     await i18n.changeLanguage('en')
     mocks.hasPairedMobileDevice = false
@@ -268,6 +270,18 @@ describe('SidebarNav', () => {
   it('shows the Mobile entry by default for older settings', () => {
     expect(shouldShowMobileButton(null)).toBe(true)
     expect(shouldShowMobileButton({})).toBe(true)
+  })
+
+  it('hides the Mobile entry in corporate builds', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    expect(shouldShowMobileButton(null, 'corporate')).toBe(false)
+    expect(shouldShowMobileButton({ showMobileButton: true }, 'corporate')).toBe(false)
+
+    const container = await renderSidebarNav()
+
+    expect(queryButtonByText(container, 'Orca Mobile')).toBeNull()
+    expect(mocks.openMobilePage).not.toHaveBeenCalled()
   })
 
   it('hides the Artifacts entry by default for older settings', () => {

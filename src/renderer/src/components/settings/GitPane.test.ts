@@ -1,7 +1,7 @@
 import os from 'node:os'
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
 import { translate } from '../../i18n/i18n'
 import { useAppStore } from '../../store'
@@ -16,6 +16,10 @@ import { TooltipProvider } from '../ui/tooltip'
 import { matchesSettingsSearch } from './settings-search'
 import { SettingsSegmentedControl } from './SettingsFormControls'
 import { CompareAgainstUpstreamSetting } from './CompareAgainstUpstreamSetting'
+
+afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
+})
 
 type ReactElementLike = {
   type: unknown
@@ -134,6 +138,18 @@ describe('GitPane', () => {
     expect(markup).toContain('git diff main...HEAD')
     expect(markup).toContain('local-only commits')
     expect(markup).not.toContain('Refresh Local Base Ref')
+  })
+
+  it('uses corporate product identity in visible source-control settings copy', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const freshnessMarkup = renderGitPane('behind main')
+    const renameMarkup = renderGitPane('')
+
+    expect(freshnessMarkup).toContain('Secure Orca Lite refreshes the remote base')
+    expect(freshnessMarkup).toContain('Secure Orca Lite skips the update')
+    expect(renameMarkup).toContain('Secure Orca Lite renames its auto-generated branch')
+    expect(renameMarkup).not.toContain('Orca renames its auto-generated branch')
   })
 
   it('renders Source Control group order in Git settings', () => {
