@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { getExecutionHostLabel } from '../../../../shared/execution-host'
 import {
   getProviderAccountScope,
@@ -7,6 +7,10 @@ import {
 } from './provider-account-scope'
 
 const LOCAL_HOST_LABEL = getExecutionHostLabel('local')
+
+afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
+})
 
 describe('getProviderAccountScope', () => {
   it('describes provider accounts as client-owned without an active runtime', () => {
@@ -36,6 +40,23 @@ describe('getProviderAccountScope', () => {
       description:
         'GitLab API budget is fetched from the CLI on this remote server. Use Settings > Remote Orca Servers > Advanced to view another default runtime budget.'
     })
+  })
+
+  it('uses corporate product identity in remote-server settings links', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    expect(getProviderAccountScope({ activeRuntimeEnvironmentId: null }).description).toContain(
+      'Settings > Remote Secure Orca Lite Servers > Advanced'
+    )
+    expect(getProviderAccountScope({ activeRuntimeEnvironmentId: 'env-1' }).description).toContain(
+      'Settings > Remote Secure Orca Lite Servers > Advanced'
+    )
+    expect(
+      getProviderRateLimitScope({ activeRuntimeEnvironmentId: null }, 'GitHub').description
+    ).toContain('Settings > Remote Secure Orca Lite Servers > Advanced')
+    expect(
+      getProviderRateLimitScope({ activeRuntimeEnvironmentId: 'env-1' }, 'GitLab').description
+    ).toContain('Settings > Remote Secure Orca Lite Servers > Advanced')
   })
 })
 

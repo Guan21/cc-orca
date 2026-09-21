@@ -9528,11 +9528,11 @@
         },
         "providerAccountScope": {
           "remoteServer": "远程服务器：{{value0}}",
-          "remoteServerCredentials": "此提供商的凭据和账户检查由该远程服务器拥有。使用“设置 > 远程 Orca 服务器 > 高级”编辑另一个默认运行时范围。",
+          "remoteServerCredentials": "此提供商的凭据和账户检查由该远程服务器拥有。使用“设置 > 远程 {{value1}} 服务器 > 高级”编辑另一个默认运行时范围。",
           "localMac": "本地 Mac",
-          "localCredentials": "此提供商的凭据和账户检查由该桌面客户端拥有。使用“设置 > 远程 Orca 服务器 > 高级”编辑服务器拥有的凭据。",
-          "remoteServerRateLimit": "{{value0}} API 预算从此远程服务器上的 CLI 获取。使用“设置 > 远程 Orca 服务器 > 高级”查看另一个默认运行时预算。",
-          "localRateLimit": "{{value0}} API 预算从此桌面客户端上的 CLI 获取。使用“设置 > 远程 Orca 服务器 > 高级”查看服务器拥有的预算。"
+          "localCredentials": "此提供商的凭据和账户检查由该桌面客户端拥有。使用“设置 > 远程 {{value1}} 服务器 > 高级”编辑服务器拥有的凭据。",
+          "remoteServerRateLimit": "{{value0}} API 预算从此远程服务器上的 CLI 获取。使用“设置 > 远程 {{value1}} 服务器 > 高级”查看另一个默认运行时预算。",
+          "localRateLimit": "{{value0}} API 预算从此桌面客户端上的 CLI 获取。使用“设置 > 远程 {{value1}} 服务器 > 高级”查看服务器拥有的预算。"
         },
         "settingOwnership": {
           "clientDefault": "客户端默认",
