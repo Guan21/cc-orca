@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
+import { i18n } from '@/i18n/i18n'
 import { getTerminalPaneSearchEntries } from './terminal-search'
 import { getAppearancePaneSearchEntries, getSidebarEntries } from './appearance-search'
 import {
@@ -8,8 +9,18 @@ import {
 import { matchesSettingsSearch } from './settings-search'
 
 describe('getTerminalPaneSearchEntries', () => {
-  afterEach(() => {
+  afterEach(async () => {
     delete globalThis.__ORCA_BUILD_PROFILE__
+    await i18n.changeLanguage('en')
+  })
+
+  it('omits the translated mobile entry in corporate Appearance search', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    await i18n.changeLanguage('fr')
+
+    const entries = getAppearancePaneSearchEntries()
+
+    expect(entries.some((entry) => entry.title.includes('Mobile'))).toBe(false)
   })
 
   it('includes the Windows right-click setting on Windows', () => {
