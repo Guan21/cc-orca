@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import en from '@/i18n/locales/en.json'
 import ko from '@/i18n/locales/ko.json'
@@ -10,6 +10,10 @@ import {
   getLinkRoutingModifierDescription,
   getLinkRoutingModifierTitle
 } from './browser-link-routing-copy'
+
+afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
+})
 
 function lookupEnglishCatalog(key: string): string | undefined {
   const value = key
@@ -133,6 +137,24 @@ describe('browser link routing modifier copy', () => {
     )
   })
 
+  it('uses the corporate product identity in Link Routing copy', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    expect(getBrowserLinkRoutingDescription({ isMac: true })).toContain(
+      "Secure Orca Lite's built-in browser"
+    )
+    expect(getBrowserLinkRoutingDescription({ isMac: true })).not.toContain(
+      "Orca's built-in browser"
+    )
+    expect(getLinkRoutingModifierTitle(false)).toBe('Hold Shift to open in Secure Orca Lite')
+    expect(getLinkRoutingModifierDescription({ openLinksInApp: true, isMac: true })).toContain(
+      'Links open in Secure Orca Lite'
+    )
+    expect(getLinkRoutingModifierDescription({ openLinksInApp: false, isMac: true })).toContain(
+      "Secure Orca Lite's built-in browser"
+    )
+  })
+
   // Why: the toggle is off by default, so present-tense "opens one in Orca" would
   // describe behavior the user does not have yet.
   it('phrases the Orca branch as enabled-state copy', () => {
@@ -171,7 +193,9 @@ describe('Link Routing description localization', () => {
     await i18n.changeLanguage('ko')
 
     const description = getBrowserLinkRoutingDescription({ isMac: true })
-    expect(description).toBe(koCopy.replace('{{shortcut}}', '⇧⌘-click'))
+    expect(description).toBe(
+      koCopy.replace('{{shortcut}}', '⇧⌘-click').replace('{{value0}}', 'Orca')
+    )
     expect(description).not.toMatch(/\{\{.+?\}\}/)
     // Fails when the copy is a hardcoded English literal.
     expect(description).not.toContain("Orca's built-in browser")
@@ -196,7 +220,7 @@ describe('Link Routing description localization', () => {
     await i18n.changeLanguage('ko')
 
     const description = getBrowserLinkRoutingDescription({ isMac: true }, true)
-    expect(description).toBe(koBase)
+    expect(description).toBe(koBase.replace('{{value0}}', 'Orca'))
     // Fails when the invert-on branch regresses to a hardcoded English literal.
     expect(description).not.toContain("Orca's built-in browser")
   })

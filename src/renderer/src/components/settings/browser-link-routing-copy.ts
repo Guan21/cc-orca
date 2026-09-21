@@ -1,4 +1,5 @@
 import { translate } from '@/i18n/i18n'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export function getBrowserLinkRoutingShortcutLabel(platform: { isMac: boolean }): string {
   return platform.isMac ? '⇧⌘-click' : 'Shift+Ctrl+click'
@@ -20,16 +21,18 @@ export function getBrowserLinkRoutingDescription(
   platform: { isMac: boolean },
   modifierInverts = false
 ): string {
+  const productDisplayName = getProductDisplayName()
   if (modifierInverts) {
     return translate(
       'auto.components.settings.BrowserLinkRoutingSetting.descriptionBase',
-      "Open http(s) links in Orca's built-in browser — from the terminal, markdown, and the editor."
+      "Open http(s) links in {{value0}}'s built-in browser — from the terminal, markdown, and the editor.",
+      { value0: productDisplayName }
     )
   }
   return translate(
     'auto.components.settings.BrowserLinkRoutingSetting.description',
-    "Open http(s) links in Orca's built-in browser — from the terminal, markdown, and the editor. {{shortcut}} always uses your system browser.",
-    { shortcut: getBrowserLinkRoutingShortcutLabel(platform) }
+    "Open http(s) links in {{value0}}'s built-in browser — from the terminal, markdown, and the editor. {{shortcut}} always uses your system browser.",
+    { shortcut: getBrowserLinkRoutingShortcutLabel(platform), value0: productDisplayName }
   )
 }
 
@@ -40,6 +43,7 @@ export function getBrowserLinkRoutingDescription(
  * to false, so it also indexes the other title as a keyword.
  */
 export function getLinkRoutingModifierTitle(openLinksInApp: boolean): string {
+  const productDisplayName = getProductDisplayName()
   return openLinksInApp
     ? translate(
         'auto.components.settings.BrowserLinkRoutingModifierSetting.titleSystem',
@@ -47,7 +51,8 @@ export function getLinkRoutingModifierTitle(openLinksInApp: boolean): string {
       )
     : translate(
         'auto.components.settings.BrowserLinkRoutingModifierSetting.titleOrca',
-        'Hold Shift to open in Orca'
+        'Hold Shift to open in {{value0}}',
+        { value0: productDisplayName }
       )
 }
 
@@ -61,15 +66,16 @@ export function getLinkRoutingModifierDescription({
   isMac: boolean
 }): string {
   const chord = isMac ? '⇧⌘' : 'Shift+Ctrl'
+  const productDisplayName = getProductDisplayName()
   return openLinksInApp
     ? translate(
         'auto.components.settings.BrowserLinkRoutingModifierSetting.descriptionSystem',
-        'Links open in Orca, so {{chord}}+click sends one to your system browser instead.',
-        { chord }
+        'Links open in {{value0}}, so {{chord}}+click sends one to your system browser instead.',
+        { chord, value0: productDisplayName }
       )
     : translate(
         'auto.components.settings.BrowserLinkRoutingModifierSetting.descriptionOrca',
-        "Links open in your system browser. When enabled, {{chord}}+click opens one in Orca's built-in browser instead.",
-        { chord }
+        "Links open in your system browser. When enabled, {{chord}}+click opens one in {{value0}}'s built-in browser instead.",
+        { chord, value0: productDisplayName }
       )
 }

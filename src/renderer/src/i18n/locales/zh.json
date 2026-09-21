@@ -9971,14 +9971,14 @@
           "legacyHelp": "手动更新此服务器一次以启用远程更新。"
         },
         "BrowserLinkRoutingSetting": {
-          "description": "在 Orca 内置浏览器中打开来自终端、Markdown 和编辑器的 http(s) 链接。{{shortcut}} 始终使用系统浏览器。",
-          "descriptionBase": "在 Orca 内置浏览器中打开来自终端、Markdown 和编辑器的 http(s) 链接。"
+          "description": "在 {{value0}} 内置浏览器中打开来自终端、Markdown 和编辑器的 http(s) 链接。{{shortcut}} 始终使用系统浏览器。",
+          "descriptionBase": "在 {{value0}} 内置浏览器中打开来自终端、Markdown 和编辑器的 http(s) 链接。"
         },
         "BrowserLinkRoutingModifierSetting": {
           "titleSystem": "按住 Shift 在系统浏览器中打开",
-          "titleOrca": "按住 Shift 在 Orca 中打开",
-          "descriptionSystem": "链接在 Orca 中打开，因此 {{chord}}+点击会将其发送到系统浏览器。",
-          "descriptionOrca": "链接在系统浏览器中打开。启用后，{{chord}}+点击会改在 Orca 内置浏览器中打开。"
+          "titleOrca": "按住 Shift 在 {{value0}} 中打开",
+          "descriptionSystem": "链接在 {{value0}} 中打开，因此 {{chord}}+点击会将其发送到系统浏览器。",
+          "descriptionOrca": "链接在系统浏览器中打开。启用后，{{chord}}+点击会改在 {{value0}} 内置浏览器中打开。"
         },
         "PluginConsentDialog": {
           "workerTrust": "后台工作进程 — 运行自己的进程",
