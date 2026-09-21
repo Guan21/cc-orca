@@ -10735,14 +10735,14 @@
           "legacyHelp": "Mettez à jour ce serveur une fois manuellement pour activer les mises à jour à distance."
         },
         "BrowserLinkRoutingSetting": {
-          "description": "Ouvre les liens http(s) dans le navigateur intégré d'Orca — depuis le terminal, le markdown et l'éditeur. {{shortcut}} utilise toujours votre navigateur système.",
-          "descriptionBase": "Ouvre les liens http(s) dans le navigateur intégré d'Orca — depuis le terminal, le markdown et l'éditeur."
+          "description": "Ouvre les liens http(s) dans le navigateur intégré de {{value0}} — depuis le terminal, le markdown et l'éditeur. {{shortcut}} utilise toujours votre navigateur système.",
+          "descriptionBase": "Ouvre les liens http(s) dans le navigateur intégré de {{value0}} — depuis le terminal, le markdown et l'éditeur."
         },
         "BrowserLinkRoutingModifierSetting": {
           "titleSystem": "Maintenez Shift pour ouvrir dans votre navigateur web",
-          "titleOrca": "Maintenez Shift pour ouvrir dans Orca",
-          "descriptionSystem": "Les liens s'ouvrent dans Orca ; {{chord}}+clic les envoie plutôt à votre navigateur système.",
-          "descriptionOrca": "Les liens s'ouvrent dans votre navigateur système. Une fois activé, {{chord}}+clic en ouvre un dans le navigateur intégré d'Orca."
+          "titleOrca": "Maintenez Shift pour ouvrir dans {{value0}}",
+          "descriptionSystem": "Les liens s'ouvrent dans {{value0}} ; {{chord}}+clic les envoie plutôt à votre navigateur système.",
+          "descriptionOrca": "Les liens s'ouvrent dans votre navigateur système. Une fois activé, {{chord}}+clic en ouvre un dans le navigateur intégré de {{value0}}."
         },
         "BrowserTerminalLinkActionsSetting": {
           "title": "Afficher les actions de lien du terminal",

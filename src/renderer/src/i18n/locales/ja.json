@@ -9901,14 +9901,14 @@
           "legacyHelp": "リモート更新を有効にするには、このサーバーを一度手動で更新してください。"
         },
         "BrowserLinkRoutingSetting": {
-          "description": "ターミナル、Markdown、エディターの http(s) リンクを Orca の組み込みブラウザで開きます。{{shortcut}} は常にシステムブラウザを使用します。",
-          "descriptionBase": "ターミナル、Markdown、エディターの http(s) リンクを Orca の組み込みブラウザで開きます。"
+          "description": "ターミナル、Markdown、エディターの http(s) リンクを {{value0}} の組み込みブラウザで開きます。{{shortcut}} は常にシステムブラウザを使用します。",
+          "descriptionBase": "ターミナル、Markdown、エディターの http(s) リンクを {{value0}} の組み込みブラウザで開きます。"
         },
         "BrowserLinkRoutingModifierSetting": {
           "titleSystem": "Shift を押しながらクリックすると Web ブラウザで開きます",
-          "titleOrca": "Shift を押しながらクリックすると Orca で開きます",
-          "descriptionSystem": "リンクは Orca で開きます。{{chord}}+クリックすると、システムのブラウザで開きます。",
-          "descriptionOrca": "リンクはシステムのブラウザで開きます。有効にすると、{{chord}}+クリックで Orca 内蔵のブラウザで開きます。"
+          "titleOrca": "Shift を押しながらクリックすると {{value0}} で開きます",
+          "descriptionSystem": "リンクは {{value0}} で開きます。{{chord}}+クリックすると、システムのブラウザで開きます。",
+          "descriptionOrca": "リンクはシステムのブラウザで開きます。有効にすると、{{chord}}+クリックで {{value0}} 内蔵のブラウザで開きます。"
         },
         "PluginConsentDialog": {
           "workerTrust": "バックグラウンドワーカー — 自身のプロセスを実行",
