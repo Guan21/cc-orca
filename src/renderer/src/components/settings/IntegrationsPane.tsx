@@ -8,10 +8,12 @@ import {
 import { JiraIntegrationCard, LinearIntegrationCard } from './task-tracker-integration-cards'
 import { useIntegrationProviderStatusRefresh } from './use-integration-provider-status-refresh'
 import { translate } from '@/i18n/i18n'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 export { getIntegrationsPaneSearchEntries } from './integrations-search'
 
 export function IntegrationsPane(): React.JSX.Element {
   useIntegrationProviderStatusRefresh()
+  const productDisplayName = getProductDisplayName()
 
   return (
     <div className="space-y-5">
@@ -23,7 +25,8 @@ export function IntegrationsPane(): React.JSX.Element {
           <p className="text-xs text-muted-foreground">
             {translate(
               'auto.components.settings.IntegrationsPane.1683acbac4',
-              'Connect the source hosts Orca can use for pull requests, merge requests, checks, and review status.'
+              'Connect the source hosts {{value0}} can use for pull requests, merge requests, checks, and review status.',
+              { value0: productDisplayName }
             )}
           </p>
         </div>
@@ -44,7 +47,8 @@ export function IntegrationsPane(): React.JSX.Element {
           <p className="text-xs text-muted-foreground">
             {translate(
               'auto.components.settings.IntegrationsPane.3ba07f933b',
-              'Connect issue trackers Orca can use to browse tasks and start workspaces with linked context.'
+              'Connect issue trackers {{value0}} can use to browse tasks and start workspaces with linked context.',
+              { value0: productDisplayName }
             )}
           </p>
         </div>
