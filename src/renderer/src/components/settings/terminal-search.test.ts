@@ -193,7 +193,9 @@ describe('getTerminalPaneSearchEntries', () => {
     const entries = getAppearancePaneSearchEntries()
 
     expect(entries.some((entry) => entry.title === 'App Icon')).toBe(false)
+    expect(entries.some((entry) => entry.title === 'Show Orca Mobile Button')).toBe(false)
     expect(matchesSettingsSearch('watercolor', entries)).toBe(false)
+    expect(matchesSettingsSearch('mobile', entries)).toBe(false)
   })
 
   it('keeps sidebar shortcut restore settings in the Appearance search index', () => {

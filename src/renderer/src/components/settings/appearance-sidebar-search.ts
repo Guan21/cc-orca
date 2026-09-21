@@ -2,6 +2,7 @@ import type { SettingsSearchEntry } from './settings-search'
 import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 import { translate } from '@/i18n/i18n'
 import { translateSearchKeyword } from './settings-search-keywords'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 export const getLeftSidebarAppearanceEntry = createLocalizedCatalog((): SettingsSearchEntry => ({
   title: translate(
@@ -123,7 +124,7 @@ export const getShowPinnedWorktreesInGroupsEntry = createLocalizedCatalog(
   })
 )
 
-export const getSidebarEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
+const getDefaultSidebarEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
   {
     title: translate('auto.components.settings.appearance.search.155a1e7438', 'Show Tasks Button'),
     description: translate(
@@ -191,3 +192,10 @@ export const getSidebarEntries = createLocalizedCatalog((): SettingsSearchEntry[
   getLeftSidebarAppearanceEntry(),
   getShowPinnedWorktreesInGroupsEntry()
 ])
+
+export function getSidebarEntries(): SettingsSearchEntry[] {
+  const entries = getDefaultSidebarEntries()
+  return getOrcaBuildProfile() === 'corporate'
+    ? entries.filter((entry) => entry.title !== 'Show Orca Mobile Button')
+    : entries
+}
