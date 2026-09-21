@@ -454,6 +454,15 @@ describe('AppearancePane', () => {
     expect(container.textContent).not.toContain('App Icon')
   })
 
+  it('hides the Orca Mobile sidebar control in corporate builds', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    mocks.state.settingsSearchQuery = 'mobile'
+    const container = await renderAppearancePane(getDefaultSettings('/tmp'))
+
+    expect(container.textContent).not.toContain('Orca Mobile')
+    expect(container.querySelector('button[aria-label="Show Orca Mobile Button"]')).toBeNull()
+  })
+
   it('reveals an advanced sidebar control when its search matches, even though it is hidden by default', async () => {
     // The Show Tasks Button toggle lives behind the Window & Sidebar Advanced
     // disclosure; with no search it stays collapsed, but a matching query must

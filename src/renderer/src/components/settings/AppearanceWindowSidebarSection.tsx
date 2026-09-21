@@ -28,6 +28,7 @@ import {
 } from './appearance-sidebar-search'
 import { translate } from '@/i18n/i18n'
 import { matchesSettingsSearch, normalizeSettingsSearchQuery } from './settings-search'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 type AppearanceWindowSidebarSectionProps = {
   settings: GlobalSettings
@@ -76,6 +77,7 @@ export function AppearanceWindowSidebarSection({
   const usagePercentageDisplayEntry = getUsagePercentageDisplayEntry()
   const leftSidebarAppearanceEntry = getLeftSidebarAppearanceEntry()
   const sidebarEntries = getSidebarEntries()
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
   const workspaceCardLayoutEntry = getWorkspaceCardLayoutEntry()
   const layoutEntries = getLayoutEntries()
   const statusBarTitle = translate(
@@ -252,9 +254,9 @@ export function AppearanceWindowSidebarSection({
                         'auto.components.settings.AppearancePane.cf81907069',
                         'Show Tasks Button'
                       )}
-                      checked={settings.showTasksButton !== false}
+                      checked={settings.showTasksButton ?? true}
                       onChange={() =>
-                        updateSettings({ showTasksButton: !(settings.showTasksButton !== false) })
+                        updateSettings({ showTasksButton: !(settings.showTasksButton ?? true) })
                       }
                     />
                   </SearchableSetting>
@@ -274,40 +276,44 @@ export function AppearanceWindowSidebarSection({
                         'auto.components.settings.AppearancePane.511f270ebb',
                         'Show Automations Button'
                       )}
-                      checked={settings.showAutomationsButton !== false}
+                      checked={settings.showAutomationsButton ?? true}
                       onChange={() =>
                         updateSettings({
-                          showAutomationsButton: !(settings.showAutomationsButton !== false)
+                          showAutomationsButton: !(settings.showAutomationsButton ?? true)
                         })
                       }
                     />
                   </SearchableSetting>
 
-                  <SearchableSetting
-                    title={translate(
-                      'auto.components.settings.AppearancePane.9da1020447',
-                      'Show Orca Mobile Button'
-                    )}
-                    description={sidebarEntries[2]?.description}
-                    keywords={sidebarEntries[2]?.keywords ?? ['mobile', 'phone', 'sidebar']}
-                  >
-                    <SettingsSwitchRow
-                      label={translate(
+                  {!isCorporateBuild && (
+                    <SearchableSetting
+                      title={translate(
                         'auto.components.settings.AppearancePane.9da1020447',
                         'Show Orca Mobile Button'
                       )}
-                      // Why: clarify where the shortcut still lives after hiding it, so users
-                      // don't think the feature is gone.
-                      description={translate(
-                        'auto.components.settings.AppearancePane.61d842eca0',
-                        'Show the Orca Mobile shortcut in the sidebar. It remains available from Toolbox.'
-                      )}
-                      checked={settings.showMobileButton !== false}
-                      onChange={() =>
-                        updateSettings({ showMobileButton: !(settings.showMobileButton !== false) })
-                      }
-                    />
-                  </SearchableSetting>
+                      description={sidebarEntries[2]?.description}
+                      keywords={sidebarEntries[2]?.keywords ?? ['mobile', 'phone', 'sidebar']}
+                    >
+                      <SettingsSwitchRow
+                        label={translate(
+                          'auto.components.settings.AppearancePane.9da1020447',
+                          'Show Orca Mobile Button'
+                        )}
+                        // Why: clarify where the shortcut still lives after hiding it, so users
+                        // don't think the feature is gone.
+                        description={translate(
+                          'auto.components.settings.AppearancePane.61d842eca0',
+                          'Show the Orca Mobile shortcut in the sidebar. It remains available from Toolbox.'
+                        )}
+                        checked={settings.showMobileButton ?? true}
+                        onChange={() =>
+                          updateSettings({
+                            showMobileButton: !(settings.showMobileButton ?? true)
+                          })
+                        }
+                      />
+                    </SearchableSetting>
+                  )}
 
                   <SearchableSetting
                     title={getShowPinnedWorktreesInGroupsEntry().title}
