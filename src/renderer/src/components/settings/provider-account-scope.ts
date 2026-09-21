@@ -1,6 +1,7 @@
 import { translate } from '@/i18n/i18n'
 import { getLocalExecutionHostLabel } from '../../../../shared/execution-host'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export type ProviderAccountScope = {
@@ -41,6 +42,7 @@ export function getProviderAccountScope(
   settings: Pick<GlobalSettings, 'activeRuntimeEnvironmentId'> | null | undefined
 ): ProviderAccountScope {
   const runtimeId = settings?.activeRuntimeEnvironmentId?.trim()
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
   const productDisplayName = getProductDisplayName()
   if (runtimeId) {
     return {
@@ -49,20 +51,30 @@ export function getProviderAccountScope(
         'Remote server: {{value0}}',
         { value0: runtimeId }
       ),
-      description: translate(
-        'auto.components.settings.providerAccountScope.remoteServerCredentials',
-        'Credentials and account checks for this provider are owned by this remote server. Use Settings > Remote {{value1}} Servers > Advanced to edit another default runtime scope.',
-        { value1: productDisplayName }
-      )
+      description: isCorporateBuild
+        ? translate(
+            'auto.components.settings.providerAccountScope.corporateRemoteServerCredentials',
+            'Credentials and account checks for this provider are owned by this remote server.'
+          )
+        : translate(
+            'auto.components.settings.providerAccountScope.remoteServerCredentials',
+            'Credentials and account checks for this provider are owned by this remote server. Use Settings > Remote {{value1}} Servers > Advanced to edit another default runtime scope.',
+            { value1: productDisplayName }
+          )
     }
   }
   return {
     label: getLocalExecutionHostLabel(),
-    description: translate(
-      'auto.components.settings.providerAccountScope.localCredentials',
-      'Credentials and account checks for this provider are owned by this desktop client. Use Settings > Remote {{value1}} Servers > Advanced to edit server-owned credentials.',
-      { value1: productDisplayName }
-    )
+    description: isCorporateBuild
+      ? translate(
+          'auto.components.settings.providerAccountScope.corporateLocalCredentials',
+          'Credentials and account checks for this provider are owned by this desktop client.'
+        )
+      : translate(
+          'auto.components.settings.providerAccountScope.localCredentials',
+          'Credentials and account checks for this provider are owned by this desktop client. Use Settings > Remote {{value1}} Servers > Advanced to edit server-owned credentials.',
+          { value1: productDisplayName }
+        )
   }
 }
 
@@ -71,6 +83,7 @@ export function getProviderRateLimitScope(
   providerLabel: string
 ): ProviderRateLimitScope {
   const runtimeId = settings?.activeRuntimeEnvironmentId?.trim()
+  const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
   const productDisplayName = getProductDisplayName()
   if (runtimeId) {
     return {
@@ -79,19 +92,31 @@ export function getProviderRateLimitScope(
         'Remote server: {{value0}}',
         { value0: runtimeId }
       ),
-      description: translate(
-        'auto.components.settings.providerAccountScope.remoteServerRateLimit',
-        '{{value0}} API budget is fetched from the CLI on this remote server. Use Settings > Remote {{value1}} Servers > Advanced to view another default runtime budget.',
-        { value0: providerLabel, value1: productDisplayName }
-      )
+      description: isCorporateBuild
+        ? translate(
+            'auto.components.settings.providerAccountScope.corporateRemoteServerRateLimit',
+            '{{value0}} API budget is fetched from the CLI on this remote server.',
+            { value0: providerLabel }
+          )
+        : translate(
+            'auto.components.settings.providerAccountScope.remoteServerRateLimit',
+            '{{value0}} API budget is fetched from the CLI on this remote server. Use Settings > Remote {{value1}} Servers > Advanced to view another default runtime budget.',
+            { value0: providerLabel, value1: productDisplayName }
+          )
     }
   }
   return {
     label: getLocalExecutionHostLabel(),
-    description: translate(
-      'auto.components.settings.providerAccountScope.localRateLimit',
-      '{{value0}} API budget is fetched from the CLI on this desktop client. Use Settings > Remote {{value1}} Servers > Advanced to view server-owned budgets.',
-      { value0: providerLabel, value1: productDisplayName }
-    )
+    description: isCorporateBuild
+      ? translate(
+          'auto.components.settings.providerAccountScope.corporateLocalRateLimit',
+          '{{value0}} API budget is fetched from the CLI on this desktop client.',
+          { value0: providerLabel }
+        )
+      : translate(
+          'auto.components.settings.providerAccountScope.localRateLimit',
+          '{{value0}} API budget is fetched from the CLI on this desktop client. Use Settings > Remote {{value1}} Servers > Advanced to view server-owned budgets.',
+          { value0: providerLabel, value1: productDisplayName }
+        )
   }
 }

@@ -32,6 +32,7 @@ import {
 import { isMacUserAgent } from '@/components/terminal-pane/pane-helpers'
 import { translate } from '@/i18n/i18n'
 import { resolveAvailableBrowserSessionHostId } from './browser-session-host-selection'
+import { isCapabilityEnabledForBuildProfile } from '../../../../shared/corporate-build-profile'
 export { getBrowserPaneCombinedSearchEntries }
 
 type BrowserPaneProps = {
@@ -119,7 +120,9 @@ export function BrowserPane({
   const showSshWorkspaceRouting = matchesSettingsSearch(searchQuery, [
     getBrowserPaneSearchEntries()[9]
   ])
-  const showBrowserUse = matchesSettingsSearch(searchQuery, getBrowserUsePaneSearchEntries())
+  const showBrowserUse =
+    isCapabilityEnabledForBuildProfile('skills') &&
+    matchesSettingsSearch(searchQuery, getBrowserUsePaneSearchEntries())
   const isMac = isMacUserAgent()
   const linkRoutingDescription = getBrowserLinkRoutingDescription(
     { isMac },

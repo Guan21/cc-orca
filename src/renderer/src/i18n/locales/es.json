@@ -9458,6 +9458,10 @@
         },
         "providerAccountScope": {
           "remoteServer": "Servidor remoto: {{value0}}",
+          "corporateRemoteServerCredentials": "Las credenciales y comprobaciones de cuenta de este proveedor pertenecen a este servidor remoto.",
+          "corporateLocalCredentials": "Las credenciales y comprobaciones de cuenta de este proveedor pertenecen a este cliente de escritorio.",
+          "corporateRemoteServerRateLimit": "El presupuesto de API de {{value0}} se obtiene desde la CLI en este servidor remoto.",
+          "corporateLocalRateLimit": "El presupuesto de API de {{value0}} se obtiene desde la CLI en este cliente de escritorio.",
           "remoteServerCredentials": "Las credenciales y comprobaciones de cuenta de este proveedor pertenecen a este servidor remoto. Usa Configuración > Servidores {{value1}} remotos > Avanzado para editar otro ámbito de runtime predeterminado.",
           "localMac": "Local Mac",
           "localCredentials": "Las credenciales y comprobaciones de cuenta de este proveedor pertenecen a este cliente de escritorio. Usa Configuración > Servidores {{value1}} remotos > Avanzado para editar credenciales propiedad del servidor.",
