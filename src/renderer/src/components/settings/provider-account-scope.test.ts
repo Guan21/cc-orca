@@ -42,21 +42,19 @@ describe('getProviderAccountScope', () => {
     })
   })
 
-  it('uses corporate product identity in remote-server settings links', () => {
+  it('does not direct corporate users to unavailable remote-server settings', () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
 
-    expect(getProviderAccountScope({ activeRuntimeEnvironmentId: null }).description).toContain(
-      'Settings > Remote Secure Orca Lite Servers > Advanced'
-    )
-    expect(getProviderAccountScope({ activeRuntimeEnvironmentId: 'env-1' }).description).toContain(
-      'Settings > Remote Secure Orca Lite Servers > Advanced'
-    )
-    expect(
-      getProviderRateLimitScope({ activeRuntimeEnvironmentId: null }, 'GitHub').description
-    ).toContain('Settings > Remote Secure Orca Lite Servers > Advanced')
-    expect(
+    for (const description of [
+      getProviderAccountScope({ activeRuntimeEnvironmentId: null }).description,
+      getProviderAccountScope({ activeRuntimeEnvironmentId: 'env-1' }).description,
+      getProviderRateLimitScope({ activeRuntimeEnvironmentId: null }, 'GitHub').description,
       getProviderRateLimitScope({ activeRuntimeEnvironmentId: 'env-1' }, 'GitLab').description
-    ).toContain('Settings > Remote Secure Orca Lite Servers > Advanced')
+    ]) {
+      expect(description).not.toContain('Remote Secure Orca Lite Servers')
+      expect(description).not.toContain('Remote Orca Servers')
+      expect(description).not.toContain('Settings >')
+    }
   })
 })
 

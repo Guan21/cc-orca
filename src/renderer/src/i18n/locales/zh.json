@@ -9528,6 +9528,10 @@
         },
         "providerAccountScope": {
           "remoteServer": "远程服务器：{{value0}}",
+          "corporateRemoteServerCredentials": "此提供商的凭据和账户检查由该远程服务器拥有。",
+          "corporateLocalCredentials": "此提供商的凭据和账户检查由该桌面客户端拥有。",
+          "corporateRemoteServerRateLimit": "{{value0}} API 预算从此远程服务器上的 CLI 获取。",
+          "corporateLocalRateLimit": "{{value0}} API 预算从此桌面客户端上的 CLI 获取。",
           "remoteServerCredentials": "此提供商的凭据和账户检查由该远程服务器拥有。使用“设置 > 远程 {{value1}} 服务器 > 高级”编辑另一个默认运行时范围。",
           "localMac": "本地 Mac",
           "localCredentials": "此提供商的凭据和账户检查由该桌面客户端拥有。使用“设置 > 远程 {{value1}} 服务器 > 高级”编辑服务器拥有的凭据。",
