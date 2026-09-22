@@ -1,18 +1,13 @@
-import type { StatusBarItem } from '../../../../shared/ui-chrome-types'
-import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 import { translate } from '@/i18n/i18n'
 import { translateSearchKeyword } from './settings-search-keywords'
 import { getAntigravityStatusBarToggleSearchEntry } from './appearance-status-bar-antigravity-toggle-search'
 import { getGrokStatusBarToggleSearchEntry } from './appearance-status-bar-grok-toggle-search'
+import { isStatusBarItemEnabledForBuildProfile } from './corporate-provider-surface-policy'
 
-export const getStatusBarToggles = createLocalizedCatalog(
-  (): readonly {
-    id: StatusBarItem
-    title: string
-    description: string
-    keywords: string[]
-    toggleDescription: string
-  }[] => [
+type StatusBarToggleSearchEntry = ReturnType<typeof getGrokStatusBarToggleSearchEntry>
+
+export function getStatusBarToggles(): readonly StatusBarToggleSearchEntry[] {
+  const entries: StatusBarToggleSearchEntry[] = [
     {
       id: 'claude',
       title: translate('auto.components.settings.appearance.search.9dc15020d7', 'Claude Usage'),
@@ -297,4 +292,5 @@ export const getStatusBarToggles = createLocalizedCatalog(
       )
     }
   ]
-)
+  return entries.filter((entry) => isStatusBarItemEnabledForBuildProfile(entry.id))
+}

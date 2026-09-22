@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ExternalLink, GitPullRequestArrow, LoaderCircle, Unlink } from 'lucide-react'
 import type { BitbucketConnectionStatus } from '../../../../shared/bitbucket-credentials'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { Button } from '@/components/ui/button'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { IntegrationCardDetails, IntegrationCardShell } from './integration-card-shell'
@@ -217,6 +218,8 @@ function BitbucketCardNote(props: {
   status: BitbucketStatus | 'unavailable'
   storedCredential: boolean
 }): React.JSX.Element {
+  const productDisplayName = getProductDisplayName()
+
   if (props.status === 'unavailable') {
     return (
       <p className="text-xs text-muted-foreground">
@@ -232,7 +235,8 @@ function BitbucketCardNote(props: {
       <p className="text-xs text-muted-foreground">
         {translate(
           'auto.components.settings.bitbucket.integration.card.envManaged',
-          'Configured via environment variables. Unset the ORCA_BITBUCKET_* variables to manage this credential in Orca.'
+          'Configured via environment variables. Unset the ORCA_BITBUCKET_* variables to manage this credential in {{productName}}.',
+          { productName: productDisplayName }
         )}
       </p>
     )
@@ -247,7 +251,8 @@ function BitbucketCardNote(props: {
             )
           : translate(
               'auto.components.settings.token.source.control.integration.cards.6154b02093',
-              'Bitbucket credentials are configured but could not authenticate. Check the token and repository permissions, then restart Orca if environment variables changed.'
+              'Bitbucket credentials are configured but could not authenticate. Check the token and repository permissions, then restart {{productName}} if environment variables changed.',
+              { productName: productDisplayName }
             )}
       </p>
     )
@@ -257,7 +262,8 @@ function BitbucketCardNote(props: {
       <p className="text-xs text-muted-foreground">
         {translate(
           'auto.components.settings.bitbucket.integration.card.storedCredential',
-          'Saved in Orca on this machine. ORCA_BITBUCKET_* environment variables take precedence when set.'
+          'Saved in {{productName}} on this machine. ORCA_BITBUCKET_* environment variables take precedence when set.',
+          { productName: productDisplayName }
         )}
       </p>
     )

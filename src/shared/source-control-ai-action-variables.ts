@@ -1,4 +1,5 @@
 import type { SourceControlActionId } from './source-control-ai-actions'
+import { getProductDisplayName } from './product-display-name'
 
 /**
  * Registering a variable a hover card cannot describe is a compile error: the
@@ -36,8 +37,9 @@ export type SourceControlActionVariableInfo = {
 
 export const SOURCE_CONTROL_ACTION_VARIABLE_INFO = {
   basePrompt: {
-    description:
-      'Orca’s built-in prompt for this action, including the context Orca knows how to gather safely.',
+    get description() {
+      return `${getProductDisplayName()}’s built-in prompt for this action, including the context ${getProductDisplayName()} knows how to gather safely.`
+    },
     example:
       'Commit messages include staged diff guidance; PR details include branch comparison guidance; fix actions include the failure summary.'
   },
@@ -79,7 +81,9 @@ export const SOURCE_CONTROL_ACTION_VARIABLE_INFO = {
     example: 'diff --git a/src/app.ts b/src/app.ts\n+renderSourceControlActionCommandTemplate()'
   },
   firstPrompt: {
-    description: 'The first user request that created the Orca workspace.',
+    get description() {
+      return `The first user request that created the ${getProductDisplayName()} workspace.`
+    },
     example: 'Fix CI and commit the result'
   },
   assistantMessage: {

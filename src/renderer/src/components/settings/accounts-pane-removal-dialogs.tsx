@@ -3,6 +3,7 @@ import {
   removeClaudeProviderAccount,
   removeCodexProviderAccount
 } from '@/runtime/runtime-provider-accounts-client'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { Button } from '../ui/button'
 import {
   Dialog,
@@ -26,6 +27,7 @@ export function renderAccountsRemovalDialogs(
     setRemoveCodexTarget,
     settings
   } = model
+  const productDisplayName = getProductDisplayName()
   return (
     <>
       <Dialog
@@ -43,7 +45,8 @@ export function renderAccountsRemovalDialogs(
             <DialogDescription>
               {translate(
                 'auto.components.settings.AccountsPane.380a7736cc',
-                'Removing this account permanently deletes its managed Codex home, including all Codex session history and MCP logins stored inside. This cannot be undone. If the account is currently active, Orca falls back to the system default Codex login.'
+                'Removing this account permanently deletes its managed Codex home, including all Codex session history and MCP logins stored inside. This cannot be undone. If the account is currently active, {{productName}} falls back to the system default Codex login.',
+                { productName: productDisplayName }
               )}
             </DialogDescription>
           </DialogHeader>
@@ -86,7 +89,8 @@ export function renderAccountsRemovalDialogs(
             <DialogDescription>
               {translate(
                 'auto.components.settings.AccountsPane.854ebbcc45',
-                'Orca will delete the managed Claude auth for this saved account. If it is currently active, Orca falls back to the system default Claude login.'
+                '{{productName}} will delete the managed Claude auth for this saved account. If it is currently active, {{productName}} falls back to the system default Claude login.',
+                { productName: productDisplayName }
               )}
             </DialogDescription>
           </DialogHeader>

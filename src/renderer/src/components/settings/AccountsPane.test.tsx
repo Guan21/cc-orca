@@ -36,11 +36,23 @@ describe('AccountsPane', () => {
 
     const markup = renderPane(getDefaultSettings('/tmp'))
 
-    expect(markup).toContain('Secure Orca Lite can use your normal Claude login')
+    expect(markup).toContain('Secure Orca Lite can use your normal Claude Code login')
     expect(markup).toContain('Secure Orca Lite can use your normal Codex login')
     expect(markup).toContain('quick switching in Secure Orca Lite')
     expect(markup).not.toContain('Optional. Orca can use your normal Claude login')
     expect(markup).not.toContain('Optional. Orca can use your normal Codex login')
+  })
+
+  it('hides unsupported provider account sections in corporate builds', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const markup = renderPane(getDefaultSettings('/tmp'))
+
+    expect(markup).toContain('Claude Code')
+    expect(markup).toContain('Codex')
+    expect(markup).not.toContain('Gemini')
+    expect(markup).not.toContain('OpenCode Go')
+    expect(markup).not.toContain('MiniMax')
   })
 
   it('hides the WSL account location controls on platforms without WSL support', () => {

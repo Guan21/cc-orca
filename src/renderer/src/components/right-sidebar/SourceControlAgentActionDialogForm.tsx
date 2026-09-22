@@ -31,6 +31,7 @@ import { SourceControlActionVariableChips } from '../source-control/SourceContro
 import { sourceControlActionRecipeMatchesTarget } from './source-control-action-recipe-match'
 import type { SourceControlAgentScopeNote } from './source-control-agent-action-dialog-result'
 import { translate } from '@/i18n/i18n'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export type SourceControlAgentActionDeliveryPlanState =
   | { status: 'idle' }
@@ -123,8 +124,6 @@ export function SourceControlAgentActionDialogForm({
       }
     : null
   const selectedSaveTarget = sourceControlLaunchSaveTargetFromValue(saveTargetValue, repo)
-  // Why: start/save only writes the selected target, so the dialog copy must not
-  // depend on whether other available targets also match.
   const selectedLaunchRecipeAlreadySaved = Boolean(
     selectedRecipe &&
     selectedSaveTarget &&
@@ -228,7 +227,8 @@ export function SourceControlAgentActionDialogForm({
               <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
                 {translate(
                   'auto.components.right.sidebar.SourceControlAgentActionDialogForm.5c75b24735',
-                  'Customize what the agent receives before Orca starts it.'
+                  'Customize what the agent receives before {{productName}} starts it.',
+                  { productName: getProductDisplayName() }
                 )}
               </p>
             </div>
@@ -266,12 +266,11 @@ export function SourceControlAgentActionDialogForm({
           {!commandTemplateIncludesBasePrompt ? (
             <p className="flex items-start gap-1.5 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-[11px] leading-4 text-destructive">
               <TriangleAlert className="mt-px size-3 shrink-0" />
-              <span>
-                {translate(
-                  'auto.components.right.sidebar.SourceControlAgentActionDialogForm.23280cbab1',
-                  "This template does not include {basePrompt}, so the agent will not receive Orca's default prompt."
-                )}
-              </span>
+              {translate(
+                'auto.components.right.sidebar.SourceControlAgentActionDialogForm.23280cbab1',
+                "This template does not include {basePrompt}, so the agent will not receive {{productName}}'s default prompt.",
+                { productName: getProductDisplayName() }
+              )}
             </p>
           ) : null}
         </div>

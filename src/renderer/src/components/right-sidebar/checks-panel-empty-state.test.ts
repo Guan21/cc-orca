@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import {
   getChecksPanelReviewState,
   shouldShowChecksPanelPublishBranchAction,
@@ -24,6 +24,10 @@ function input(overrides: Partial<ChecksPanelReviewStateInput> = {}): ChecksPane
     ...overrides
   }
 }
+
+afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
+})
 
 describe('getChecksPanelReviewState — no-review honesty', () => {
   it('only renders "No pull request found" for an accepted no-review result', () => {
@@ -126,6 +130,22 @@ describe('getChecksPanelReviewState — precedence', () => {
     // Hard error concurrent with the blocker: detail appended, create suppressed.
     expect(state.detail).toBe(
       'Orca also could not confirm whether this branch already has a pull request.'
+    )
+  })
+
+  it('uses corporate product wording for source-control lookup detail', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const state = getChecksPanelReviewState(
+      input({
+        eligibilityBlockedReason: 'no_upstream',
+        hasUpstream: false,
+        refresh: { status: 'error', errorType: 'unknown' }
+      })
+    )
+
+    expect(state.detail).toBe(
+      'Secure Orca Lite also could not confirm whether this branch already has a pull request.'
     )
   })
 
@@ -291,6 +311,18 @@ describe('getChecksPanelReviewState — git status', () => {
     expect(state.title).toBe('Could not check branch status')
     expect(state.recovery).toContain('retry')
     expect(state.composerMode).toBe('hidden')
+  })
+
+  it('uses corporate product wording for failed branch status copy', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const state = getChecksPanelReviewState(
+      input({ gitStatusPhase: 'error', hasUpstream: undefined })
+    )
+
+    expect(state.description).toBe(
+      "Secure Orca Lite could not confirm this branch's upstream from this environment. Retry before publishing or creating a pull request."
+    )
   })
 })
 

@@ -2,6 +2,8 @@ import type { SettingsSearchEntry } from './settings-search'
 import { translate } from '@/i18n/i18n'
 import { translateSearchKeyword } from './settings-search-keywords'
 import { createLocalizedCatalog } from '@/i18n/localized-catalog'
+import { isProviderSettingsSurfaceEnabledForBuildProfile } from './corporate-provider-surface-policy'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 export const getAccountsLocationSearchEntries = createLocalizedCatalog(() => [
   {
@@ -22,27 +24,45 @@ export const getAccountsLocationSearchEntries = createLocalizedCatalog(() => [
   }
 ])
 
-export const getAccountsClaudeSearchEntries = createLocalizedCatalog(() => [
-  {
-    title: translate('auto.components.settings.accounts.search.75682e1b62', 'Claude Accounts'),
-    description: translate(
-      'auto.components.settings.accounts.search.dd75a73991',
-      'Optional account switching for Claude while preserving shared chat context.'
-    ),
-    keywords: [
-      ...translateSearchKeyword('auto.components.settings.accounts.search.e14049e1a8', 'claude'),
-      ...translateSearchKeyword('auto.components.settings.accounts.search.06662af91e', 'account'),
-      ...translateSearchKeyword('auto.components.settings.accounts.search.5b3f18ef4a', 'switch'),
-      ...translateSearchKeyword('auto.components.settings.accounts.search.8b06729e0f', 'active'),
-      ...translateSearchKeyword(
-        'auto.components.settings.accounts.search.86edc96bc9',
-        'status bar'
+function getClaudeAccountsLabel(): string {
+  return getOrcaBuildProfile() === 'corporate' ? 'Claude Code' : 'Claude'
+}
+
+export function getAccountsClaudeSearchEntries(): SettingsSearchEntry[] {
+  const claudeLabel = getClaudeAccountsLabel()
+  return [
+    {
+      title:
+        claudeLabel === 'Claude'
+          ? translate('auto.components.settings.accounts.search.75682e1b62', 'Claude Accounts')
+          : translate(
+              'auto.components.settings.accounts.search.claudeCodeAccounts',
+              'Claude Code Accounts'
+            ),
+      description: translate(
+        'auto.components.settings.accounts.search.dd75a73991',
+        'Optional account switching for {{providerName}} while preserving shared chat context.',
+        { providerName: claudeLabel }
       ),
-      ...translateSearchKeyword('auto.components.settings.accounts.search.c759741d77', 'quota'),
-      ...translateSearchKeyword('auto.components.settings.accounts.search.f2d666a886', 'optional')
-    ]
-  }
-])
+      keywords: [
+        ...translateSearchKeyword('auto.components.settings.accounts.search.e14049e1a8', 'claude'),
+        ...translateSearchKeyword(
+          'auto.components.settings.accounts.search.claudeCodeKeyword',
+          'claude code'
+        ),
+        ...translateSearchKeyword('auto.components.settings.accounts.search.06662af91e', 'account'),
+        ...translateSearchKeyword('auto.components.settings.accounts.search.5b3f18ef4a', 'switch'),
+        ...translateSearchKeyword('auto.components.settings.accounts.search.8b06729e0f', 'active'),
+        ...translateSearchKeyword(
+          'auto.components.settings.accounts.search.86edc96bc9',
+          'status bar'
+        ),
+        ...translateSearchKeyword('auto.components.settings.accounts.search.c759741d77', 'quota'),
+        ...translateSearchKeyword('auto.components.settings.accounts.search.f2d666a886', 'optional')
+      ]
+    }
+  ]
+}
 
 export const getAccountsCodexSearchEntries = createLocalizedCatalog(() => [
   {
@@ -216,12 +236,22 @@ export const getAccountsGrokSearchEntries = createLocalizedCatalog(() => [
   }
 ])
 
-export const getAccountsPaneSearchEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
+export const getAccountsPaneSearchEntries = (): SettingsSearchEntry[] => [
   ...getAccountsLocationSearchEntries(),
-  ...getAccountsClaudeSearchEntries(),
-  ...getAccountsCodexSearchEntries(),
-  ...getAccountsGeminiSearchEntries(),
-  ...getAccountsOpencodeSearchEntries(),
-  ...getAccountsMiniMaxSearchEntries(),
-  ...getAccountsGrokSearchEntries()
-])
+  ...(isProviderSettingsSurfaceEnabledForBuildProfile('claude')
+    ? getAccountsClaudeSearchEntries()
+    : []),
+  ...(isProviderSettingsSurfaceEnabledForBuildProfile('codex')
+    ? getAccountsCodexSearchEntries()
+    : []),
+  ...(isProviderSettingsSurfaceEnabledForBuildProfile('gemini')
+    ? getAccountsGeminiSearchEntries()
+    : []),
+  ...(isProviderSettingsSurfaceEnabledForBuildProfile('opencode-go')
+    ? getAccountsOpencodeSearchEntries()
+    : []),
+  ...(isProviderSettingsSurfaceEnabledForBuildProfile('minimax')
+    ? getAccountsMiniMaxSearchEntries()
+    : []),
+  ...(isProviderSettingsSurfaceEnabledForBuildProfile('grok') ? getAccountsGrokSearchEntries() : [])
+]

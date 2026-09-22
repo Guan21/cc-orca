@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { toast } from 'sonner'
+import { getProductDisplayName } from '../../../../../../shared/product-display-name'
 import {
   localizedHostedReviewCopy,
   resolveSupportedHostedReviewCopyProvider
@@ -117,8 +118,8 @@ export function useSourceControlHostedReviewCreated({
         toast.warning(
           translate(
             'auto.components.right.sidebar.SourceControl.0453ca3a9a',
-            '{{value0}} created, but Orca could not refresh it yet.',
-            { value0: copy.titleLabel }
+            '{{value0}} created, but {{productName}} could not refresh it yet.',
+            { productName: getProductDisplayName(), value0: copy.titleLabel }
           ),
           {
             action: {

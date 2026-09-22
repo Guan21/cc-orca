@@ -29,6 +29,7 @@ import {
 import { translate } from '@/i18n/i18n'
 import { matchesSettingsSearch, normalizeSettingsSearchQuery } from './settings-search'
 import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
+import { isStatusBarItemEnabledForBuildProfile } from './corporate-provider-surface-policy'
 
 type AppearanceWindowSidebarSectionProps = {
   settings: GlobalSettings
@@ -73,7 +74,9 @@ export function AppearanceWindowSidebarSection({
   const setUsagePercentageDisplay = useAppStore((state) => state.setUsagePercentageDisplay)
   const recordFeatureInteraction = useAppStore((state) => state.recordFeatureInteraction)
   const setWorktreeCardMode = useAppStore((state) => state.setWorktreeCardMode)
-  const visibleStatusBarToggles = useAvailableStatusBarToggles(getStatusBarToggles())
+  const visibleStatusBarToggles = useAvailableStatusBarToggles(getStatusBarToggles()).filter(
+    (toggle) => isStatusBarItemEnabledForBuildProfile(toggle.id)
+  )
   const usagePercentageDisplayEntry = getUsagePercentageDisplayEntry()
   const leftSidebarAppearanceEntry = getLeftSidebarAppearanceEntry()
   const sidebarEntries = getSidebarEntries()

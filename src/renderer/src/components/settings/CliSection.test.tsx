@@ -48,6 +48,7 @@ afterEach(() => {
   cleanup()
   capturedPanel.canUseLocalSkillFreshness = true
   toastError.mockReset()
+  delete globalThis.__ORCA_BUILD_PROFILE__
   vi.unstubAllGlobals()
 })
 
@@ -77,6 +78,28 @@ vi.mock('./WslCliRegistration', () => ({
 }))
 
 describe('CliSection project runtime defaults', () => {
+  it('uses corporate product wording while preserving the orca CLI command', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const markup = renderToStaticMarkup(
+      <CliSection currentPlatform="darwin" settings={getDefaultSettings('/tmp')} />
+    )
+
+    expect(markup).toContain('Secure Orca Lite CLI')
+    expect(markup).toContain('Use the `orca` command')
+    expect(markup).toContain('Secure Orca Lite-aware')
+    expect(markup).not.toContain('Use Orca from your terminal')
+  })
+
+  it('keeps default product wording for default builds', () => {
+    const markup = renderToStaticMarkup(
+      <CliSection currentPlatform="darwin" settings={getDefaultSettings('/tmp')} />
+    )
+
+    expect(markup).toContain('Orca CLI')
+    expect(markup).toContain('Use Orca from your terminal')
+  })
+
   it('exposes freshness only for a resolved local host runtime', () => {
     const settings = getDefaultSettings('/tmp')
     renderToStaticMarkup(<CliSection currentPlatform="darwin" settings={settings} />)

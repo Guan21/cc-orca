@@ -1,4 +1,5 @@
 import type { HostedReviewCreationBlockedReason } from '../../../../shared/hosted-review'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { translate } from '@/i18n/i18n'
 import {
   autoRetrySchedule,
@@ -39,6 +40,7 @@ export function getChecksPanelReviewState(
   input: ChecksPanelReviewStateInput
 ): ChecksPanelReviewState {
   const { reviewLabel, reviewShortLabel, providerName } = input
+  const productName = getProductDisplayName()
 
   // 0. Operation in progress — never overridden by refresh copy.
   if (input.operationLabel) {
@@ -91,8 +93,8 @@ export function getChecksPanelReviewState(
       ),
       description: translate(
         'auto.components.right.sidebar.checks.panel.review.active.body',
-        'Orca is checking {{provider}} for a {{reviewLabel}} on this branch.',
-        { reviewLabel, provider: providerName }
+        '{{productName}} is checking {{provider}} for a {{reviewLabel}} on this branch.',
+        { productName, reviewLabel, provider: providerName }
       ),
       composerMode: 'hidden',
       workflowAction: null,
@@ -117,8 +119,8 @@ export function getChecksPanelReviewState(
       ),
       description: translate(
         'auto.components.right.sidebar.checks.panel.review.positive.body',
-        'Orca has saved {{reviewLabel}} information for this branch but could not confirm its current status.',
-        { reviewLabel }
+        '{{productName}} has saved {{reviewLabel}} information for this branch but could not confirm its current status.',
+        { productName, reviewLabel }
       ),
       composerMode: 'hidden',
       workflowAction: null,
@@ -189,8 +191,8 @@ export function getChecksPanelReviewState(
       ),
       description: translate(
         'auto.components.right.sidebar.checks.panel.review.active.body',
-        'Orca is checking {{provider}} for a {{reviewLabel}} on this branch.',
-        { reviewLabel, provider: providerName }
+        '{{productName}} is checking {{provider}} for a {{reviewLabel}} on this branch.',
+        { productName, reviewLabel, provider: providerName }
       ),
       composerMode: mode,
       workflowAction: workflowActionForComposer(mode),
@@ -208,7 +210,8 @@ export function getChecksPanelReviewState(
       ),
       description: translate(
         'auto.components.right.sidebar.checks.panel.review.git_loading.body',
-        'Orca is checking this branch before showing create or publish actions.'
+        '{{productName}} is checking this branch before showing create or publish actions.',
+        { productName }
       ),
       composerMode: 'hidden',
       workflowAction: null,
@@ -224,8 +227,8 @@ export function getChecksPanelReviewState(
       ),
       description: translate(
         'auto.components.right.sidebar.checks.panel.review.git_error.body',
-        "Orca could not confirm this branch's upstream from this environment. Retry before publishing or creating a {{reviewLabel}}.",
-        { reviewLabel }
+        "{{productName}} could not confirm this branch's upstream from this environment. Retry before publishing or creating a {{reviewLabel}}.",
+        { productName, reviewLabel }
       ),
       composerMode: 'hidden',
       workflowAction: null,
@@ -253,8 +256,8 @@ export function getChecksPanelReviewState(
     ),
     description: translate(
       'auto.components.right.sidebar.checks.panel.review.unknown.body',
-      'Orca has not confirmed the {{reviewLabel}} status for this branch. Retry to check again.',
-      { reviewLabel }
+      '{{productName}} has not confirmed the {{reviewLabel}} status for this branch. Retry to check again.',
+      { productName, reviewLabel }
     ),
     composerMode: 'hidden',
     workflowAction: null,
