@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import {
   buildTabAgentLaunchOptions,
   findMatchingTabAgentLaunchOptions,
@@ -6,6 +6,10 @@ import {
 } from './tab-agent-launch-options'
 
 describe('tab agent launch options', () => {
+  afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  })
+
   it('orders detected agents by the configured default first', () => {
     expect(orderTabLaunchAgents('codex', ['claude', 'codex', 'gemini'])).toEqual([
       'codex',
@@ -36,6 +40,25 @@ describe('tab agent launch options', () => {
       orderTabLaunchAgents('codex', ['claude', 'codex', 'openclaude'], ['openclaude'])
     )
     expect(findMatchingTabAgentLaunchOptions('open', options).map((o) => o.agent)).toEqual([])
+  })
+
+  it('limits corporate new-tab launch options to allowed agents', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const ordered = orderTabLaunchAgents('gemini', [
+      'claude',
+      'codex',
+      'gemini',
+      'opencode',
+      'grok',
+      'kimi',
+      'antigravity'
+    ])
+    const options = buildTabAgentLaunchOptions(ordered)
+
+    expect(ordered).toEqual(['claude', 'codex'])
+    expect(findMatchingTabAgentLaunchOptions('gemini', options)).toEqual([])
+    expect(findMatchingTabAgentLaunchOptions('opencode', options)).toEqual([])
   })
 
   it('matches detected agents by id, label, command, and command override', () => {

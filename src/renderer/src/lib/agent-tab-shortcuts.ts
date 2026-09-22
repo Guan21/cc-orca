@@ -4,7 +4,7 @@ import {
   type KeybindingOverrides
 } from '../../../shared/keybindings'
 import { ALL_TUI_AGENTS } from '../../../shared/tui-agent-display-names'
-import { normalizeDisabledTuiAgents, pickTuiAgent } from '../../../shared/tui-agent-selection'
+import { isTuiAgentEnabled, pickTuiAgent } from '../../../shared/tui-agent-selection'
 import type { TuiAgent } from '../../../shared/tui-agent'
 
 export type BoundAgentTabAction = {
@@ -15,8 +15,8 @@ export type BoundAgentTabAction = {
 /**
  * Agents whose per-agent "new tab" action has at least one user-assigned
  * chord. Per-agent actions ship with no default bindings, so only user
- * overrides can bind them. Disabled agents are skipped so a leftover binding
- * goes inert when the agent is turned off in Settings → Agents.
+ * overrides can bind them. Hidden agents are skipped so a leftover binding
+ * goes inert when the agent is disabled or hidden by the current build policy.
  */
 export function listBoundAgentTabActions(
   keybindings: KeybindingOverrides | undefined,
@@ -25,10 +25,9 @@ export function listBoundAgentTabActions(
   if (!keybindings) {
     return []
   }
-  const disabled = new Set(normalizeDisabledTuiAgents(disabledTuiAgents))
   const bound: BoundAgentTabAction[] = []
   for (const agent of ALL_TUI_AGENTS) {
-    if (disabled.has(agent)) {
+    if (!isTuiAgentEnabled(agent, disabledTuiAgents)) {
       continue
     }
     const actionId = agentTabActionId(agent)
