@@ -57,6 +57,7 @@ describe('tab agent launch options', () => {
     const options = buildTabAgentLaunchOptions(ordered)
 
     expect(ordered).toEqual(['claude', 'codex'])
+    expect(options.map((option) => option.label)).toEqual(['Claude Code', 'Codex'])
     expect(findMatchingTabAgentLaunchOptions('gemini', options)).toEqual([])
     expect(findMatchingTabAgentLaunchOptions('opencode', options)).toEqual([])
   })
