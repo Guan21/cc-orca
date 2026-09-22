@@ -19,7 +19,8 @@ import { isSshConnectInFlight, trackSshConnect } from '@/ssh/ssh-connect-in-flig
 import { translate } from '@/i18n/i18n'
 import {
   DEFAULT_DISABLED_TUI_AGENTS,
-  filterEnabledTuiAgents
+  filterEnabledTuiAgents,
+  getTuiAgentDisplayLabel
 } from '../../../shared/tui-agent-selection'
 import type { RuntimeStatus } from '../../../shared/runtime-types'
 import type { TuiAgent } from '../../../shared/tui-agent'
@@ -164,12 +165,17 @@ export default function NewWorkspaceComposerCard(
       disabledTuiAgents
     )
   )
-  const visibleQuickAgents = agentCatalog.filter((agent) => {
-    return (
-      enabledAgentIds.has(agent.id) &&
-      (props.detectedAgentIds === null || props.detectedAgentIds.has(agent.id))
-    )
-  })
+  const visibleQuickAgents = agentCatalog
+    .filter((agent) => {
+      return (
+        enabledAgentIds.has(agent.id) &&
+        (props.detectedAgentIds === null || props.detectedAgentIds.has(agent.id))
+      )
+    })
+    .map((agent) => ({
+      ...agent,
+      label: getTuiAgentDisplayLabel(agent.id, agent.label)
+    }))
 
   const cancelNameInputFocusFrame = React.useCallback((): void => {
     if (nameInputFocusFrameRef.current !== null) {

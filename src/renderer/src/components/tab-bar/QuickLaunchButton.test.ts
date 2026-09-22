@@ -1,6 +1,6 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { QuickLaunchAgentMenuItems, shouldShowLaunchWatchdogTimeout } from './QuickLaunchButton'
 
 const {
@@ -114,6 +114,7 @@ function rowMarkup(html: string, label: string): string {
 }
 
 beforeEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
   shortcutLabelMock.mockReset()
   shortcutLabelMock.mockReturnValue(null)
   useDetectedAgentsMock.mockClear()
@@ -125,6 +126,10 @@ beforeEach(() => {
   storeState.repos = []
   storeState.openSettingsPage = openSettingsPageMock
   storeState.openSettingsTarget = openSettingsTargetMock
+})
+
+afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
 })
 
 describe('QuickLaunchAgentMenuItems', () => {
@@ -205,6 +210,18 @@ describe('QuickLaunchAgentMenuItems', () => {
 
     storeState.settings.defaultTuiAgent = 'blank'
     expect(renderAgentMenuItems()).not.toContain('data-dropdown-shortcut="true"')
+  })
+
+  it('uses corporate agent labels while keeping unsupported agents hidden', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    storeState.settings.defaultTuiAgent = 'claude'
+
+    const html = renderAgentMenuItems()
+
+    expect(html).toContain('Claude Code')
+    expect(html).toContain('Codex')
+    expect(html).not.toContain('Launch Claude in a new terminal')
+    expect(html).not.toContain('Gemini')
   })
 })
 

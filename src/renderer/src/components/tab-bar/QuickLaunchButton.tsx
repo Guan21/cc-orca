@@ -13,7 +13,8 @@ import type { TuiAgent } from '../../../../shared/tui-agent'
 import type { LaunchSource } from '../../../../shared/telemetry-events'
 import {
   DEFAULT_DISABLED_TUI_AGENTS,
-  filterEnabledTuiAgents
+  filterEnabledTuiAgents,
+  getTuiAgentDisplayLabel
 } from '../../../../shared/tui-agent-selection'
 import { translate } from '@/i18n/i18n'
 import { useStructuredAgentLaunchStatus } from '@/lib/structured-agent-session-launch'
@@ -133,7 +134,7 @@ function QuickLaunchAgentMenuItemsInner({
   const runLaunch = useCallback(
     (agent: TuiAgent) => {
       const entry = getCatalogEntry(agent)
-      const label = entry?.label ?? agent
+      const label = getTuiAgentDisplayLabel(agent, entry?.label ?? agent)
       const result = launchAgentInNewTab({
         agent,
         worktreeId,
@@ -204,7 +205,7 @@ function QuickLaunchAgentMenuItemsInner({
       ) : null}
       {agents.map((agent) => {
         const entry = getCatalogEntry(agent)
-        const label = entry?.label ?? agent
+        const label = getTuiAgentDisplayLabel(agent, entry?.label ?? agent)
         const isStructuredLaunchPending =
           isAgentSessionHandleProvider(agent) && structuredLaunchStatusByAgent[agent] === 'pending'
         const pendingLabel = translate(

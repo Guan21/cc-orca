@@ -1,5 +1,8 @@
 import { getAgentCatalog } from '@/lib/agent-catalog'
-import { filterEnabledTuiAgents } from '../../../../shared/tui-agent-selection'
+import {
+  filterEnabledTuiAgents,
+  getTuiAgentDisplayLabel
+} from '../../../../shared/tui-agent-selection'
 import { normalizeMatchQuery, tokenizeMatchValue } from './query-token-match'
 import type { TuiAgent } from '../../../../shared/tui-agent'
 
@@ -42,7 +45,7 @@ export function buildTabAgentLaunchOptions(
 ): TabAgentLaunchOption[] {
   return agents.map((agent) => {
     const entry = getCatalogEntry(agent)
-    const label = entry?.label ?? agent
+    const label = getTuiAgentDisplayLabel(agent, entry?.label ?? agent)
     const aliases = new Set<string>([
       normalizeAgentAlias(agent),
       normalizeAgentAlias(label),

@@ -590,11 +590,46 @@ describe('AppearancePane', () => {
         keywords: ['status bar', 'codex', 'usage']
       },
       {
+        id: 'gemini',
+        title: 'Gemini Usage',
+        description: 'Show Gemini token and cost usage in the status bar.',
+        toggleDescription: 'Show Gemini token and cost usage for the active workspace.',
+        keywords: ['status bar', 'gemini', 'usage']
+      },
+      {
+        id: 'opencode-go',
+        title: 'OpenCode Go Usage',
+        description: 'Show OpenCode Go token and cost usage in the status bar.',
+        toggleDescription: 'Show OpenCode Go token and cost usage for the active workspace.',
+        keywords: ['status bar', 'opencode', 'usage']
+      },
+      {
         id: 'minimax',
         title: 'MiniMax Usage',
         description: 'Show MiniMax subscription usage in the status bar.',
         toggleDescription: 'Show MiniMax subscription usage for the active workspace.',
         keywords: ['status bar', 'minimax', 'usage']
+      },
+      {
+        id: 'antigravity',
+        title: 'Antigravity Usage',
+        description: 'Show Antigravity subscription usage in the status bar.',
+        toggleDescription: 'Show Antigravity subscription usage for the active workspace.',
+        keywords: ['status bar', 'antigravity', 'usage']
+      },
+      {
+        id: 'kimi',
+        title: 'Kimi Usage',
+        description: 'Show Kimi subscription usage in the status bar.',
+        toggleDescription: 'Show Kimi subscription usage for the active workspace.',
+        keywords: ['status bar', 'kimi', 'usage']
+      },
+      {
+        id: 'grok',
+        title: 'Grok Usage',
+        description: 'Show Grok usage in the status bar.',
+        toggleDescription: 'Show Grok usage for the active workspace.',
+        keywords: ['status bar', 'grok', 'usage']
       }
     ]
     mocks.state.settingsSearchQuery = 'usage'
@@ -607,8 +642,17 @@ describe('AppearancePane', () => {
     expect(
       container.querySelector('button[role="switch"][aria-label="Codex Usage"]')
     ).not.toBeNull()
-    expect(container.querySelector('button[role="switch"][aria-label="MiniMax Usage"]')).toBeNull()
-    expect(container.textContent).not.toContain('MiniMax Usage')
+    for (const provider of [
+      'Gemini Usage',
+      'OpenCode Go Usage',
+      'MiniMax Usage',
+      'Antigravity Usage',
+      'Kimi Usage',
+      'Grok Usage'
+    ]) {
+      expect(container.querySelector(`button[role="switch"][aria-label="${provider}"]`)).toBeNull()
+      expect(container.textContent).not.toContain(provider)
+    }
   })
 
   it('records Antigravity status bar toggles as usage tracking interactions', async () => {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import type { KeybindingDefinition } from '../../../../shared/keybindings'
 import type { ActivePluginCommand } from '@/store/plugin-panels'
 import { buildShortcutDefinitionCatalog } from './shortcut-definition-catalog'
@@ -18,6 +18,10 @@ const pluginDefinition: KeybindingDefinition = {
 }
 
 describe('shortcut groups', () => {
+  afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  })
+
   it('includes dynamic plugin command definitions in Settings', () => {
     expect(groupDefinitions([], [pluginDefinition])).toEqual(
       expect.arrayContaining([
@@ -25,6 +29,24 @@ describe('shortcut groups', () => {
           title: 'Plugins',
           items: [pluginDefinition]
         })
+      ])
+    )
+  })
+
+  it('hides unsupported per-agent launch rows in corporate builds', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const agents = groupDefinitions([]).find((group) => group.title === 'Agents')
+    const actionIds = agents?.items.map((item) => item.id) ?? []
+
+    expect(actionIds).toEqual(expect.arrayContaining(['tab.newAgent.claude', 'tab.newAgent.codex']))
+    expect(actionIds).not.toEqual(
+      expect.arrayContaining([
+        'tab.newAgent.gemini',
+        'tab.newAgent.opencode',
+        'tab.newAgent.grok',
+        'tab.newAgent.kimi',
+        'tab.newAgent.antigravity'
       ])
     )
   })

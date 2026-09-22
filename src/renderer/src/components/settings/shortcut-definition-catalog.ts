@@ -12,7 +12,7 @@ import {
 import type { TuiAgent } from '../../../../shared/tui-agent'
 import type { ActivePluginCommand } from '@/store/plugin-panels'
 import { buildPluginCommandKeybindingDefinitions } from '@/lib/plugin-command-keybindings'
-import { disabledAgentTabActionIds, groupDefinitions, type ShortcutGroup } from './shortcut-groups'
+import { hiddenAgentTabActionIds, groupDefinitions, type ShortcutGroup } from './shortcut-groups'
 
 export type ShortcutDefinitionCatalog = {
   groups: ShortcutGroup[]
@@ -34,7 +34,7 @@ export function buildShortcutDefinitionCatalog(options: {
   const groups = groupDefinitions(options.disabledTuiAgents, pluginDefinitions)
   const definitions = groups.flatMap((group) => group.items)
   const definitionsByAction = new Map(definitions.map((definition) => [definition.id, definition]))
-  const ignoredConflictActionIds = disabledAgentTabActionIds(options.disabledTuiAgents)
+  const ignoredConflictActionIds = hiddenAgentTabActionIds(options.disabledTuiAgents)
   const conflictByAction = new Map<KeybindingActionId, string[]>()
   const conflicts = findKeybindingConflictsForDefinitions(
     definitions,
