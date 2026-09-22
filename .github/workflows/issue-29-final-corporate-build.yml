@@ -1,0 +1,156 @@
+name: Issue 29 Final Corporate Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact commit SHA to build
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Windows corporate installer
+    runs-on: windows-2022
+    timeout-minutes: 120
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+      ORCA_BUILD_PROFILE: corporate
+    steps:
+      - name: Checkout source SHA
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/setup@v2
+        with:
+          install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Cache electron-builder downloads
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~\AppData\Local\electron\Cache
+            ~\AppData\Local\electron-builder\Cache
+          key: issue-29-electron-builder-win-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            issue-29-electron-builder-win-
+            electron-builder-win-
+
+      - name: Install dependencies
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: pnpm install --frozen-lockfile
+
+      - name: Build corporate installer
+        run: pnpm run build:win:corporate
+
+      - name: Verify installer exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path 'dist/secure-orca-lite-windows-setup.exe')) {
+            throw 'Missing dist/secure-orca-lite-windows-setup.exe'
+          }
+          Get-FileHash 'dist/secure-orca-lite-windows-setup.exe' -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLowerInvariant())  secure-orca-lite-windows-setup.exe" } |
+            Set-Content -Encoding ascii 'dist/secure-orca-lite-windows-setup.exe.sha256'
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: secure-orca-lite-windows-setup.exe
+          path: |
+            dist/secure-orca-lite-windows-setup.exe
+            dist/secure-orca-lite-windows-setup.exe.sha256
+          if-no-files-found: error
+
+  build-macos:
+    name: macOS corporate DMGs
+    runs-on: macos-13
+    timeout-minutes: 150
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+      ORCA_BUILD_PROFILE: corporate
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - name: Checkout source SHA
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/setup@v2
+        with:
+          install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Cache electron-builder downloads
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+          key: issue-29-electron-builder-mac-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            issue-29-electron-builder-mac-
+            electron-builder-mac-
+
+      - name: Install dependencies
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: pnpm install --frozen-lockfile
+
+      - name: Build corporate DMGs
+        run: pnpm run build:mac:corporate
+
+      - name: Verify DMGs exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/secure-orca-lite-macos-x64.dmg
+          test -s dist/secure-orca-lite-macos-arm64.dmg
+          shasum -a 256 dist/secure-orca-lite-macos-x64.dmg |
+            sed 's#dist/##' > dist/secure-orca-lite-macos-x64.dmg.sha256
+          shasum -a 256 dist/secure-orca-lite-macos-arm64.dmg |
+            sed 's#dist/##' > dist/secure-orca-lite-macos-arm64.dmg.sha256
+
+      - name: Upload macOS x64 artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: secure-orca-lite-macos-x64.dmg
+          path: |
+            dist/secure-orca-lite-macos-x64.dmg
+            dist/secure-orca-lite-macos-x64.dmg.sha256
+          if-no-files-found: error
+
+      - name: Upload macOS arm64 artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: secure-orca-lite-macos-arm64.dmg
+          path: |
+            dist/secure-orca-lite-macos-arm64.dmg
+            dist/secure-orca-lite-macos-arm64.dmg.sha256
+          if-no-files-found: error
