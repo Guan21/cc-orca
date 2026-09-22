@@ -1,4 +1,5 @@
 import type { HostedReviewCreationBlockedReason } from '../../../../shared/hosted-review'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { translate } from '@/i18n/i18n'
 import {
   autoRetrySchedule,
@@ -58,7 +59,7 @@ const SAFETY_COPY: Record<
     },
     body: {
       key: 'auto.components.right.sidebar.checks.panel.review.fork.body',
-      fallback: 'Orca cannot create a {{reviewLabel}} from this fork head here.'
+      fallback: '{{productName}} cannot create a {{reviewLabel}} from this fork head here.'
     }
   },
   base_not_on_remote: {
@@ -79,7 +80,8 @@ const SAFETY_COPY: Record<
     },
     body: {
       key: 'auto.components.right.sidebar.checks.panel.review.unsupported.body',
-      fallback: 'This repository provider does not support creating a {{reviewLabel}} from Orca.'
+      fallback:
+        'This repository provider does not support creating a {{reviewLabel}} from {{productName}}.'
     }
   }
 }
@@ -89,6 +91,7 @@ export function safetyBlockerState(
   reason: NonNullable<HostedReviewCreationBlockedReason>
 ): ChecksPanelReviewState {
   const { reviewLabel } = input
+  const productName = getProductDisplayName()
   if (reason === 'existing_review') {
     // Same family as positive evidence — offer trusted Open Review, never Create.
     return {
@@ -100,8 +103,8 @@ export function safetyBlockerState(
       ),
       description: translate(
         'auto.components.right.sidebar.checks.panel.review.existing.body',
-        'Orca found an existing {{reviewLabel}} for this branch.',
-        { reviewLabel }
+        '{{productName}} found an existing {{reviewLabel}} for this branch.',
+        { productName, reviewLabel }
       ),
       composerMode: 'hidden',
       workflowAction: null,
@@ -110,7 +113,7 @@ export function safetyBlockerState(
     }
   }
   const copy = SAFETY_COPY[reason as keyof typeof SAFETY_COPY] ?? SAFETY_COPY.unsupported_provider
-  const vars = { reviewLabel, reviewLabelCap: capitalizeReviewLabel(reviewLabel) }
+  const vars = { productName, reviewLabel, reviewLabelCap: capitalizeReviewLabel(reviewLabel) }
   return {
     renderReview: false,
     title: translate(copy.title.key, copy.title.fallback, vars),
@@ -166,6 +169,7 @@ export function branchBlockerState(
   reason: NonNullable<HostedReviewCreationBlockedReason>
 ): ChecksPanelReviewState {
   const { reviewLabel, providerName } = input
+  const productName = getProductDisplayName()
   const detail = concurrentLookupDetail(input)
   const schedule = detail ? autoRetrySchedule(input) : {}
   // Positive-unresolved evidence with a trusted URL must still expose Open Review
@@ -177,7 +181,7 @@ export function branchBlockerState(
     ...(detail ? (['retry'] as ChecksPanelRecoveryAction[]) : [])
   ]
   const openReviewUrl = canOpenReview ? input.openReviewUrl : undefined
-  const vars = { reviewLabel, provider: providerName }
+  const vars = { productName, reviewLabel, provider: providerName }
 
   if (reason === 'needs_push') {
     // Push & Create unless review evidence or a hard error blocks create.

@@ -153,6 +153,20 @@ describe('browser link routing modifier copy', () => {
     expect(getLinkRoutingModifierDescription({ openLinksInApp: false, isMac: true })).toContain(
       "Secure Orca Lite's built-in browser"
     )
+
+    const localhostEntry = getBrowserPaneSearchEntries({ isMac: true }).find(
+      (entry) => entry.title === 'Localhost Worktree Labels'
+    )
+    expect(localhostEntry?.description).toContain('Secure Orca Lite localhost URLs')
+    expect(localhostEntry?.description).not.toContain('Orca localhost URL')
+  })
+
+  it('keeps default localhost URL wording outside corporate builds', () => {
+    const localhostEntry = getBrowserPaneSearchEntries({ isMac: true }).find(
+      (entry) => entry.title === 'Localhost Worktree Labels'
+    )
+
+    expect(localhostEntry?.description).toContain('Orca localhost URLs')
   })
 
   // Why: the toggle is off by default, so present-tense "opens one in Orca" would

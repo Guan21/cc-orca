@@ -1,4 +1,5 @@
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { translate } from '@/i18n/i18n'
 import { SearchableSetting } from './SearchableSetting'
 import { SettingsSwitchRow } from './SettingsFormControls'
@@ -18,7 +19,8 @@ export function BrowserLocalhostWorktreeLabelsSetting({
   )
   const description = translate(
     'auto.components.settings.BrowserLocalhostWorktreeLabelsSetting.1db3c8b983',
-    'Open workspace ports as worktree-specific Orca localhost URLs so browser tabs are easier to tell apart.'
+    'Open workspace ports as worktree-specific {{productName}} localhost URLs so browser tabs are easier to tell apart.',
+    { productName: getProductDisplayName() }
   )
 
   return (

@@ -6,6 +6,7 @@ import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 import { getGeneralProjectRuntimeSearchEntries } from './general-project-runtime-search'
 import { getGeneralSupportSearchEntries } from './general-support-search'
 import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export { getGeneralEditorSearchEntries } from './general-editor-search'
 export { getGeneralSupportSearchEntries } from './general-support-search'
@@ -155,44 +156,66 @@ export const getGeneralNavigationSearchEntries = createLocalizedCatalog(() => [
   }
 ])
 
-export const getGeneralCliSearchEntries = createLocalizedCatalog(() => [
-  {
-    title: translate('auto.components.settings.general.search.327e3fa70d', 'Orca CLI'),
-    description: translate(
-      'auto.components.settings.general.search.ca529079bf',
-      'Register or remove the Orca CLI command.'
-    ),
-    keywords: [
-      ...translateSearchKeyword('auto.components.settings.general.search.924a660a78', 'cli'),
-      ...translateSearchKeyword('auto.components.settings.general.search.fb4f338a3d', 'path'),
-      ...translateSearchKeyword('auto.components.settings.general.search.88d3df9ce9', 'terminal'),
-      ...translateSearchKeyword('auto.components.settings.general.search.dbeb1f348e', 'command'),
-      ...translateSearchKeyword(
-        'auto.components.settings.general.search.0a00691c06',
-        'shell command'
-      )
-    ],
-    cmdJKeywords: searchKeywords([
-      { key: 'auto.components.settings.general.search.924a660a78', fallback: 'cli' },
-      { key: 'auto.components.settings.general.search.fb4f338a3d', fallback: 'path' },
-      { key: 'auto.components.settings.general.search.dbeb1f348e', fallback: 'command' },
-      { key: 'auto.components.settings.general.search.0a00691c06', fallback: 'shell command' }
-    ]),
-    targetSectionId: 'cli'
-  },
-  {
-    title: translate('auto.components.settings.general.search.2d9f7b42df', 'Agent skill'),
-    description: translate(
-      'auto.components.settings.general.search.244e3fb4c8',
-      'Install the Orca skill so agents know to use the Orca CLI.'
-    ),
-    keywords: [
-      ...translateSearchKeyword('auto.components.settings.general.search.bda108e66c', 'skill'),
-      ...translateSearchKeyword('auto.components.settings.general.search.baa263d6d8', 'agents'),
-      ...translateSearchKeyword('auto.components.settings.general.search.6382fe9724', 'npx')
-    ]
-  }
-])
+export function getGeneralCliSearchEntries(): SettingsSearchEntry[] {
+  const productName = getProductDisplayName()
+  const defaultProduct = productName === 'Orca'
+  return [
+    {
+      title: defaultProduct
+        ? translate('auto.components.settings.general.search.327e3fa70d', 'Orca CLI')
+        : translate(
+            'auto.components.settings.general.search.cli.corporateTitle',
+            '{{productName}} CLI',
+            { productName }
+          ),
+      description: defaultProduct
+        ? translate(
+            'auto.components.settings.general.search.ca529079bf',
+            'Register or remove the Orca CLI command.'
+          )
+        : translate(
+            'auto.components.settings.general.search.cli.corporateDescription',
+            'Register or remove the `orca` command for {{productName}}.',
+            { productName }
+          ),
+      keywords: [
+        ...translateSearchKeyword('auto.components.settings.general.search.924a660a78', 'cli'),
+        ...translateSearchKeyword('auto.components.settings.general.search.fb4f338a3d', 'path'),
+        ...translateSearchKeyword('auto.components.settings.general.search.88d3df9ce9', 'terminal'),
+        ...translateSearchKeyword('auto.components.settings.general.search.dbeb1f348e', 'command'),
+        ...translateSearchKeyword(
+          'auto.components.settings.general.search.0a00691c06',
+          'shell command'
+        )
+      ],
+      cmdJKeywords: searchKeywords([
+        { key: 'auto.components.settings.general.search.924a660a78', fallback: 'cli' },
+        { key: 'auto.components.settings.general.search.fb4f338a3d', fallback: 'path' },
+        { key: 'auto.components.settings.general.search.dbeb1f348e', fallback: 'command' },
+        { key: 'auto.components.settings.general.search.0a00691c06', fallback: 'shell command' }
+      ]),
+      targetSectionId: 'cli'
+    },
+    {
+      title: translate('auto.components.settings.general.search.2d9f7b42df', 'Agent skill'),
+      description: defaultProduct
+        ? translate(
+            'auto.components.settings.general.search.244e3fb4c8',
+            'Install the Orca skill so agents know to use the Orca CLI.'
+          )
+        : translate(
+            'auto.components.settings.general.search.agentSkill.corporateDescription',
+            'Install the {{productName}} skill so agents know to use the `orca` command.',
+            { productName }
+          ),
+      keywords: [
+        ...translateSearchKeyword('auto.components.settings.general.search.bda108e66c', 'skill'),
+        ...translateSearchKeyword('auto.components.settings.general.search.baa263d6d8', 'agents'),
+        ...translateSearchKeyword('auto.components.settings.general.search.6382fe9724', 'npx')
+      ]
+    }
+  ]
+}
 
 export const getGeneralUpdateSearchEntries = createLocalizedCatalog(() => [
   {

@@ -16,6 +16,7 @@ import {
 import { Label } from '../ui/label'
 import { Switch } from '../ui/switch'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { translate } from '@/i18n/i18n'
 
 type WslCliRegistrationProps = {
@@ -71,6 +72,7 @@ export function WslCliRegistration({
   const isEnabled = status?.state === 'installed'
   const isSupported = status?.supported ?? false
   const commandName = status?.commandName ?? 'orca-ide'
+  const productDisplayName = getProductDisplayName()
 
   const handleInstall = async (): Promise<void> => {
     setBusyAction('install')
@@ -243,8 +245,8 @@ export function WslCliRegistration({
                   )
                 : translate(
                     'auto.components.settings.WslCliRegistration.7ee4e52b99',
-                    'Orca will register {{value0}} so the command works from WSL terminals.',
-                    { value0: status?.commandPath ?? commandName }
+                    '{{productName}} will register {{value0}} so the command works from WSL terminals.',
+                    { productName: productDisplayName, value0: status?.commandPath ?? commandName }
                   )}
             </DialogDescription>
           </DialogHeader>

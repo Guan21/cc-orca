@@ -15,6 +15,7 @@ import {
   getBrowserSshWorkspaceRoutingDescription,
   getBrowserSshWorkspaceRoutingTitle
 } from './browser-ssh-workspace-routing-copy'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export type BrowserShortcutPlatform = {
   isMac: boolean
@@ -198,7 +199,8 @@ export function getBrowserPaneSearchEntries(
       ),
       description: translate(
         'auto.components.settings.browser.search.4e0fdf0a3f',
-        'Open workspace ports as worktree-specific Orca localhost URLs so browser tabs are easier to tell apart.'
+        'Open workspace ports as worktree-specific {{productName}} localhost URLs so browser tabs are easier to tell apart.',
+        { productName: getProductDisplayName() }
       ),
       keywords: [
         ...translateSearchKeyword('auto.components.settings.browser.search.2d2d995c58', 'browser'),

@@ -12,6 +12,7 @@ import {
 } from './provider-account-visibility'
 import { formatAccountTimestamp, getClaudeAccountRuntimeLabel } from './accounts-pane-runtime'
 import type { AccountsPaneSectionModel } from './accounts-pane-types'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export function renderClaudeAccountsSection(model: AccountsPaneSectionModel): React.JSX.Element {
@@ -32,18 +33,21 @@ export function renderClaudeAccountsSection(model: AccountsPaneSectionModel): Re
     wslCapabilitiesLoading
   } = model
   const productDisplayName = getProductDisplayName()
+  const claudeProviderLabel = getOrcaBuildProfile() === 'corporate' ? 'Claude Code' : 'Claude'
   return (
     <section key="claude-accounts" id="accounts-claude" className="space-y-4 scroll-mt-6">
       <div className="space-y-1">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <ClaudeIcon size={16} />
-          {translate('auto.components.settings.AccountsPane.26ef4b55be', 'Claude')}
+          {claudeProviderLabel === 'Claude'
+            ? translate('auto.components.settings.AccountsPane.26ef4b55be', 'Claude')
+            : translate('auto.components.settings.AccountsPane.claudeCodeHeading', 'Claude Code')}
         </h3>
         <p className="text-xs text-muted-foreground">
           {translate(
             'auto.components.settings.AccountsPane.72b36ea174',
-            'Optional. {{value0}} can use your normal Claude login; add accounts only if you want quick switching without moving chat sessions.',
-            { value0: productDisplayName }
+            'Optional. {{value0}} can use your normal {{providerName}} login; add accounts only if you want quick switching without moving chat sessions.',
+            { providerName: claudeProviderLabel, value0: productDisplayName }
           )}
         </p>
       </div>

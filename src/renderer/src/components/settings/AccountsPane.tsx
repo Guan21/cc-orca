@@ -59,6 +59,7 @@ import {
 } from './accounts-pane-provider-setting-sections'
 import { renderMiniMaxAccountsSection } from './accounts-pane-minimax-section'
 import { renderAccountsRemovalDialogs } from './accounts-pane-removal-dialogs'
+import { isProviderSettingsSurfaceEnabledForBuildProfile } from './corporate-provider-surface-policy'
 
 export { getAccountsPaneSearchEntries }
 
@@ -360,22 +361,28 @@ export function AccountsPane({
     matchesSettingsSearch(searchQuery, getAccountsLocationSearchEntries())
       ? renderAccountsLocationSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsClaudeSearchEntries())
+    matchesSettingsSearch(searchQuery, getAccountsClaudeSearchEntries()) &&
+    isProviderSettingsSurfaceEnabledForBuildProfile('claude')
       ? renderClaudeAccountsSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsCodexSearchEntries())
+    matchesSettingsSearch(searchQuery, getAccountsCodexSearchEntries()) &&
+    isProviderSettingsSurfaceEnabledForBuildProfile('codex')
       ? renderCodexAccountsSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsGeminiSearchEntries())
+    matchesSettingsSearch(searchQuery, getAccountsGeminiSearchEntries()) &&
+    isProviderSettingsSurfaceEnabledForBuildProfile('gemini')
       ? renderGeminiAccountsSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsOpencodeSearchEntries())
+    matchesSettingsSearch(searchQuery, getAccountsOpencodeSearchEntries()) &&
+    isProviderSettingsSurfaceEnabledForBuildProfile('opencode-go')
       ? renderOpenCodeAccountsSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsMiniMaxSearchEntries())
+    matchesSettingsSearch(searchQuery, getAccountsMiniMaxSearchEntries()) &&
+    isProviderSettingsSurfaceEnabledForBuildProfile('minimax')
       ? renderMiniMaxAccountsSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsGrokSearchEntries()) ? (
+    matchesSettingsSearch(searchQuery, getAccountsGrokSearchEntries()) &&
+    isProviderSettingsSurfaceEnabledForBuildProfile('grok') ? (
       <GrokAccountsSection key="grok" />
     ) : null
   ].filter(Boolean)

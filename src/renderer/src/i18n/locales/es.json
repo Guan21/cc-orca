@@ -5335,9 +5335,7 @@
         "AccountsPane": {
           "c2d2751587": "Eliminar cuenta",
           "dbb9626ed1": "Cancelar",
-          "854ebbcc45": "Orca eliminará la autenticación de Claude gestionada para esta cuenta guardada. Si está activa actualmente, Orca volverá al login predeterminado de Claude del sistema.",
           "63843e37e2": "¿Eliminar la cuenta de Claude?",
-          "380a7736cc": "Eliminar esta cuenta borra permanentemente su home de Codex gestionado, incluido todo el historial de sesiones de Codex y los inicios de sesión de MCP almacenados dentro. Esto no se puede deshacer. Si la cuenta está activa, Orca vuelve al login predeterminado de Codex del sistema.",
           "0d47394635": "¿Eliminar cuenta de Codex?",
           "ae3b21eb6c": "opencode.ai/workspace/wrk__…/go",
           "51c9104e13": "Encuéntralo en la URL después de iniciar sesión en opencode.ai (p. ej.",
@@ -5795,7 +5793,6 @@
           "4c7e3e4c5f": "instalar",
           "068552b191": "Eliminando…",
           "8d96213669": "eliminar",
-          "aa6536977e": "Orca registrará {{value0}} para que el comando funcione desde tu terminal.",
           "a030816e3e": "Esto elimina el symlink del comando de shell. Orca permanece instalada.",
           "fa87db3d6e": "¿Registrar `{{value0}}` en PATH?",
           "14444243ba": "¿Eliminar `{{value0}}` de PATH?",
@@ -7629,7 +7626,6 @@
           "41a1480d3e": "instalar",
           "4598b18464": "Eliminando...",
           "7c3bb36706": "eliminar",
-          "7ee4e52b99": "Orca registrará {{value0}} para que el comando funcione desde terminales de WSL.",
           "d8216eb22e": "Esto elimina el comando de shell de WSL. Orca permanece instalada en Windows.",
           "e49688f67f": "¿Registrar `{{value0}}` en WSL?",
           "61ac55278e": "¿Eliminar `{{value0}}` de WSL?",
@@ -7673,7 +7669,6 @@
             "b40d5b6570": "Cambio de cuenta opcional para Codex y obtención de límites de uso en vivo.",
             "17c5d244eb": "Cuentas de Codex",
             "e14049e1a8": "claude",
-            "dd75a73991": "Cambio de cuenta opcional para Claude preservando el contexto de chat compartido.",
             "75682e1b62": "Cuentas de Claude",
             "e02c136ad0": "autenticación",
             "9f70aa706c": "proveedor",
@@ -8008,8 +8003,7 @@
             "291f480a5e": "hogar",
             "a942905148": "URL abierta al crear una nueva pestaña del navegador. Déjelo vacío para abrir una pestaña en blanco.",
             "c3903322d2": "Página de inicio predeterminada",
-            "19ea5607cf": "Etiquetas de localhost para worktrees",
-            "4e0fdf0a3f": "Abre los puertos del workspace como URL localhost de Orca específicas del worktree para que las pestañas del navegador sean más fáciles de distinguir."
+            "19ea5607cf": "Etiquetas de localhost para worktrees"
           },
           "use": {
             "search": {
@@ -9260,7 +9254,6 @@
                 "options": {
                   "commitMessage": "Genera el mensaje de commit a partir de cambios staged.",
                   "pullRequest": "Genera el título y la descripción de la review alojada.",
-                  "branchName": "Renombra ramas creadas por Orca a partir de la tarea inicial del agente.",
                   "fixCommitFailure": "Inicia un agente cuando falla un hook de commit o un git commit.",
                   "fixChecks": "Inicia un agente a partir de checks fallidos de una review alojada.",
                   "resolveConflicts": "Inicia un agente para conflictos de merge locales o de una review alojada.",
@@ -9395,8 +9388,6 @@
                 "cards": {
                   "793a06e899": "Volver a comprobar",
                   "1a9475dace": "Más información",
-                  "19fb419c12": "Las credenciales de Gitea están configuradas, pero no se pudo autenticar. Comprueba el token, la URL base de la API y los permisos del repositorio; después reinicia Orca si cambiaron las variables de entorno.",
-                  "60708f23da": "solo cuando Orca no pueda derivar la URL de la API desde el remote.",
                   "709057ad91": "ORCA_GITEA_API_BASE_URL",
                   "6da9dfa5de": "para repositorios privados, y configura",
                   "6d5c2a3005": "ORCA_GITEA_TOKEN",
@@ -9405,8 +9396,6 @@
                   "05863d2599": "Pull requests y estados de commit mediante la API REST de Gitea.",
                   "52f75876be": "Pull requests y estados de commit para los repositorios detectados",
                   "0b5242f8a2": "{{value0}} · Pull requests y estados de commit",
-                  "40f678df73": "Las credenciales de Azure DevOps están configuradas, pero no se pudo autenticar. Comprueba el token, la URL base de la API y los permisos del repositorio; después reinicia Orca si cambiaron las variables de entorno.",
-                  "7bd345e3f6": "solo cuando Orca no pueda derivar la URL base de la API desde el remote de git.",
                   "186a6689df": "ORCA_AZURE_DEVOPS_API_BASE_URL",
                   "b8a10b07c1": ". Configura",
                   "fbfd237f5e": "ORCA_AZURE_DEVOPS_ACCESS_TOKEN",
@@ -9417,7 +9406,6 @@
                   "0eb50d5593": "Pull requests y estados de build mediante tokens de la API REST de Azure DevOps.",
                   "54636c65d4": "Pull requests y estados de build para Azure Repos detectados",
                   "ea204f5e03": "{{value0}} · Pull requests y estados de build",
-                  "6154b02093": "Las credenciales de Bitbucket están configuradas, pero no se pudo autenticar. Comprueba el token y los permisos del repositorio; después reinicia Orca si cambiaron las variables de entorno.",
                   "e63fe8f627": "ORCA_BITBUCKET_ACCESS_TOKEN",
                   "19416c874c": "ORCA_BITBUCKET_API_TOKEN",
                   "fc71a0e7aa": "y",
@@ -9580,8 +9568,7 @@
           "2a9588b1c2": "Eliminar esta combinación"
         },
         "BrowserLocalhostWorktreeLabelsSetting": {
-          "8ac8c3ad19": "Etiquetas de worktree para localhost",
-          "1db3c8b983": "Abre los puertos del workspace como URLs localhost de Orca específicas por worktree para que las pestañas del navegador sean más fáciles de distinguir."
+          "8ac8c3ad19": "Etiquetas de worktree para localhost"
         },
         "AgentRuntimeSetting": {
           "label": "Runtime de agentes",
@@ -10638,7 +10625,6 @@
             "fe5bd1a610": "Creando {{value0}}...",
             "812cb992ee": "Abrir en {{value0}}",
             "eef5446523": "{{value0}} #{{value1}} ya está abierto",
-            "0453ca3a9a": "{{value0}} creado, pero Orca no pudo actualizarlo todavía.",
             "f99560ab29": "No se pudo abortar {{value0}}",
             "eae7a1da5f": "No se pudieron borrar las notas.",
             "657e0c90ad": "{{value0}} nota{{value1}}",
@@ -10790,7 +10776,6 @@
           "SourceControlAgentActionDialogForm": {
             "013c9ac04a": "Guardar para",
             "1bb611240f": "Usa {basePrompt} para el prompt predeterminado de Orca.",
-            "23280cbab1": "Esta plantilla no incluye {basePrompt}, por lo que el agente no recibirá el prompt predeterminado de Orca.",
             "5421a96acb": "Guardar e iniciar agente",
             "6cefcdfba1": "Puedes cambiarlo más tarde en la configuración de IA de Source Control.",
             "c29f9cf266": "Guardar este prompt y no mostrar esta revisión la próxima vez",
@@ -10809,7 +10794,6 @@
             "c7ff8cef11": "Detectando agentes...",
             "b0da3a4d3e": "La receta de lanzamiento ya está guardada",
             "bff4795a6d": "Cambia el agente, los argumentos o la plantilla del prompt para actualizar la receta guardada.",
-            "5c75b24735": "Personaliza lo que recibe el agente antes de que Orca lo inicie.",
             "repoAgentOverrideNote": "Este repositorio anula tu valor predeterminado global ({{global}}) y actualmente ejecuta {{effective}}. Guarda en este repositorio para cambiar lo que se ejecuta aquí."
           },
           "SourceControlTextGenerationDialog": {
@@ -10954,35 +10938,24 @@
                 }
               },
               "review": {
-                "detail": {
-                  "positive": "Orca también tiene información de {{reviewLabel}} guardada que no pudo verificar.",
-                  "rate_limited": "Orca también no pudo verificar el estado de {{reviewLabel}} porque {{provider}} está limitando temporalmente las solicitudes.",
-                  "network": "Orca también no pudo verificar el estado de {{reviewLabel}} porque este entorno no pudo conectar con {{provider}}.",
-                  "untyped": "Orca también no pudo confirmar si esta rama ya tiene un {{reviewLabel}}."
-                },
                 "positive": {
-                  "title": "Detalles de {{reviewLabelCap}} no disponibles",
-                  "body": "Orca ha guardado información de {{reviewLabel}} para esta rama pero no pudo confirmar su estado actual."
+                  "title": "Detalles de {{reviewLabelCap}} no disponibles"
                 },
                 "no_review": {
                   "title": "No se encontró ningún {{reviewLabel}}",
                   "body": "Crea un {{reviewLabel}} para iniciar las verificaciones y la revisión."
                 },
                 "active": {
-                  "title": "Verificando estado de {{reviewLabel}}",
-                  "body": "Orca está verificando {{provider}} para un {{reviewLabel}} en esta rama."
+                  "title": "Verificando estado de {{reviewLabel}}"
                 },
                 "git_loading": {
-                  "title": "Verificando estado de la rama",
-                  "body": "Orca está verificando esta rama antes de mostrar las acciones de creación o publicación."
+                  "title": "Verificando estado de la rama"
                 },
                 "git_error": {
-                  "title": "No se pudo verificar el estado de la rama",
-                  "body": "Orca no pudo confirmar el upstream de esta rama desde este entorno. Reintenta antes de publicar o crear un {{reviewLabel}}."
+                  "title": "No se pudo verificar el estado de la rama"
                 },
                 "unknown": {
-                  "title": "Estado de {{reviewLabelCap}} no disponible",
-                  "body": "Orca no ha confirmado el estado de {{reviewLabel}} para esta rama. Reintenta para verificar de nuevo."
+                  "title": "Estado de {{reviewLabelCap}} no disponible"
                 },
                 "paused": {
                   "title": "Actualización de {{provider}} pausada",
@@ -10993,12 +10966,10 @@
                   "body": "Este entorno no pudo conectar con {{provider}}. Verifica su conexión y reintenta."
                 },
                 "unknown_error": {
-                  "title": "No se pudo verificar el estado de {{reviewLabel}}",
-                  "body": "La búsqueda falló, por lo que Orca no pudo confirmar si esta rama ya tiene un {{reviewLabel}}."
+                  "title": "No se pudo verificar el estado de {{reviewLabel}}"
                 },
                 "untyped": {
-                  "title": "Estado de {{reviewLabelCap}} no disponible",
-                  "body": "Orca no pudo confirmar si esta rama ya tiene un {{reviewLabel}}. Reintenta para verificar de nuevo."
+                  "title": "Estado de {{reviewLabelCap}} no disponible"
                 },
                 "auth": {
                   "title": "Autenticación de {{provider}} fallida",
@@ -11055,8 +11026,7 @@
                   "body": "Envía los últimos commits antes de crear un {{reviewLabel}}."
                 },
                 "existing": {
-                  "title": "{{reviewLabelCap}} ya existe",
-                  "body": "Orca encontró un {{reviewLabel}} existente para esta rama."
+                  "title": "{{reviewLabelCap}} ya existe"
                 },
                 "detached": {
                   "title": "Sin rama actual",

@@ -572,6 +572,45 @@ describe('AppearancePane', () => {
     expect(mocks.state.toggleStatusBarItem).toHaveBeenCalledWith('minimax')
   })
 
+  it('does not expose unsupported provider status bar controls in corporate builds', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    mocks.state.availableStatusBarToggles = [
+      {
+        id: 'claude',
+        title: 'Claude Usage',
+        description: 'Show Claude token and cost usage in the status bar.',
+        toggleDescription: 'Show Claude token and cost usage for the active workspace.',
+        keywords: ['status bar', 'claude', 'usage']
+      },
+      {
+        id: 'codex',
+        title: 'Codex Usage',
+        description: 'Show Codex token and cost usage in the status bar.',
+        toggleDescription: 'Show Codex token and cost usage for the active workspace.',
+        keywords: ['status bar', 'codex', 'usage']
+      },
+      {
+        id: 'minimax',
+        title: 'MiniMax Usage',
+        description: 'Show MiniMax subscription usage in the status bar.',
+        toggleDescription: 'Show MiniMax subscription usage for the active workspace.',
+        keywords: ['status bar', 'minimax', 'usage']
+      }
+    ]
+    mocks.state.settingsSearchQuery = 'usage'
+
+    const container = await renderAppearancePane(getDefaultSettings('/tmp'))
+
+    expect(
+      container.querySelector('button[role="switch"][aria-label="Claude Usage"]')
+    ).not.toBeNull()
+    expect(
+      container.querySelector('button[role="switch"][aria-label="Codex Usage"]')
+    ).not.toBeNull()
+    expect(container.querySelector('button[role="switch"][aria-label="MiniMax Usage"]')).toBeNull()
+    expect(container.textContent).not.toContain('MiniMax Usage')
+  })
+
   it('records Antigravity status bar toggles as usage tracking interactions', async () => {
     mocks.state.availableStatusBarToggles = [
       {

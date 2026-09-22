@@ -5368,9 +5368,7 @@
         "AccountsPane": {
           "c2d2751587": "删除账户",
           "dbb9626ed1": "取消",
-          "854ebbcc45": "Orca 将删除此已保存账户的托管 Claude 身份验证。如果当前处于活动状态，Orca 将回退到系统默认的 Claude 登录名。",
           "63843e37e2": "删除 Claude 账户？",
-          "380a7736cc": "移除此账户会永久删除其托管的 Codex 主目录，包括其中存储的所有 Codex 会话历史记录和 MCP 登录信息。此操作无法撤销。如果该账户当前处于活动状态，Orca 将回退到系统默认的 Codex 登录。",
           "0d47394635": "删除 Codex 账户？",
           "ae3b21eb6c": "opencode.ai/workspace/wrk_…/go",
           "51c9104e13": "登录 opencode.ai 后在 URL 中找到此内容（例如",
@@ -5846,7 +5844,6 @@
           "4c7e3e4c5f": "安装",
           "068552b191": "正在删除...",
           "8d96213669": "移除",
-          "aa6536977e": "Orca 将注册 {{value0}} ，以便该命令在您的终端上运行。",
           "a030816e3e": "这将删除 shell 命令符号链接。 Orca 本身仍保持安装状态。",
           "fa87db3d6e": "在路径中注册`{{value0}}`？",
           "14444243ba": "从路径中删除`{{value0}}`？",
@@ -7680,7 +7677,6 @@
           "41a1480d3e": "安装",
           "4598b18464": "正在删除...",
           "7c3bb36706": "移除",
-          "7ee4e52b99": "Orca 将注册 {{value0}} ，以便该命令在 WSL 终端上运行。",
           "d8216eb22e": "这会删除 WSL shell 命令。 Orca 本身仍安装在 Windows 上。",
           "e49688f67f": "在 WSL 中注册 `{{value0}}`？",
           "61ac55278e": "从 WSL 中删除“{{value0}}”？",
@@ -7724,7 +7720,6 @@
             "b40d5b6570": "Codex 和实时速率限制提取的可选账户切换。",
             "17c5d244eb": "Codex 账户",
             "e14049e1a8": "claude",
-            "dd75a73991": "Claude 的可选账户切换，同时保留共享聊天上下文。",
             "75682e1b62": "Claude 账户",
             "e02c136ad0": "授权",
             "9f70aa706c": "提供者",
@@ -8063,8 +8058,7 @@
             "291f480a5e": "家",
             "a942905148": "创建新浏览器选项卡时打开的 URL。留空以打开空白选项卡。",
             "c3903322d2": "默认主页",
-            "19ea5607cf": "本地主机工作区标签",
-            "4e0fdf0a3f": "将工作区端口打开为特定于工作区的 Orca localhost URL，便于区分浏览器标签页。"
+            "19ea5607cf": "本地主机工作区标签"
           },
           "use": {
             "search": {
@@ -9315,7 +9309,6 @@
                 "options": {
                   "commitMessage": "根据已暂存的更改生成提交信息。",
                   "pullRequest": "生成托管评论标题和描述。",
-                  "branchName": "重命名 Orca 从初始智能体任务创建的分支。",
                   "fixCommitFailure": "当 commit 挂钩或 git commit 失败时启动智能体。",
                   "fixChecks": "从失败的托管评审检查中启动智能体。",
                   "resolveConflicts": "启动用于解决本地或托管评审合并冲突的智能体。",
@@ -9465,8 +9458,6 @@
                 "cards": {
                   "793a06e899": "重新检查",
                   "1a9475dace": "了解更多",
-                  "19fb419c12": "Gitea 凭据已配置但无法通过身份验证。请检查 token、API 基础 URL 和仓库权限；如果环境变量已更改，请重启 Orca。",
-                  "60708f23da": "仅当 Orca 无法从 remote 推导出 API URL 时。",
                   "709057ad91": "ORCA_GITEA_API_BASE_URL",
                   "6da9dfa5de": "用于私有仓库，并设置",
                   "6d5c2a3005": "ORCA_GITEA_TOKEN",
@@ -9475,8 +9466,6 @@
                   "05863d2599": "通过 Gitea REST API 获取 pull request 和 commit 状态。",
                   "52f75876be": "已检测仓库的 pull request 和 commit 状态",
                   "0b5242f8a2": "{{value0}} · 拉取请求和提交状态",
-                  "40f678df73": "Azure DevOps 凭据已配置但无法通过身份验证。请检查 token、API 基础 URL 和仓库权限；如果环境变量已更改，请重启 Orca。",
-                  "7bd345e3f6": "仅当 Orca 无法从 git remote 推导出 API 基础 URL 时。",
                   "186a6689df": "ORCA_AZURE_DEVOPS_API_BASE_URL",
                   "b8a10b07c1": "。设置",
                   "fbfd237f5e": "ORCA_AZURE_DEVOPS_ACCESS_TOKEN",
@@ -9487,7 +9476,6 @@
                   "0eb50d5593": "通过 Azure DevOps REST API token 获取 pull request 和构建状态。",
                   "54636c65d4": "已检测 Azure Repos 的 pull request 和构建状态",
                   "ea204f5e03": "{{value0}} · 拉取请求和构建状态",
-                  "6154b02093": "Bitbucket 凭据已配置但无法通过身份验证。请检查 token 和仓库权限；如果环境变量已更改，请重启 Orca。",
                   "e63fe8f627": "ORCA_BITBUCKET_ACCESS_TOKEN",
                   "19416c874c": "ORCA_BITBUCKET_API_TOKEN",
                   "fc71a0e7aa": "和",
@@ -9650,8 +9638,7 @@
           "2a9588b1c2": "移除此绑定"
         },
         "BrowserLocalhostWorktreeLabelsSetting": {
-          "8ac8c3ad19": "本地主机工作区标签",
-          "1db3c8b983": "将工作区端口打开为特定于工作区的 Orca localhost URL，便于区分浏览器标签页。"
+          "8ac8c3ad19": "本地主机工作区标签"
         },
         "AgentRuntimeSetting": {
           "label": "智能体运行时",
@@ -10716,7 +10703,6 @@
             "fe5bd1a610": "创建 {{value0}}...",
             "812cb992ee": "打开于 {{value0}}",
             "eef5446523": "{{value0}} #{{value1}} 已开放",
-            "0453ca3a9a": "{{value0}} 已创建，但 Orca 尚无法刷新它。",
             "f99560ab29": "中止 {{value0}} 失败",
             "eae7a1da5f": "无法清除笔记。",
             "657e0c90ad": "{{value0}} 注{{value1}}",
@@ -10879,7 +10865,6 @@
             "c7ff8cef11": "检测剂...",
             "013c9ac04a": "保存范围",
             "1bb611240f": "使用 {basePrompt} 作为 Orca 的默认提示词。",
-            "23280cbab1": "此模板不包含 {basePrompt}，因此智能体不会收到 Orca 的默认提示词。",
             "5421a96acb": "保存并启动智能体",
             "6cefcdfba1": "稍后可以在源代码管理 AI 设置中更改。",
             "c29f9cf266": "保存此提示，下次不再显示此评审",
@@ -10887,7 +10872,6 @@
             "ea4788705e": "取消",
             "b0da3a4d3e": "启动预设已保存",
             "bff4795a6d": "更改智能体、参数或提示词模板以更新已保存的预设。",
-            "5c75b24735": "自定义 Orca 启动智能体前发送给它的内容。",
             "repoAgentOverrideNote": "此仓库会覆盖你的全局默认值（{{global}}），当前运行 {{effective}}。保存到此仓库以更改这里运行的内容。"
           },
           "SourceControlTextGenerationDialog": {
@@ -11032,35 +11016,24 @@
                 }
               },
               "review": {
-                "detail": {
-                  "positive": "Orca 也有已保存的 {{reviewLabel}} 信息但无法验证。",
-                  "rate_limited": "Orca 无法检查 {{reviewLabel}} 状态，因为 {{provider}} 正在临时限制请求。",
-                  "network": "Orca 无法检查 {{reviewLabel}} 状态，因为当前环境无法连接到 {{provider}}。",
-                  "untyped": "Orca 无法确认此分支是否已有 {{reviewLabel}}。"
-                },
                 "positive": {
-                  "title": "{{reviewLabelCap}} 详细信息不可用",
-                  "body": "Orca 已为此分支保存了 {{reviewLabel}} 信息，但无法确认其当前状态。"
+                  "title": "{{reviewLabelCap}} 详细信息不可用"
                 },
                 "no_review": {
                   "title": "未找到 {{reviewLabel}}",
                   "body": "创建 {{reviewLabel}} 以开始检查和评审。"
                 },
                 "active": {
-                  "title": "正在检查 {{reviewLabel}} 状态",
-                  "body": "Orca 正在检查 {{provider}} 上此分支的 {{reviewLabel}}。"
+                  "title": "正在检查 {{reviewLabel}} 状态"
                 },
                 "git_loading": {
-                  "title": "正在检查分支状态",
-                  "body": "Orca 正在检查此分支，然后显示创建或发布操作。"
+                  "title": "正在检查分支状态"
                 },
                 "git_error": {
-                  "title": "无法检查分支状态",
-                  "body": "Orca 无法从当前环境确认此分支的上游。请在发布或创建 {{reviewLabel}} 之前重试。"
+                  "title": "无法检查分支状态"
                 },
                 "unknown": {
-                  "title": "{{reviewLabelCap}} 状态不可用",
-                  "body": "Orca 尚未确认此分支的 {{reviewLabel}} 状态。请重试以再次检查。"
+                  "title": "{{reviewLabelCap}} 状态不可用"
                 },
                 "paused": {
                   "title": "{{provider}} 刷新已暂停",
@@ -11071,12 +11044,10 @@
                   "body": "当前环境无法连接到 {{provider}}。请检查连接后重试。"
                 },
                 "unknown_error": {
-                  "title": "无法检查 {{reviewLabel}} 状态",
-                  "body": "查询失败，Orca 无法确认此分支是否已有 {{reviewLabel}}。"
+                  "title": "无法检查 {{reviewLabel}} 状态"
                 },
                 "untyped": {
-                  "title": "{{reviewLabelCap}} 状态不可用",
-                  "body": "Orca 无法确认此分支是否已有 {{reviewLabel}}。请重试以再次检查。"
+                  "title": "{{reviewLabelCap}} 状态不可用"
                 },
                 "auth": {
                   "title": "{{provider}} 身份验证失败",
@@ -11133,8 +11104,7 @@
                   "body": "请在创建 {{reviewLabel}} 之前推送最新提交。"
                 },
                 "existing": {
-                  "title": "{{reviewLabelCap}} 已存在",
-                  "body": "Orca 找到了此分支的现有 {{reviewLabel}}。"
+                  "title": "{{reviewLabelCap}} 已存在"
                 },
                 "detached": {
                   "title": "没有当前分支",

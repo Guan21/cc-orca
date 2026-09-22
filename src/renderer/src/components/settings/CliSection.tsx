@@ -36,6 +36,7 @@ import { WslCliRegistration } from './WslCliRegistration'
 import { useCliRegistrationActions } from './use-cli-registration-actions'
 import { useLocalCliSkillFreshnessName } from './use-local-cli-skill-freshness-name'
 import { translate } from '@/i18n/i18n'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 type CliSectionProps = {
   currentPlatform: string
@@ -176,18 +177,34 @@ export function CliSection({
   const revealLabel = getRevealLabel(currentPlatform)
   const canRevealCommandPath =
     status?.commandPath != null && ['installed', 'stale', 'conflict'].includes(status.state)
+  const productDisplayName = getProductDisplayName()
+  const isDefaultProductName = productDisplayName === 'Orca'
 
   return (
     <section className="space-y-4" data-settings-section="cli">
       <div className="space-y-1">
         <h2 className="text-sm font-semibold">
-          {translate('auto.components.settings.CliSection.c5c0f2641d', 'Orca CLI')}
+          {isDefaultProductName
+            ? translate('auto.components.settings.CliSection.c5c0f2641d', 'Orca CLI')
+            : translate(
+                'auto.components.settings.CliSection.corporateTitle',
+                '{{productName}} CLI',
+                {
+                  productName: productDisplayName
+                }
+              )}
         </h2>
         <p className="text-xs text-muted-foreground">
-          {translate(
-            'auto.components.settings.CliSection.6930feda9e',
-            'Use Orca from your terminal to open the app, manage worktrees, and interact with Orca terminals.'
-          )}
+          {isDefaultProductName
+            ? translate(
+                'auto.components.settings.CliSection.6930feda9e',
+                'Use Orca from your terminal to open the app, manage worktrees, and interact with Orca terminals.'
+              )
+            : translate(
+                'auto.components.settings.CliSection.corporateDescription',
+                'Use the `orca` command from your terminal to open {{productName}}, manage worktrees, and interact with {{productName}} terminals.',
+                { productName: productDisplayName }
+              )}
         </p>
       </div>
 
@@ -325,10 +342,16 @@ export function CliSection({
                 {translate('auto.components.settings.CliSection.04873eea3e', 'Agent skills')}
               </Label>
               <p className="text-xs text-muted-foreground">
-                {translate(
-                  'auto.components.settings.CliSection.36a6f919ba',
-                  'Give agents Orca-aware workspace, terminal, and progress workflows.'
-                )}
+                {isDefaultProductName
+                  ? translate(
+                      'auto.components.settings.CliSection.36a6f919ba',
+                      'Give agents Orca-aware workspace, terminal, and progress workflows.'
+                    )
+                  : translate(
+                      'auto.components.settings.CliSection.agentSkillsCorporateDescription',
+                      'Give agents {{productName}}-aware workspace, terminal, and progress workflows.',
+                      { productName: productDisplayName }
+                    )}
               </p>
             </div>
 
@@ -337,8 +360,13 @@ export function CliSection({
               variant="inline"
               title={translate('auto.components.settings.CliSection.6053cf736c', 'CLI skill')}
               description={translate(
-                'auto.components.settings.CliSection.e8012c03a1',
-                'Enables agents to use Orca workspace, terminal, and progress commands.'
+                isDefaultProductName
+                  ? 'auto.components.settings.CliSection.e8012c03a1'
+                  : 'auto.components.settings.CliSection.cliSkillCorporateDescription',
+                isDefaultProductName
+                  ? 'Enables agents to use Orca workspace, terminal, and progress commands.'
+                  : 'Enables agents to use {{productName}} workspace, terminal, and progress commands.',
+                { productName: productDisplayName }
               )}
               command={cliSkillInstallCommand}
               installedCommand={cliSkillUpdateCommand}

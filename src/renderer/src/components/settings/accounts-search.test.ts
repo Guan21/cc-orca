@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/i18n/i18n', () => ({
   translate: (_key: string, fallback: string) => fallback
@@ -16,6 +16,10 @@ vi.mock('./settings-search-keywords', () => ({
 }))
 
 import { getAccountsMiniMaxSearchEntries, getAccountsPaneSearchEntries } from './accounts-search'
+
+afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
+})
 
 describe('getAccountsMiniMaxSearchEntries', () => {
   it('returns a single entry that targets the MiniMax session cookie flow', () => {
@@ -39,6 +43,30 @@ describe('getAccountsMiniMaxSearchEntries', () => {
   it('is included in the rolled-up pane search entries', () => {
     const allEntries = getAccountsPaneSearchEntries()
     const titles = allEntries.map((entry) => entry.title)
+    expect(titles).toContain('MiniMax Usage')
+  })
+})
+
+describe('getAccountsPaneSearchEntries corporate filtering', () => {
+  it('keeps Claude and Codex account search entries while hiding unsupported providers', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const titles = getAccountsPaneSearchEntries().map((entry) => entry.title)
+
+    expect(titles).toContain('Claude Code Accounts')
+    expect(titles).toContain('Codex Accounts')
+    expect(titles).not.toContain('Use Gemini CLI credentials')
+    expect(titles).not.toContain('OpenCode Go Session Cookie')
+    expect(titles).not.toContain('OpenCode Go Workspace ID')
+    expect(titles).not.toContain('MiniMax Usage')
+  })
+
+  it('keeps the default account provider catalog unchanged', () => {
+    const titles = getAccountsPaneSearchEntries().map((entry) => entry.title)
+
+    expect(titles).toContain('Use Gemini CLI credentials')
+    expect(titles).toContain('OpenCode Go Session Cookie')
+    expect(titles).toContain('OpenCode Go Workspace ID')
     expect(titles).toContain('MiniMax Usage')
   })
 })

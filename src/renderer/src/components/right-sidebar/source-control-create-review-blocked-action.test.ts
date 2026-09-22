@@ -1,10 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import {
   canClickBlockedCreateReviewReason,
   resolveBlockedCreateReviewNoticeMessage,
   resolveUnavailableCreateReviewLookupNoticeMessage
 } from './source-control-create-review-blocked-action'
 import type { HostedReviewCreationEligibility } from '../../../../shared/hosted-review'
+
+afterEach(() => {
+  delete globalThis.__ORCA_BUILD_PROFILE__
+})
 
 function eligibility(
   overrides: Partial<HostedReviewCreationEligibility> = {}
@@ -105,6 +109,14 @@ describe('source-control-create-review-blocked-action', () => {
       )
     ).toBe(
       'Create MR failed: Orca could not confirm whether this branch already has a merge request. Retry once the GitLab lookup succeeds.'
+    )
+  })
+
+  it('uses corporate product wording for unavailable review lookup authority', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    expect(resolveUnavailableCreateReviewLookupNoticeMessage('gitlab')).toBe(
+      'Create MR failed: Secure Orca Lite could not confirm whether this branch already has a merge request. Retry once the GitLab lookup succeeds.'
     )
   })
 

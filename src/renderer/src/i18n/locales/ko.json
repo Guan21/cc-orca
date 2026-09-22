@@ -5325,9 +5325,7 @@
         "AccountsPane": {
           "c2d2751587": "계정 삭제",
           "dbb9626ed1": "취소",
-          "854ebbcc45": "Orca는 저장된 계정에 대해 관리되는 Claude 인증을 삭제합니다. 현재 활성화된 경우 Orca는 시스템 기본 Claude 로그인으로 대체됩니다.",
           "63843e37e2": "Claude 계정을 삭제하시겠습니까?",
-          "380a7736cc": "이 계정을 제거하면 관리되는 Codex 홈과 그 안에 저장된 모든 Codex 세션 기록 및 MCP 로그인이 영구적으로 삭제됩니다. 이 작업은 실행 취소할 수 없습니다. 계정이 현재 활성 상태인 경우 Orca는 시스템 기본 Codex 로그인으로 전환됩니다.",
           "0d47394635": "Codex 계정을 제거하시겠습니까?",
           "ae3b21eb6c": "opencode.ai/workspace/wrk_…/go",
           "51c9104e13": "opencode.ai에 로그인한 후 URL에서 이를 찾으세요(예:",
@@ -5786,7 +5784,6 @@
           "4c7e3e4c5f": "설치",
           "068552b191": "제거 중…",
           "8d96213669": "제거",
-          "aa6536977e": "Orca는 {{value0}}을 등록하므로 명령이 terminal에서 작동합니다.",
           "a030816e3e": "그러면 쉘 명령 심볼릭 링크가 제거됩니다. Orca 자체는 설치된 상태로 유지됩니다.",
           "fa87db3d6e": "PATH에 `{{value0}}`을 등록하시겠습니까?",
           "14444243ba": "PATH에서 `{{value0}}`을(를) 제거하시겠습니까?",
@@ -7620,7 +7617,6 @@
           "41a1480d3e": "설치",
           "4598b18464": "제거 중...",
           "7c3bb36706": "제거",
-          "7ee4e52b99": "Orca는 명령이 WSL terminals에서 작동하도록 {{value0}}을(를) 등록합니다.",
           "d8216eb22e": "이렇게 하면 WSL 셸 명령이 제거됩니다. Orca 자체는 Windows에 설치된 상태로 유지됩니다.",
           "e49688f67f": "WSL에 `{{value0}}`을(를) 등록하시겠습니까?",
           "61ac55278e": "WSL에서 `{{value0}}`을(를) 제거하시겠습니까?",
@@ -7664,7 +7660,6 @@
             "b40d5b6570": "Codex 및 실시간 속도 제한 가져오기를 위한 선택적 계정 전환.",
             "17c5d244eb": "Codex 계정",
             "e14049e1a8": "claude",
-            "dd75a73991": "공유 채팅 컨텍스트를 유지하면서 Claude의 선택적 계정 전환.",
             "75682e1b62": "Claude 계정",
             "e02c136ad0": "인증",
             "9f70aa706c": "공급자",
@@ -7999,8 +7994,7 @@
             "291f480a5e": "홈",
             "a942905148": "새 브라우저 탭을 만들 때 열리는 URL입니다. 빈 탭을 열려면 비워 두세요.",
             "c3903322d2": "기본 홈 페이지",
-            "19ea5607cf": "로컬호스트 작업 트리 레이블",
-            "4e0fdf0a3f": "브라우저 탭을 더 쉽게 구분할 수 있도록 작업 트리별 Orca 로컬 호스트 URL로 워크스페이스 포트를 엽니다."
+            "19ea5607cf": "로컬호스트 작업 트리 레이블"
           },
           "use": {
             "search": {
@@ -9251,7 +9245,6 @@
                 "options": {
                   "commitMessage": "스테이징된 변경 사항에서 commit 메시지를 생성합니다.",
                   "pullRequest": "호스팅된 리뷰 제목 및 설명을 생성합니다.",
-                  "branchName": "초기 agent 작업에서 Orca가 생성한 브랜치의 이름을 바꿉니다.",
                   "fixCommitFailure": "commit 후크 또는 git commit이 실패하면 agent를 시작합니다.",
                   "fixChecks": "실패한 호스팅 PR 체크에서 agent를 시작합니다.",
                   "resolveConflicts": "로컬 또는 호스팅 PR 병합 충돌에 대한 agent를 시작합니다.",
@@ -9401,8 +9394,6 @@
                 "cards": {
                   "793a06e899": "다시 확인",
                   "1a9475dace": "자세히 알아보기",
-                  "19fb419c12": "Gitea 자격 증명이 구성되어 있지만 인증할 수 없습니다. 토큰, API 기본 URL, repos 권한을 확인하고, 환경 변수가 변경되었다면 Orca를 다시 시작하세요.",
-                  "60708f23da": "Orca가 원격에서 API URL을 추론할 수 없는 경우에만 사용하세요.",
                   "709057ad91": "ORCA_GITEA_API_BASE_URL",
                   "6da9dfa5de": "비공개 repos의 경우, 그리고",
                   "6d5c2a3005": "ORCA_GITEA_TOKEN",
@@ -9411,8 +9402,6 @@
                   "05863d2599": "Gitea REST API를 통한 PR 및 commit 상태입니다.",
                   "52f75876be": "감지된 repos의 PR 및 commit 상태",
                   "0b5242f8a2": "{{value0}} · PR 및 commit 상태",
-                  "40f678df73": "Azure DevOps 자격 증명이 구성되어 있지만 인증할 수 없습니다. 토큰, API 기본 URL, repos 권한을 확인하고, 환경 변수가 변경되었다면 Orca를 다시 시작하세요.",
-                  "7bd345e3f6": "Orca가 Git 원격에서 API 기본 URL을 추론할 수 없는 경우에만 사용하세요.",
                   "186a6689df": "ORCA_AZURE_DEVOPS_API_BASE_URL",
                   "b8a10b07c1": ". 설정하세요",
                   "fbfd237f5e": "ORCA_AZURE_DEVOPS_ACCESS_TOKEN",
@@ -9423,7 +9412,6 @@
                   "0eb50d5593": "Azure DevOps REST API 토큰을 통한 PR 및 빌드 상태입니다.",
                   "54636c65d4": "감지된 Azure Repos의 PR 및 빌드 상태",
                   "ea204f5e03": "{{value0}} · PR 및 빌드 상태",
-                  "6154b02093": "Bitbucket 자격 증명이 구성되어 있지만 인증할 수 없습니다. 토큰과 repos 권한을 확인하고, 환경 변수가 변경되었다면 Orca를 다시 시작하세요.",
                   "e63fe8f627": "ORCA_BITBUCKET_ACCESS_TOKEN",
                   "19416c874c": "ORCA_BITBUCKET_API_TOKEN",
                   "fc71a0e7aa": "및",
@@ -9586,8 +9574,7 @@
           "2a9588b1c2": "이 바인딩 제거"
         },
         "BrowserLocalhostWorktreeLabelsSetting": {
-          "8ac8c3ad19": "로컬호스트 작업 트리 레이블",
-          "1db3c8b983": "브라우저 탭을 더 쉽게 구분할 수 있도록 작업 트리별 Orca 로컬 호스트 URL로 워크스페이스 포트를 엽니다."
+          "8ac8c3ad19": "로컬호스트 작업 트리 레이블"
         },
         "AgentRuntimeSetting": {
           "label": "Agent 런타임",
@@ -10682,7 +10669,6 @@
             "fe5bd1a610": "{{value0}} 생성 중...",
             "812cb992ee": "{{value0}}에서 열기",
             "eef5446523": "{{value0}} #{{value1}}은(는) 이미 열려 있습니다.",
-            "0453ca3a9a": "{{value0}}이(가) 생성되었지만 Orca가 아직 새로 고칠 수 없습니다.",
             "f99560ab29": "중단 {{value0}} 실패",
             "eae7a1da5f": "메모를 지우지 못했습니다.",
             "657e0c90ad": "{{value0}} 메모{{value1}}",
@@ -10845,7 +10831,6 @@
             "c7ff8cef11": "agents 감지 중...",
             "013c9ac04a": "저장 대상",
             "1bb611240f": "Orca 기본 프롬프트를 사용하려면 {basePrompt}를 사용하세요.",
-            "23280cbab1": "이 템플릿에는 {basePrompt}가 포함되어 있지 않아 agent가 Orca 기본 프롬프트를 받지 못합니다.",
             "5421a96acb": "저장 후 agent 시작",
             "6cefcdfba1": "나중에 Source Control AI 설정에서 변경할 수 있습니다.",
             "c29f9cf266": "이 프롬프트를 저장하고 다음에는 이 리뷰를 표시하지 않기",
@@ -10853,7 +10838,6 @@
             "ea4788705e": "취소",
             "b0da3a4d3e": "실행 레시피가 이미 저장되었습니다",
             "bff4795a6d": "저장된 레시피를 업데이트하려면 agent, 인수 또는 프롬프트 템플릿을 변경하세요.",
-            "5c75b24735": "Orca가 시작하기 전에 agent가 받을 내용을 사용자 지정합니다.",
             "repoAgentOverrideNote": "이 저장소는 전역 기본값({{global}})을 재정의하며 현재 {{effective}}을(를) 실행합니다. 이 저장소에서 실행할 항목을 바꾸려면 이 저장소에 저장하세요."
           },
           "SourceControlTextGenerationDialog": {
@@ -10998,35 +10982,24 @@
                 }
               },
               "review": {
-                "detail": {
-                  "positive": "Orca에는 확인할 수 없는 저장된 {{reviewLabel}} 정보가 있습니다.",
-                  "rate_limited": "{{provider}}가 요청을 일시적으로 제한하고 있어 Orca도 {{reviewLabel}} 상태를 확인할 수 없었습니다.",
-                  "network": "이 환경에서 {{provider}}에 연결할 수 없어 Orca도 {{reviewLabel}} 상태를 확인할 수 없었습니다.",
-                  "untyped": "Orca는 이 브랜치에 이미 {{reviewLabel}}가 있는지 확인할 수 없었습니다."
-                },
                 "positive": {
-                  "title": "{{reviewLabelCap}} 세부 정보를 사용할 수 없음",
-                  "body": "Orca는 이 브랜치의 {{reviewLabel}} 정보를 저장했지만 현재 상태를 확인할 수 없었습니다."
+                  "title": "{{reviewLabelCap}} 세부 정보를 사용할 수 없음"
                 },
                 "no_review": {
                   "title": "{{reviewLabel}}를 찾을 수 없음",
                   "body": "{{reviewLabel}}를 만들어 검사와 리뷰를 시작하세요."
                 },
                 "active": {
-                  "title": "{{reviewLabel}} 상태 확인 중",
-                  "body": "Orca는 이 브랜치의 {{provider}}에서 {{reviewLabel}}를 확인하고 있습니다."
+                  "title": "{{reviewLabel}} 상태 확인 중"
                 },
                 "git_loading": {
-                  "title": "브랜치 상태 확인 중",
-                  "body": "Orca는 생성 또는 게시 작업을 표시하기 전에 이 브랜치를 확인하고 있습니다."
+                  "title": "브랜치 상태 확인 중"
                 },
                 "git_error": {
-                  "title": "브랜치 상태를 확인할 수 없음",
-                  "body": "Orca는 이 환경에서 이 브랜치의 업스트림을 확인할 수 없었습니다. 게시하거나 {{reviewLabel}}를 만들기 전에 다시 시도하세요."
+                  "title": "브랜치 상태를 확인할 수 없음"
                 },
                 "unknown": {
-                  "title": "{{reviewLabelCap}} 상태를 사용할 수 없음",
-                  "body": "Orca가 이 브랜치의 {{reviewLabel}} 상태를 확인하지 못했습니다. 다시 시도하여 확인하세요."
+                  "title": "{{reviewLabelCap}} 상태를 사용할 수 없음"
                 },
                 "paused": {
                   "title": "{{provider}} 새로고침 일시 중지됨",
@@ -11037,12 +11010,10 @@
                   "body": "이 환경에서 {{provider}}에 연결할 수 없었습니다. 연결을 확인한 후 다시 시도하세요."
                 },
                 "unknown_error": {
-                  "title": "{{reviewLabel}} 상태를 확인할 수 없음",
-                  "body": "조회에 실패하여 Orca는 이 브랜치에 이미 {{reviewLabel}}가 있는지 확인할 수 없었습니다."
+                  "title": "{{reviewLabel}} 상태를 확인할 수 없음"
                 },
                 "untyped": {
-                  "title": "{{reviewLabelCap}} 상태를 사용할 수 없음",
-                  "body": "Orca는 이 브랜치에 이미 {{reviewLabel}}가 있는지 확인할 수 없었습니다. 다시 시도하여 확인하세요."
+                  "title": "{{reviewLabelCap}} 상태를 사용할 수 없음"
                 },
                 "auth": {
                   "title": "{{provider}} 인증 실패",
@@ -11099,8 +11070,7 @@
                   "body": "{{reviewLabel}}를 만들기 전에 최신 커밋을 푸시하세요."
                 },
                 "existing": {
-                  "title": "{{reviewLabelCap}}이(가) 이미 존재함",
-                  "body": "Orca는 이 브랜치의 기존 {{reviewLabel}}를 찾았습니다."
+                  "title": "{{reviewLabelCap}}이(가) 이미 존재함"
                 },
                 "detached": {
                   "title": "현재 브랜치가 없음",

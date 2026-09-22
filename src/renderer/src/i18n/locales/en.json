@@ -6354,9 +6354,9 @@
         "AccountsPane": {
           "c2d2751587": "Remove Account",
           "dbb9626ed1": "Cancel",
-          "854ebbcc45": "Orca will delete the managed Claude auth for this saved account. If it is currently active, Orca falls back to the system default Claude login.",
+          "854ebbcc45": "{{productName}} will delete the managed Claude auth for this saved account. If it is currently active, {{productName}} falls back to the system default Claude login.",
           "63843e37e2": "Remove Claude Account?",
-          "380a7736cc": "Removing this account permanently deletes its managed Codex home, including all Codex session history and MCP logins stored inside. This cannot be undone. If the account is currently active, Orca falls back to the system default Codex login.",
+          "380a7736cc": "Removing this account permanently deletes its managed Codex home, including all Codex session history and MCP logins stored inside. This cannot be undone. If the account is currently active, {{productName}} falls back to the system default Codex login.",
           "0d47394635": "Remove Codex Account?",
           "ae3b21eb6c": "opencode.ai/workspace/wrk_…/go",
           "51c9104e13": "Find this in the URL after logging into opencode.ai (e.g.",
@@ -6404,7 +6404,7 @@
           "fcc4093fc1": "Use your current {{value0}} Codex login.",
           "79e484c3b2": "Optional account switcher for the shared Claude auth files.",
           "8bbfd74556": "Claude Accounts",
-          "72b36ea174": "Optional. {{value0}} can use your normal Claude login; add accounts only if you want quick switching without moving chat sessions.",
+          "72b36ea174": "Optional. {{value0}} can use your normal {{providerName}} login; add accounts only if you want quick switching without moving chat sessions.",
           "26ef4b55be": "Claude",
           "2743cdc0af": "Claude account update failed.",
           "b15ce90870": "{{value0}} -> {{value1}}. Restart live Claude terminals before continuing old sessions.",
@@ -6500,7 +6500,8 @@
           "4e32e030b2": "Stored locally. Orca sends it only to platform.minimax.io for usage refreshes.",
           "5e08b0fe57": "Stored locally and sent only to platform.minimax.io for usage refreshes.",
           "79418c782a": "Open platform.minimax.io/console/usage in your browser, sign in, then copy the Cookie request header from DevTools (Network → any remains request → Cookie).",
-          "f5d8d2a6a1": "Open platform.minimax.io/console/usage in your browser and sign in."
+          "f5d8d2a6a1": "Open platform.minimax.io/console/usage in your browser and sign in.",
+          "claudeCodeHeading": "Claude Code"
         },
         "AdvancedPane": {
           "40b29e0bf3": "Restart",
@@ -6849,7 +6850,7 @@
           "4c7e3e4c5f": "install",
           "068552b191": "Removing…",
           "8d96213669": "remove",
-          "aa6536977e": "Orca will register {{value0}} so the command works from your terminal.",
+          "aa6536977e": "{{productName}} will register {{value0}} so the command works from your terminal.",
           "a030816e3e": "This removes the shell command symlink. Orca itself remains installed.",
           "fa87db3d6e": "Register `{{value0}}` in PATH?",
           "14444243ba": "Remove `{{value0}}` from PATH?",
@@ -6859,7 +6860,11 @@
           "cliSkillTerminalTitle": "CLI skill setup",
           "cliSkillTerminalAria": "CLI skill install terminal",
           "installFailureUnknownReason": "Orca could not finish CLI registration and reported no reason.",
-          "installFailureConflictRemedy": "Remove {{value0}} and register again if it is no longer needed."
+          "installFailureConflictRemedy": "Remove {{value0}} and register again if it is no longer needed.",
+          "corporateTitle": "{{productName}} CLI",
+          "corporateDescription": "Use the `orca` command from your terminal to open {{productName}}, manage worktrees, and interact with {{productName}} terminals.",
+          "agentSkillsCorporateDescription": "Give agents {{productName}}-aware workspace, terminal, and progress workflows.",
+          "cliSkillCorporateDescription": "Enables agents to use {{productName}} workspace, terminal, and progress commands."
         },
         "CliSkillRuntimeSetup": {
           "04325573f8": "WSL",
@@ -8815,7 +8820,7 @@
           "41a1480d3e": "install",
           "4598b18464": "Removing...",
           "7c3bb36706": "remove",
-          "7ee4e52b99": "Orca will register {{value0}} so the command works from WSL terminals.",
+          "7ee4e52b99": "{{productName}} will register {{value0}} so the command works from WSL terminals.",
           "d8216eb22e": "This removes the WSL shell command. Orca itself remains installed on Windows.",
           "e49688f67f": "Register `{{value0}}` in WSL?",
           "61ac55278e": "Remove `{{value0}}` from WSL?",
@@ -8859,7 +8864,7 @@
             "b40d5b6570": "Optional account switching for Codex and live rate limit fetching.",
             "17c5d244eb": "Codex Accounts",
             "e14049e1a8": "claude",
-            "dd75a73991": "Optional account switching for Claude while preserving shared chat context.",
+            "dd75a73991": "Optional account switching for {{providerName}} while preserving shared chat context.",
             "75682e1b62": "Claude Accounts",
             "e02c136ad0": "auth",
             "9f70aa706c": "provider",
@@ -8881,7 +8886,9 @@
             "b2c4e7f1a8": "endpoint",
             "3a9b6d2c4e": "api key",
             "5d8f1a3b7c": "china",
-            "7e2a4b8c1d": "overseas"
+            "7e2a4b8c1d": "overseas",
+            "claudeCodeAccounts": "Claude Code Accounts",
+            "claudeCodeKeyword": "claude code"
           }
         },
         "advanced": {
@@ -9238,7 +9245,7 @@
             "a942905148": "URL opened when creating a new browser tab. Leave empty to open a blank tab.",
             "c3903322d2": "Default Home Page",
             "19ea5607cf": "Localhost Worktree Labels",
-            "4e0fdf0a3f": "Open workspace ports as worktree-specific Orca localhost URLs so browser tabs are easier to tell apart.",
+            "4e0fdf0a3f": "Open workspace ports as worktree-specific {{productName}} localhost URLs so browser tabs are easier to tell apart.",
             "6f5199381e": "ports",
             "8f036ea11f": "worktree",
             "c4e3bf3282": "tabs",
@@ -9672,7 +9679,14 @@
             "sidebar": "sidebar",
             "867dddea41": "pinned",
             "5250cf0e48": "pin",
-            "afa37a34e1": "close"
+            "afa37a34e1": "close",
+            "cli": {
+              "corporateTitle": "{{productName}} CLI",
+              "corporateDescription": "Register or remove the `orca` command for {{productName}}."
+            },
+            "agentSkill": {
+              "corporateDescription": "Install the {{productName}} skill so agents know to use the `orca` command."
+            }
           }
         },
         "git": {
@@ -10603,7 +10617,7 @@
                 "options": {
                   "commitMessage": "Generate the commit message from staged changes.",
                   "pullRequest": "Generate the hosted review title and description.",
-                  "branchName": "Rename Orca-created branches from the initial agent task.",
+                  "branchName": "Rename {{productName}}-created branches from the initial agent task.",
                   "fixCommitFailure": "Start an agent when a commit hook or git commit fails.",
                   "fixChecks": "Start an agent from failed hosted-review checks.",
                   "resolveConflicts": "Start an agent for local or hosted-review merge conflicts.",
@@ -10713,8 +10727,8 @@
                 "cards": {
                   "793a06e899": "Re-check",
                   "1a9475dace": "Learn more",
-                  "19fb419c12": "Gitea credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart Orca if environment variables changed.",
-                  "60708f23da": "only when Orca cannot derive the API URL from the remote.",
+                  "19fb419c12": "Gitea credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart {{productName}} if environment variables changed.",
+                  "60708f23da": "only when {{productName}} cannot derive the API URL from the remote.",
                   "709057ad91": "ORCA_GITEA_API_BASE_URL",
                   "6da9dfa5de": "for private repositories, and set",
                   "6d5c2a3005": "ORCA_GITEA_TOKEN",
@@ -10723,8 +10737,8 @@
                   "05863d2599": "Pull requests and commit statuses via the Gitea REST API.",
                   "52f75876be": "Pull requests and commit statuses for detected repositories",
                   "0b5242f8a2": "{{value0}} · Pull requests and commit statuses",
-                  "40f678df73": "Azure DevOps credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart Orca if environment variables changed.",
-                  "7bd345e3f6": "only when Orca cannot derive the API base URL from the git remote.",
+                  "40f678df73": "Azure DevOps credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart {{productName}} if environment variables changed.",
+                  "7bd345e3f6": "only when {{productName}} cannot derive the API base URL from the git remote.",
                   "186a6689df": "ORCA_AZURE_DEVOPS_API_BASE_URL",
                   "b8a10b07c1": ". Set",
                   "fbfd237f5e": "ORCA_AZURE_DEVOPS_ACCESS_TOKEN",
@@ -10735,7 +10749,7 @@
                   "0eb50d5593": "Pull requests and build statuses via Azure DevOps REST API tokens.",
                   "54636c65d4": "Pull requests and build statuses for detected Azure Repos",
                   "ea204f5e03": "{{value0}} · Pull requests and build statuses",
-                  "6154b02093": "Bitbucket credentials are configured but could not authenticate. Check the token and repository permissions, then restart Orca if environment variables changed.",
+                  "6154b02093": "Bitbucket credentials are configured but could not authenticate. Check the token and repository permissions, then restart {{productName}} if environment variables changed.",
                   "e63fe8f627": "ORCA_BITBUCKET_ACCESS_TOKEN",
                   "19416c874c": "ORCA_BITBUCKET_API_TOKEN",
                   "fc71a0e7aa": "and",
@@ -10899,7 +10913,7 @@
         },
         "BrowserLocalhostWorktreeLabelsSetting": {
           "8ac8c3ad19": "Localhost Worktree Labels",
-          "1db3c8b983": "Open workspace ports as worktree-specific Orca localhost URLs so browser tabs are easier to tell apart."
+          "1db3c8b983": "Open workspace ports as worktree-specific {{productName}} localhost URLs so browser tabs are easier to tell apart."
         },
         "AgentRuntimeSetting": {
           "label": "Agent runtime",
@@ -11794,9 +11808,9 @@
             "dialog": {
               "connectFailed": "Connection failed",
               "title": "Connect Bitbucket",
-              "description": "Use a Bitbucket Cloud credential to browse pull requests and build statuses. Orca verifies it before saving.",
+              "description": "Use a Bitbucket Cloud credential to browse pull requests and build statuses. {{productName}} verifies it before saving.",
               "remoteRuntime": "Bitbucket credentials saved here are stored on this local machine only. Set ORCA_BITBUCKET_* environment variables on the remote runtime instead.",
-              "environmentManaged": "Bitbucket is already configured through ORCA_BITBUCKET_* environment variables, which take precedence. Unset them to save a credential in Orca.",
+              "environmentManaged": "Bitbucket is already configured through ORCA_BITBUCKET_* environment variables, which take precedence. Unset them to save a credential in {{productName}}.",
               "authModeLabel": "Bitbucket authentication method",
               "modeBasic": "Email & API token",
               "modeToken": "Access token",
@@ -11826,9 +11840,9 @@
               "authModeToken": "Access token",
               "authModeBasic": "Email & API token",
               "disconnect": "Disconnect Bitbucket",
-              "envManaged": "Configured via environment variables. Unset the ORCA_BITBUCKET_* variables to manage this credential in Orca.",
+              "envManaged": "Configured via environment variables. Unset the ORCA_BITBUCKET_* variables to manage this credential in {{productName}}.",
               "storedAuthFailed": "The saved Bitbucket credential could not authenticate. Edit it, or check that the token still has pull request access.",
-              "storedCredential": "Saved in Orca on this machine. ORCA_BITBUCKET_* environment variables take precedence when set.",
+              "storedCredential": "Saved in {{productName}} on this machine. ORCA_BITBUCKET_* environment variables take precedence when set.",
               "notConfigured": "Connect a Bitbucket Cloud account with an Atlassian API token or an access token. ORCA_BITBUCKET_* environment variables work too and take precedence.",
               "disconnectFailed": "Could not remove the saved Bitbucket credential."
             }
@@ -12250,7 +12264,7 @@
             "fe5bd1a610": "Creating {{value0}}...",
             "812cb992ee": "Open on {{value0}}",
             "eef5446523": "{{value0}} #{{value1}} is already open",
-            "0453ca3a9a": "{{value0}} created, but Orca could not refresh it yet.",
+            "0453ca3a9a": "{{value0}} created, but {{productName}} could not refresh it yet.",
             "f99560ab29": "Abort {{value0}} failed",
             "eae7a1da5f": "Failed to clear notes.",
             "657e0c90ad": "{{value0}} note{{value1}}",
@@ -12402,7 +12416,7 @@
           "SourceControlAgentActionDialogForm": {
             "013c9ac04a": "Save for",
             "1bb611240f": "Use {basePrompt} for Orca's default prompt.",
-            "23280cbab1": "This template does not include {basePrompt}, so the agent will not receive Orca's default prompt.",
+            "23280cbab1": "This template does not include {basePrompt}, so the agent will not receive {{productName}}'s default prompt.",
             "5421a96acb": "Save & start agent",
             "6cefcdfba1": "You can change it later in Source Control AI settings.",
             "c29f9cf266": "Save this prompt and don't show this review next time",
@@ -12421,7 +12435,7 @@
             "c7ff8cef11": "Detecting agents...",
             "b0da3a4d3e": "Launch recipe already saved",
             "bff4795a6d": "Change the agent, arguments, or prompt template to update the saved recipe.",
-            "5c75b24735": "Customize what the agent receives before Orca starts it.",
+            "5c75b24735": "Customize what the agent receives before {{productName}} starts it.",
             "repoAgentOverrideNote": "This repository overrides your global default ({{global}}) and currently runs {{effective}}. Save to this repository to change what runs here."
           },
           "SourceControlTextGenerationDialog": {
@@ -12570,14 +12584,14 @@
               },
               "review": {
                 "detail": {
-                  "positive": "Orca also has saved {{reviewLabel}} information that it could not verify.",
-                  "rate_limited": "Orca also could not check {{reviewLabel}} status because {{provider}} is temporarily limiting requests.",
-                  "network": "Orca also could not check {{reviewLabel}} status because this environment could not reach {{provider}}.",
-                  "untyped": "Orca also could not confirm whether this branch already has a {{reviewLabel}}."
+                  "positive": "{{productName}} also has saved {{reviewLabel}} information that it could not verify.",
+                  "rate_limited": "{{productName}} also could not check {{reviewLabel}} status because {{provider}} is temporarily limiting requests.",
+                  "network": "{{productName}} also could not check {{reviewLabel}} status because this environment could not reach {{provider}}.",
+                  "untyped": "{{productName}} also could not confirm whether this branch already has a {{reviewLabel}}."
                 },
                 "positive": {
                   "title": "{{reviewLabelCap}} details unavailable",
-                  "body": "Orca has saved {{reviewLabel}} information for this branch but could not confirm its current status."
+                  "body": "{{productName}} has saved {{reviewLabel}} information for this branch but could not confirm its current status."
                 },
                 "no_review": {
                   "title": "No {{reviewLabel}} found",
@@ -12585,19 +12599,19 @@
                 },
                 "active": {
                   "title": "Checking {{reviewLabel}} status",
-                  "body": "Orca is checking {{provider}} for a {{reviewLabel}} on this branch."
+                  "body": "{{productName}} is checking {{provider}} for a {{reviewLabel}} on this branch."
                 },
                 "git_loading": {
                   "title": "Checking branch status",
-                  "body": "Orca is checking this branch before showing create or publish actions."
+                  "body": "{{productName}} is checking this branch before showing create or publish actions."
                 },
                 "git_error": {
                   "title": "Could not check branch status",
-                  "body": "Orca could not confirm this branch's upstream from this environment. Retry before publishing or creating a {{reviewLabel}}."
+                  "body": "{{productName}} could not confirm this branch's upstream from this environment. Retry before publishing or creating a {{reviewLabel}}."
                 },
                 "unknown": {
                   "title": "{{reviewLabelCap}} status unavailable",
-                  "body": "Orca has not confirmed the {{reviewLabel}} status for this branch. Retry to check again."
+                  "body": "{{productName}} has not confirmed the {{reviewLabel}} status for this branch. Retry to check again."
                 },
                 "paused": {
                   "title": "{{provider}} refresh paused",
@@ -12609,11 +12623,11 @@
                 },
                 "unknown_error": {
                   "title": "Could not check {{reviewLabel}} status",
-                  "body": "The lookup failed, so Orca could not confirm whether this branch already has a {{reviewLabel}}."
+                  "body": "The lookup failed, so {{productName}} could not confirm whether this branch already has a {{reviewLabel}}."
                 },
                 "untyped": {
                   "title": "{{reviewLabelCap}} status unavailable",
-                  "body": "Orca could not confirm whether this branch already has a {{reviewLabel}}. Retry to check again."
+                  "body": "{{productName}} could not confirm whether this branch already has a {{reviewLabel}}. Retry to check again."
                 },
                 "auth": {
                   "title": "{{provider}} authentication failed",
@@ -12671,7 +12685,7 @@
                 },
                 "existing": {
                   "title": "{{reviewLabelCap}} already exists",
-                  "body": "Orca found an existing {{reviewLabel}} for this branch."
+                  "body": "{{productName}} found an existing {{reviewLabel}} for this branch."
                 },
                 "detached": {
                   "title": "No current branch",

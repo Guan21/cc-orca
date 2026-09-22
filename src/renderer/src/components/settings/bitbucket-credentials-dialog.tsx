@@ -1,6 +1,7 @@
 import { useId, useLayoutEffect, useState } from 'react'
 import { ExternalLink, LoaderCircle, Lock } from 'lucide-react'
 import type { BitbucketAuthMode } from '../../../../shared/bitbucket-credentials'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { useAppStore } from '@/store'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { Button } from '@/components/ui/button'
@@ -49,6 +50,7 @@ export function BitbucketCredentialsDialog({
   contentClassName
 }: BitbucketCredentialsDialogProps): React.JSX.Element {
   const settings = useAppStore((s) => s.settings)
+  const productDisplayName = getProductDisplayName()
   const mountedRef = useMountedRef()
   const emailId = useId()
   const apiTokenId = useId()
@@ -175,7 +177,8 @@ export function BitbucketCredentialsDialog({
           <DialogDescription>
             {translate(
               'auto.components.settings.bitbucket.credentials.dialog.description',
-              'Use a Bitbucket Cloud credential to browse pull requests and build statuses. Orca verifies it before saving.'
+              'Use a Bitbucket Cloud credential to browse pull requests and build statuses. {{productName}} verifies it before saving.',
+              { productName: productDisplayName }
             )}
           </DialogDescription>
         </DialogHeader>
@@ -183,7 +186,8 @@ export function BitbucketCredentialsDialog({
           <p className="text-xs text-muted-foreground">
             {translate(
               'auto.components.settings.bitbucket.credentials.dialog.environmentManaged',
-              'Bitbucket is already configured through ORCA_BITBUCKET_* environment variables, which take precedence. Unset them to save a credential in Orca.'
+              'Bitbucket is already configured through ORCA_BITBUCKET_* environment variables, which take precedence. Unset them to save a credential in {{productName}}.',
+              { productName: productDisplayName }
             )}
           </p>
         ) : (

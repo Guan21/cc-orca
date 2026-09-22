@@ -18,6 +18,7 @@ import {
 import { getAgentCatalog, type AgentCatalogEntry } from '@/lib/agent-catalog'
 import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 import { translate } from '@/i18n/i18n'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 
 export const SOURCE_CONTROL_TEXT_ACTION_ID_SET = new Set<string>(SOURCE_CONTROL_TEXT_ACTION_IDS)
 
@@ -28,7 +29,9 @@ function getTextGenerationAgentCapabilities(
 }
 
 function getTextGenerationAgentIdSet(buildProfile: OrcaBuildProfile = getOrcaBuildProfile()) {
-  return new Set(getTextGenerationAgentCapabilities(buildProfile).map((capability) => capability.id))
+  return new Set(
+    getTextGenerationAgentCapabilities(buildProfile).map((capability) => capability.id)
+  )
 }
 
 export const getActionDescriptions = createLocalizedCatalog(
@@ -43,7 +46,8 @@ export const getActionDescriptions = createLocalizedCatalog(
     ),
     branchName: translate(
       'auto.components.settings.source.control.action.recipe.options.branchName',
-      'Rename Orca-created branches from the initial agent task.'
+      'Rename {{productName}}-created branches from the initial agent task.',
+      { productName: getProductDisplayName() }
     ),
     fixCommitFailure: translate(
       'auto.components.settings.source.control.action.recipe.options.fixCommitFailure',

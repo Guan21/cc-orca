@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '../ui/dialog'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { translate } from '@/i18n/i18n'
 
 type CliRegistrationDialogProps = {
@@ -32,6 +33,8 @@ export function CliRegistrationDialog({
   onRemove,
   open
 }: CliRegistrationDialogProps): React.JSX.Element {
+  const productDisplayName = getProductDisplayName()
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -57,8 +60,8 @@ export function CliRegistrationDialog({
                 )
               : translate(
                   'auto.components.settings.CliSection.aa6536977e',
-                  'Orca will register {{value0}} so the command works from your terminal.',
-                  { value0: commandPath ?? commandName }
+                  '{{productName}} will register {{value0}} so the command works from your terminal.',
+                  { productName: productDisplayName, value0: commandPath ?? commandName }
                 )}
           </DialogDescription>
         </DialogHeader>

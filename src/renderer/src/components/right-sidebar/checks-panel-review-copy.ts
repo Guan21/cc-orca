@@ -1,4 +1,5 @@
 import type { GitHubPRRefreshSkippedReason } from '../../../../shared/github/pull-request-refresh-types'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { translate } from '@/i18n/i18n'
 import { getGitHubUnavailableEmptyStateCopy } from './github-refresh-error-copy'
 import {
@@ -19,32 +20,33 @@ type KeyedCopy = { key: string; fallback: string }
  */
 export function concurrentLookupDetail(input: ChecksPanelReviewStateInput): string | undefined {
   const { reviewLabel, providerName, refresh } = input
+  const productName = getProductDisplayName()
   if (input.reviewLookup === 'positive_unresolved') {
     return translate(
       'auto.components.right.sidebar.checks.panel.review.detail.positive',
-      'Orca also has saved {{reviewLabel}} information that it could not verify.',
-      { reviewLabel }
+      '{{productName}} also has saved {{reviewLabel}} information that it could not verify.',
+      { productName, reviewLabel }
     )
   }
   if (isRateLimitRefresh(refresh)) {
     return translate(
       'auto.components.right.sidebar.checks.panel.review.detail.rate_limited',
-      'Orca also could not check {{reviewLabel}} status because {{provider}} is temporarily limiting requests.',
-      { reviewLabel, provider: providerName }
+      '{{productName}} also could not check {{reviewLabel}} status because {{provider}} is temporarily limiting requests.',
+      { productName, reviewLabel, provider: providerName }
     )
   }
   if (refresh?.errorType === 'network') {
     return translate(
       'auto.components.right.sidebar.checks.panel.review.detail.network',
-      'Orca also could not check {{reviewLabel}} status because this environment could not reach {{provider}}.',
-      { reviewLabel, provider: providerName }
+      '{{productName}} also could not check {{reviewLabel}} status because this environment could not reach {{provider}}.',
+      { productName, reviewLabel, provider: providerName }
     )
   }
   if (refresh?.status === 'error' || isHardRefreshError(refresh)) {
     return translate(
       'auto.components.right.sidebar.checks.panel.review.detail.untyped',
-      'Orca also could not confirm whether this branch already has a {{reviewLabel}}.',
-      { reviewLabel }
+      '{{productName}} also could not confirm whether this branch already has a {{reviewLabel}}.',
+      { productName, reviewLabel }
     )
   }
   return undefined
@@ -56,6 +58,7 @@ export function transientRefreshState(
   workflowAction: ChecksPanelReviewState['workflowAction']
 ): ChecksPanelReviewState {
   const { reviewLabel, providerName, refresh } = input
+  const productName = getProductDisplayName()
   const schedule = autoRetrySchedule(input)
   const base = {
     renderReview: false as const,
@@ -112,8 +115,8 @@ export function transientRefreshState(
       ),
       description: translate(
         'auto.components.right.sidebar.checks.panel.review.unknown_error.body',
-        'The lookup failed, so Orca could not confirm whether this branch already has a {{reviewLabel}}.',
-        { reviewLabel }
+        'The lookup failed, so {{productName}} could not confirm whether this branch already has a {{reviewLabel}}.',
+        { productName, reviewLabel }
       )
     }
   }
@@ -126,8 +129,8 @@ export function transientRefreshState(
     ),
     description: translate(
       'auto.components.right.sidebar.checks.panel.review.untyped.body',
-      'Orca could not confirm whether this branch already has a {{reviewLabel}}. Retry to check again.',
-      { reviewLabel }
+      '{{productName}} could not confirm whether this branch already has a {{reviewLabel}}. Retry to check again.',
+      { productName, reviewLabel }
     )
   }
 }
@@ -180,17 +183,18 @@ const HARD_ERROR_COPY: Record<
     body: {
       key: 'auto.components.right.sidebar.checks.panel.review.cli.body',
       fallback:
-        'Orca could not run {{provider}} CLI in this environment. Set it up here, then retry.'
+        '{{productName}} could not run {{provider}} CLI in this environment. Set it up here, then retry.'
     }
   }
 }
 
 export function hardRefreshErrorState(input: ChecksPanelReviewStateInput): ChecksPanelReviewState {
   const { reviewLabel, providerName, refresh } = input
+  const productName = getProductDisplayName()
   const copy =
     HARD_ERROR_COPY[(refresh?.errorType as keyof typeof HARD_ERROR_COPY) ?? 'gh_unavailable'] ??
     HARD_ERROR_COPY.gh_unavailable
-  const vars = { provider: providerName, reviewLabel }
+  const vars = { productName, provider: providerName, reviewLabel }
   return {
     renderReview: false,
     title: translate(copy.title.key, copy.title.fallback, vars),
@@ -215,7 +219,7 @@ const SKIPPED_COPY: Partial<
     body: {
       key: 'auto.components.right.sidebar.checks.panel.review.skipped.disconnected.body',
       fallback:
-        "This repository's execution host is disconnected, so Orca cannot refresh {{reviewLabel}} status."
+        "This repository's execution host is disconnected, so {{productName}} cannot refresh {{reviewLabel}} status."
     },
     recovery: ['retry']
   },
@@ -237,7 +241,8 @@ const SKIPPED_COPY: Partial<
     },
     body: {
       key: 'auto.components.right.sidebar.checks.panel.review.skipped.archived.body',
-      fallback: 'This repository is archived, so Orca is not refreshing {{reviewLabel}} status.'
+      fallback:
+        'This repository is archived, so {{productName}} is not refreshing {{reviewLabel}} status.'
     },
     recovery: []
   },
@@ -248,7 +253,8 @@ const SKIPPED_COPY: Partial<
     },
     body: {
       key: 'auto.components.right.sidebar.checks.panel.review.skipped.not_git.body',
-      fallback: 'Orca could not treat this folder as a Git repository for {{reviewLabel}} status.'
+      fallback:
+        '{{productName}} could not treat this folder as a Git repository for {{reviewLabel}} status.'
     },
     recovery: []
   },
@@ -260,7 +266,7 @@ const SKIPPED_COPY: Partial<
     body: {
       key: 'auto.components.right.sidebar.checks.panel.review.skipped.remote.body',
       fallback:
-        'Orca could not refresh {{reviewLabel}} status for this remote context. Retry after the host is available.'
+        '{{productName}} could not refresh {{reviewLabel}} status for this remote context. Retry after the host is available.'
     },
     recovery: ['retry']
   }
@@ -276,7 +282,7 @@ export function skippedRefreshState(
     // `fresh` (and any unknown skip) with no accepted result → missing/unknown.
     return null
   }
-  const vars = { reviewLabel: input.reviewLabel }
+  const vars = { productName: getProductDisplayName(), reviewLabel: input.reviewLabel }
   return {
     renderReview: false,
     title: translate(copy.title.key, copy.title.fallback, vars),
