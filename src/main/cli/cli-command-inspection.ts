@@ -9,6 +9,7 @@ import { isMissingError } from './cli-install-errors'
 import { CliInstallLocation } from './cli-install-location'
 import { isPathInsideOrEqual, samePathEntry } from './cli-install-path-format'
 import { extractLegacyAppImageCliWrapperTarget } from './legacy-appimage-cli-wrapper'
+import { getCliCommandUsageDetail } from './cli-branding-copy'
 
 // Why: electron-builder's /opt directory name varies with productName sanitization, which is why
 // resources/linux/packaging/after-install.sh enumerates all three of these. A symlink into one is a
@@ -220,7 +221,7 @@ export class CliCommandInspection extends CliInstallLocation {
           supported: true,
           state: 'not_installed',
           currentTarget: null,
-          detail: `Register ${commandPath} to use Orca from Command Prompt or PowerShell.`
+          detail: getCliCommandUsageDetail(commandPath)
         })
       }
       throw error

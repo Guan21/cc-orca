@@ -61,4 +61,23 @@ describe('getStatusBarToggles', () => {
       expect.arrayContaining(['gemini', 'opencode-go', 'minimax', 'kimi', 'grok', 'antigravity'])
     )
   })
+
+  it('uses neutral remote-host toggle copy in corporate builds', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    const sshToggle = getStatusBarToggles().find((entry) => entry.id === 'ssh')
+
+    expect(sshToggle?.toggleDescription).toBe(
+      'Show configured SSH and remote hosts when any are available.'
+    )
+    expect(sshToggle?.toggleDescription).not.toContain('Orca')
+  })
+
+  it('keeps default remote-host toggle copy outside corporate builds', () => {
+    const sshToggle = getStatusBarToggles().find((entry) => entry.id === 'ssh')
+
+    expect(sshToggle?.toggleDescription).toBe(
+      'Show configured SSH and remote Orca hosts when any are available.'
+    )
+  })
 })

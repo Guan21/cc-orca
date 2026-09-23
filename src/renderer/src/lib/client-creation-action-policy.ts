@@ -1,6 +1,7 @@
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
 import { BROWSER_SCREENCAST_RUNTIME_CAPABILITY } from '../../../shared/protocol-version'
 import type { RuntimeStatus } from '../../../shared/runtime-types'
+import { isCapabilityEnabledForBuildProfile } from '../../../shared/corporate-build-profile'
 import type { AppState } from '@/store/types'
 import { isPairedWebClientWindow } from './desktop-window-chrome'
 import { getRuntimeEnvironmentIdForWorktree } from './worktree-runtime-owner'
@@ -15,6 +16,8 @@ export const LOCAL_BROWSER_UNAVAILABLE_MESSAGE =
   'Managed browser tabs in the web client must be created by a capable paired runtime.'
 export const MOBILE_EMULATOR_UNAVAILABLE_MESSAGE =
   'Mobile Emulator is unavailable in the web client.'
+export const MOBILE_EMULATOR_BUILD_PROFILE_UNAVAILABLE_MESSAGE =
+  'Mobile Emulator is disabled by this build profile.'
 
 export type ClientCreationAction = 'managed-browser' | 'mobile-emulator'
 export type ClientCreationActionProvider = 'local-client' | 'paired-runtime'
@@ -43,7 +46,9 @@ export function resolveClientCreationActionPolicy(args: {
         state: 'enabled',
         provider: browserStreamingAvailable ? 'paired-runtime' : 'local-client'
       },
-      'mobile-emulator': { state: 'enabled', provider: 'local-client' }
+      'mobile-emulator': isCapabilityEnabledForBuildProfile('emulator')
+        ? { state: 'enabled', provider: 'local-client' }
+        : { state: 'hidden', reason: MOBILE_EMULATOR_BUILD_PROFILE_UNAVAILABLE_MESSAGE }
     }
   }
 

@@ -4,6 +4,7 @@ import type {
   CodexRateLimitAccountsState
 } from '../../../../shared/managed-account-types'
 import type { CodexConfigSyncStatus } from '../../../../shared/codex-config-sync-types'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { toast } from 'sonner'
 import { useAppStore } from '../../store'
 import { translate } from '@/i18n/i18n'
@@ -26,7 +27,7 @@ import {
 } from './accounts-search'
 import { getRemoteAccountsPaneScope } from './provider-account-scope'
 import { ProviderHostScopeControl } from './ProviderHostScopeControl'
-import { matchesSettingsSearch } from './settings-search'
+import { matchesSettingsSearch, type SettingsSearchEntry } from './settings-search'
 import { getCodexAccountAuthWarning } from './codex-account-auth-warning'
 import { getCodexConfigSyncWarning } from './codex-config-sync-warning'
 import {
@@ -214,6 +215,17 @@ export function AccountsPane({
   const systemCodexNeedsSignIn = activeCodexAccountId === null && Boolean(activeCodexAuthWarning)
   const accountRuntimeUnavailable =
     accountRuntime.runtime === 'wsl' && !wslAvailable && !wslCapabilitiesLoading
+  const paneTitleSearchMatched =
+    getOrcaBuildProfile() === 'corporate' &&
+    matchesSettingsSearch(searchQuery, {
+      title: translate('auto.hooks.useSettingsNavigationMetadata.f70ac54d38', 'AI Provider Accounts'),
+      description: translate(
+        'auto.hooks.useSettingsNavigationMetadata.b1c2f8b0ac',
+        'Optional account switching and usage setup for supported AI providers.'
+      )
+    })
+  const matchesAccountSectionSearch = (entries: SettingsSearchEntry[]): boolean =>
+    paneTitleSearchMatched || matchesSettingsSearch(searchQuery, entries)
 
   const recordOpenCodeSettingEdit = (field: 'cookie' | 'workspaceId'): void => {
     if (recordedOpenCodeSettingEditsRef.current.has(field)) {
@@ -358,30 +370,30 @@ export function AccountsPane({
   const visibleSections = [
     wslSupportedPlatform &&
     !isRemoteAccountScope &&
-    matchesSettingsSearch(searchQuery, getAccountsLocationSearchEntries())
+    matchesAccountSectionSearch(getAccountsLocationSearchEntries())
       ? renderAccountsLocationSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsClaudeSearchEntries()) &&
+    matchesAccountSectionSearch(getAccountsClaudeSearchEntries()) &&
     isProviderSettingsSurfaceEnabledForBuildProfile('claude')
       ? renderClaudeAccountsSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsCodexSearchEntries()) &&
+    matchesAccountSectionSearch(getAccountsCodexSearchEntries()) &&
     isProviderSettingsSurfaceEnabledForBuildProfile('codex')
       ? renderCodexAccountsSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsGeminiSearchEntries()) &&
+    matchesAccountSectionSearch(getAccountsGeminiSearchEntries()) &&
     isProviderSettingsSurfaceEnabledForBuildProfile('gemini')
       ? renderGeminiAccountsSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsOpencodeSearchEntries()) &&
+    matchesAccountSectionSearch(getAccountsOpencodeSearchEntries()) &&
     isProviderSettingsSurfaceEnabledForBuildProfile('opencode-go')
       ? renderOpenCodeAccountsSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsMiniMaxSearchEntries()) &&
+    matchesAccountSectionSearch(getAccountsMiniMaxSearchEntries()) &&
     isProviderSettingsSurfaceEnabledForBuildProfile('minimax')
       ? renderMiniMaxAccountsSection(model)
       : null,
-    matchesSettingsSearch(searchQuery, getAccountsGrokSearchEntries()) &&
+    matchesAccountSectionSearch(getAccountsGrokSearchEntries()) &&
     isProviderSettingsSurfaceEnabledForBuildProfile('grok') ? (
       <GrokAccountsSection key="grok" />
     ) : null

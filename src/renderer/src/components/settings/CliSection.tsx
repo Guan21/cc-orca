@@ -9,8 +9,8 @@ import {
   ORCA_CLI_SKILL_UPDATE_COMMAND
 } from '@/lib/agent-feature-install-commands'
 import {
-  AGENT_SKILL_CLI_PREREQUISITE_NOTICE,
   ensureOrcaCliAvailableForAgentSkillTerminal,
+  getAgentSkillCliPrerequisiteNotice,
   isOrcaCliAvailableOnPath
 } from '@/lib/agent-skill-cli-prerequisite'
 import {
@@ -378,7 +378,7 @@ export function CliSection({
               installed={cliSkillDetected}
               loading={cliSkillLoading}
               error={cliSkillError}
-              preInstallNotice={AGENT_SKILL_CLI_PREREQUISITE_NOTICE}
+              preInstallNotice={getAgentSkillCliPrerequisiteNotice()}
               getPrerequisiteStatus={getCliSkillPrerequisiteStatus}
               isPrerequisiteAvailable={isOrcaCliAvailableOnPath}
               onBeforeOpenTerminal={async () => {
