@@ -2,6 +2,7 @@ import type { CliInstallStatus } from '../../shared/cli-install-types'
 import { CliCommandInstallation } from './cli-command-installation'
 import { isWindowsUserPathPermissionError } from './cli-install-errors'
 import { samePathEntry, splitPathEntries } from './cli-install-path-format'
+import { getCliCommandUsageDetail, getWindowsLauncherPathUnknownDetail } from './cli-branding-copy'
 
 export class CliPathRegistration extends CliCommandInstallation {
   protected async probePathConfiguration(
@@ -34,8 +35,10 @@ export class CliPathRegistration extends CliCommandInstallation {
     pathProbe: { configured: boolean | null; detail: string | null }
   ): CliInstallStatus {
     const { configured: pathConfigured } = pathProbe
+    const commandPath = status.commandPath
     if (
-      this.isWindowsPackagedBundledCommand(status.commandPath, status.launcherPath) &&
+      commandPath &&
+      this.isWindowsPackagedBundledCommand(commandPath, status.launcherPath) &&
       status.state === 'installed' &&
       pathConfigured === false
     ) {
@@ -45,7 +48,7 @@ export class CliPathRegistration extends CliCommandInstallation {
         pathConfigured,
         state: 'not_installed',
         currentTarget: null,
-        detail: `Register ${status.commandPath} to use Orca from Command Prompt or PowerShell.`
+        detail: getCliCommandUsageDetail(commandPath)
       }
     }
 
@@ -54,9 +57,7 @@ export class CliPathRegistration extends CliCommandInstallation {
         ...status,
         pathDirectory,
         pathConfigured,
-        detail:
-          pathProbe.detail ??
-          'The Orca launcher exists, but Orca could not check your Windows user PATH.'
+        detail: pathProbe.detail ?? getWindowsLauncherPathUnknownDetail()
       }
     }
 

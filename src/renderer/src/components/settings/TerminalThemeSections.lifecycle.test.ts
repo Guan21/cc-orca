@@ -306,6 +306,18 @@ describe('TerminalThemeCatalogSection', () => {
     expect(updateSettings).toHaveBeenCalledWith({ terminalThemeLight: 'Builtin Tango Light' })
   })
 
+  it('uses neutral copy for the rendered light theme description', () => {
+    const element = renderCatalog(
+      makeSettings({ terminalUseSeparateLightTheme: true }),
+      vi.fn(),
+      'light'
+    )
+    const picker = findElementByTypeName(element, 'ThemePicker')
+
+    expect(picker?.props?.description).toBe('Choose the theme used in light mode.')
+    expect(picker?.props?.description).not.toContain('Orca')
+  })
+
   it('turns match dark mode off to customize light mode', () => {
     const updateSettings = vi.fn()
     const element = renderCatalog(

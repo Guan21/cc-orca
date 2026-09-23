@@ -36,6 +36,7 @@ describe('CliInstaller', () => {
   afterEach(() => {
     vi.useRealTimers()
     vi.restoreAllMocks()
+    delete globalThis.__ORCA_BUILD_PROFILE__
   })
 
   it('creates a windows wrapper and updates the user PATH', async () => {
@@ -371,5 +372,30 @@ describe('CliInstaller', () => {
     expect(removed.pathConfigured).toBe(false)
     expect(userPath).toBe('')
     await expect(readFile(bundledLauncher, 'utf8')).resolves.toBe(bundledContent)
+  })
+
+  it('uses corporate product wording for packaged Windows PATH registration detail', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const fixture = await makeFixture()
+    const resourcesPath = join(fixture.root, 'Secure Orca Lite', 'resources')
+    const bundledLauncher = join(resourcesPath, 'bin', 'orca.exe')
+    await mkdir(dirname(bundledLauncher), { recursive: true })
+    await writeFile(bundledLauncher, 'native launcher', 'utf8')
+
+    const installer = new CliInstaller({
+      platform: 'win32',
+      isPackaged: true,
+      resourcesPath,
+      userDataPath: fixture.userDataPath,
+      execPath: join(fixture.root, 'Secure Orca Lite', 'Orca.exe'),
+      appPath: fixture.appPath,
+      userPathReader: async () => userPathRead('C:\\Windows\\System32')
+    })
+
+    await expect(installer.getStatus()).resolves.toMatchObject({
+      state: 'not_installed',
+      commandName: 'orca',
+      detail: `Register ${bundledLauncher} to use the \`orca\` CLI from Command Prompt or PowerShell.`
+    })
   })
 })

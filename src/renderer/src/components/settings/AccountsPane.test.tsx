@@ -55,6 +55,28 @@ describe('AccountsPane', () => {
     expect(markup).not.toContain('MiniMax')
   })
 
+  it('keeps corporate provider sections visible when the pane title matches settings search', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    useAppStore.setState({ settingsSearchQuery: 'AI Provider Accounts' })
+
+    const markup = renderPane(getDefaultSettings('/tmp'))
+
+    expect(markup).toContain('Claude Code')
+    expect(markup).toContain('Codex')
+    expect(markup).not.toContain('Gemini')
+    expect(markup).not.toContain('OpenCode Go')
+  })
+
+  it('keeps default provider section search behavior unchanged for pane-title matches', () => {
+    useAppStore.setState({ settingsSearchQuery: 'AI Provider Accounts' })
+
+    const markup = renderPane(getDefaultSettings('/tmp'))
+
+    expect(markup).toContain('Claude')
+    expect(markup).toContain('Codex')
+    expect(markup).toContain('Gemini')
+  })
+
   it('hides the WSL account location controls on platforms without WSL support', () => {
     const markup = renderPane({
       ...getDefaultSettings('/tmp'),

@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 import type { CliInstallStatus } from '../../../shared/cli-install-types'
 import { translate } from '@/i18n/i18n'
+import { getProductDisplayName } from '../../../shared/product-display-name'
 
 type EnsureOrcaCliAvailableOptions = {
   onStatusChange?: (status: CliInstallStatus) => void
@@ -9,6 +10,13 @@ type EnsureOrcaCliAvailableOptions = {
 
 export const AGENT_SKILL_CLI_PREREQUISITE_NOTICE =
   'Before opening setup, Orca may show a system prompt to register the Orca CLI command on PATH.'
+
+export function getAgentSkillCliPrerequisiteNotice(): string {
+  const productName = getProductDisplayName()
+  return productName === 'Orca'
+    ? AGENT_SKILL_CLI_PREREQUISITE_NOTICE
+    : `Before opening setup, ${productName} may show a system prompt to register the \`orca\` CLI command on PATH.`
+}
 
 export const CLI_PREREQUISITE_REGISTRATION_TOAST = 'Orca needs to register its CLI on PATH.'
 export const CLI_PREREQUISITE_REGISTRATION_TOAST_DESCRIPTION =

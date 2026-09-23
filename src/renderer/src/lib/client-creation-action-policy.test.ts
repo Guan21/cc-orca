@@ -30,6 +30,10 @@ function runtimeStatus(capabilities?: string[]): RuntimeStatus {
 afterEach(() => vi.unstubAllGlobals())
 
 describe('resolveClientCreationActionPolicy', () => {
+  afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  })
+
   it('preserves Electron creation behavior without negotiated runtime signals', () => {
     expect(resolveClientCreationActionPolicy({ surface: 'electron', runtimeStatus: null })).toEqual(
       {
@@ -116,6 +120,20 @@ describe('resolveClientCreationActionPolicy', () => {
       state: 'hidden',
       reason: MOBILE_EMULATOR_UNAVAILABLE_MESSAGE
     })
+  })
+
+  it('hides mobile emulator creation in corporate Electron builds', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    expect(resolveClientCreationActionPolicy({ surface: 'electron', runtimeStatus: null })).toEqual(
+      {
+        'managed-browser': { state: 'enabled', provider: 'local-client' },
+        'mobile-emulator': {
+          state: 'hidden',
+          reason: 'Mobile Emulator is disabled by this build profile.'
+        }
+      }
+    )
   })
 })
 

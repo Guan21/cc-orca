@@ -3,6 +3,7 @@ import { translateSearchKeyword } from './settings-search-keywords'
 import { getAntigravityStatusBarToggleSearchEntry } from './appearance-status-bar-antigravity-toggle-search'
 import { getGrokStatusBarToggleSearchEntry } from './appearance-status-bar-grok-toggle-search'
 import { isStatusBarItemEnabledForBuildProfile } from './corporate-provider-surface-policy'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 type StatusBarToggleSearchEntry = ReturnType<typeof getGrokStatusBarToggleSearchEntry>
 
@@ -219,8 +220,12 @@ export function getStatusBarToggles(): readonly StatusBarToggleSearchEntry[] {
         ...translateSearchKeyword('auto.components.settings.appearance.search.fe192b060e', 'host')
       ],
       toggleDescription: translate(
-        'settings.appearance.statusBar.sshToggleDescription',
-        'Show configured SSH and remote Orca hosts when any are available.'
+        getOrcaBuildProfile() === 'corporate'
+          ? 'settings.appearance.statusBar.sshToggleDescriptionCorporate'
+          : 'settings.appearance.statusBar.sshToggleDescription',
+        getOrcaBuildProfile() === 'corporate'
+          ? 'Show configured SSH and remote hosts when any are available.'
+          : 'Show configured SSH and remote Orca hosts when any are available.'
       )
     },
     {

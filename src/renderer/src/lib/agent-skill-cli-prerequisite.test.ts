@@ -5,6 +5,7 @@ import {
   CLI_PREREQUISITE_REGISTRATION_TOAST,
   CLI_PREREQUISITE_REGISTRATION_TOAST_DESCRIPTION,
   ensureOrcaCliAvailableForAgentSkillTerminal,
+  getAgentSkillCliPrerequisiteNotice,
   isOrcaCliAvailableOnPath
 } from './agent-skill-cli-prerequisite'
 
@@ -35,10 +36,28 @@ function cliStatus(overrides: Partial<CliInstallStatus> = {}): CliInstallStatus 
 }
 
 describe('isOrcaCliAvailableOnPath', () => {
+  afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  })
+
   it('requires the installed CLI command to be visible on PATH', () => {
     expect(isOrcaCliAvailableOnPath(cliStatus())).toBe(true)
     expect(isOrcaCliAvailableOnPath(cliStatus({ pathConfigured: false }))).toBe(false)
     expect(isOrcaCliAvailableOnPath(cliStatus({ state: 'not_installed' }))).toBe(false)
+  })
+
+  it('uses corporate product wording while preserving the literal orca CLI command', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+
+    expect(getAgentSkillCliPrerequisiteNotice()).toBe(
+      'Before opening setup, Secure Orca Lite may show a system prompt to register the `orca` CLI command on PATH.'
+    )
+  })
+
+  it('keeps default prerequisite wording outside corporate builds', () => {
+    expect(getAgentSkillCliPrerequisiteNotice()).toBe(
+      'Before opening setup, Orca may show a system prompt to register the Orca CLI command on PATH.'
+    )
   })
 })
 

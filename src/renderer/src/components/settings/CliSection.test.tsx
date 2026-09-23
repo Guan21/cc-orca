@@ -15,6 +15,7 @@ const capturedPanel = vi.hoisted(() => ({
   props: null as null | {
     command: string
     installedCommand: string
+    preInstallNotice?: string
     terminalRuntime?: { runtime: 'host' | 'wsl'; wslDistro?: string | null; label: string }
     freshnessSkillName?: string
     getPrerequisiteStatus: () => Promise<unknown>
@@ -57,6 +58,7 @@ vi.mock('./AgentSkillSetupPanel', () => ({
     command: string
     installedCommand: string
     freshnessSkillName?: string
+    preInstallNotice?: string
     getPrerequisiteStatus: () => Promise<unknown>
     onBeforeOpenTerminal: () => Promise<void>
   }) {
@@ -89,6 +91,9 @@ describe('CliSection project runtime defaults', () => {
     expect(markup).toContain('Use the `orca` command')
     expect(markup).toContain('Secure Orca Lite-aware')
     expect(markup).not.toContain('Use Orca from your terminal')
+    expect(capturedPanel.props?.preInstallNotice).toBe(
+      'Before opening setup, Secure Orca Lite may show a system prompt to register the `orca` CLI command on PATH.'
+    )
   })
 
   it('keeps default product wording for default builds', () => {
@@ -98,6 +103,9 @@ describe('CliSection project runtime defaults', () => {
 
     expect(markup).toContain('Orca CLI')
     expect(markup).toContain('Use Orca from your terminal')
+    expect(capturedPanel.props?.preInstallNotice).toBe(
+      'Before opening setup, Orca may show a system prompt to register the Orca CLI command on PATH.'
+    )
   })
 
   it('exposes freshness only for a resolved local host runtime', () => {

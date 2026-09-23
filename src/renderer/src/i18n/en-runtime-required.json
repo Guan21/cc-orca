@@ -2839,6 +2839,12 @@
     }
   },
   "settings": {
+    "appearance": {
+      "statusBar": {
+        "sshToggleDescription": "Show configured SSH and remote Orca hosts when any are available.",
+        "sshToggleDescriptionCorporate": "Show configured SSH and remote hosts when any are available."
+      }
+    },
     "browser": {
       "clientHostedRemote": {
         "description": "Render remote workspace pages on this desktop; network traffic still goes through the remote host. Applies to new pages only.",
