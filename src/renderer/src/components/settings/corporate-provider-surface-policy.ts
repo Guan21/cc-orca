@@ -10,6 +10,7 @@ export type ProviderSettingsSurface =
   | 'claude'
   | 'codex'
   | 'gemini'
+  | 'opencode'
   | 'opencode-go'
   | 'minimax'
   | 'grok'
@@ -20,6 +21,7 @@ const PROVIDER_AGENT_BY_SURFACE: Record<ProviderSettingsSurface, TuiAgent | null
   claude: 'claude',
   codex: 'codex',
   gemini: 'gemini',
+  opencode: 'opencode',
   'opencode-go': 'opencode',
   minimax: null,
   grok: 'grok',

@@ -4246,7 +4246,9 @@
             "e7f0a1b2c3": "subscription",
             "d6e9f0a1b2": "credits",
             "a3b6c7d8e9": "grok usage",
-            "9f2a3b4c5d": "xai"
+            "9f2a3b4c5d": "xai",
+            "providerScopedDescription": "{{value0}} token analytics and app stats.",
+            "claudeCode": "claude code"
           }
         },
         "usage": {

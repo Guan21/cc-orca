@@ -9,6 +9,7 @@ import { getRecentUsageDays } from './usage-overview-daily-series'
 import { buildUsageOverview, formatUsageCost, formatUsageTokens } from './usage-overview-model'
 import { DailyIntensityGrid, ProviderUsageRow, TokenMixBar } from './usage-overview-sections'
 import { translate } from '@/i18n/i18n'
+import { isProviderSettingsSurfaceEnabledForBuildProfile } from '../settings/corporate-provider-surface-policy'
 
 const RECENT_DAY_COUNT = 42
 
@@ -46,32 +47,38 @@ export function UsageOverviewPane(): React.JSX.Element {
   const enableCodexUsage = useAppStore((state) => state.enableCodexUsage)
   const enableOpenCodeUsage = useAppStore((state) => state.enableOpenCodeUsage)
   const recordFeatureInteraction = useAppStore((state) => state.recordFeatureInteraction)
+  const showOpenCodeUsage = isProviderSettingsSurfaceEnabledForBuildProfile('opencode')
 
   useEffect(() => {
     void fetchClaudeUsage()
     void fetchCodexUsage()
-    void fetchOpenCodeUsage()
-  }, [fetchClaudeUsage, fetchCodexUsage, fetchOpenCodeUsage])
+    if (showOpenCodeUsage) {
+      void fetchOpenCodeUsage()
+    }
+  }, [fetchClaudeUsage, fetchCodexUsage, fetchOpenCodeUsage, showOpenCodeUsage])
 
   const overview = useMemo(
     () =>
-      buildUsageOverview({
-        claude: {
-          scanState: claudeScanState,
-          summary: claudeSummary,
-          daily: claudeDaily
+      buildUsageOverview(
+        {
+          claude: {
+            scanState: claudeScanState,
+            summary: claudeSummary,
+            daily: claudeDaily
+          },
+          codex: {
+            scanState: codexScanState,
+            summary: codexSummary,
+            daily: codexDaily
+          },
+          opencode: {
+            scanState: openCodeScanState,
+            summary: openCodeSummary,
+            daily: openCodeDaily
+          }
         },
-        codex: {
-          scanState: codexScanState,
-          summary: codexSummary,
-          daily: codexDaily
-        },
-        opencode: {
-          scanState: openCodeScanState,
-          summary: openCodeSummary,
-          daily: openCodeDaily
-        }
-      }),
+        { includeOpenCode: showOpenCodeUsage }
+      ),
     [
       claudeDaily,
       claudeScanState,
@@ -81,7 +88,8 @@ export function UsageOverviewPane(): React.JSX.Element {
       codexSummary,
       openCodeDaily,
       openCodeScanState,
-      openCodeSummary
+      openCodeSummary,
+      showOpenCodeUsage
     ]
   )
   const recentDays = useMemo(
@@ -94,7 +102,7 @@ export function UsageOverviewPane(): React.JSX.Element {
     void Promise.all([
       claudeScanState?.enabled ? refreshClaudeUsage() : Promise.resolve(),
       codexScanState?.enabled ? refreshCodexUsage() : Promise.resolve(),
-      openCodeScanState?.enabled ? refreshOpenCodeUsage() : Promise.resolve()
+      showOpenCodeUsage && openCodeScanState?.enabled ? refreshOpenCodeUsage() : Promise.resolve()
     ])
   }
 
@@ -174,19 +182,21 @@ export function UsageOverviewPane(): React.JSX.Element {
                 >
                   {translate('auto.components.stats.UsageOverviewPane.2f1ee2878b', 'Enable Codex')}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    recordFeatureInteraction('usage-tracking')
-                    void enableOpenCodeUsage()
-                  }}
-                >
-                  {translate(
-                    'auto.components.stats.UsageOverviewPane.2d13e57f72',
-                    'Enable OpenCode'
-                  )}
-                </Button>
+                {showOpenCodeUsage ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      recordFeatureInteraction('usage-tracking')
+                      void enableOpenCodeUsage()
+                    }}
+                  >
+                    {translate(
+                      'auto.components.stats.UsageOverviewPane.2d13e57f72',
+                      'Enable OpenCode'
+                    )}
+                  </Button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -228,7 +238,9 @@ export function UsageOverviewPane(): React.JSX.Element {
               <div className="mt-4 rounded-lg border border-dashed border-border/60 bg-card/30 px-4 py-5 text-sm text-muted-foreground">
                 {translate(
                   'auto.components.stats.UsageOverviewPane.60002bb22f',
-                  'No local Claude, Codex, or OpenCode usage found yet. The overview will populate after the next agent session writes token logs.'
+                  showOpenCodeUsage
+                    ? 'No local Claude, Codex, or OpenCode usage found yet. The overview will populate after the next agent session writes token logs.'
+                    : 'No local Claude Code or Codex usage found yet. The overview will populate after the next agent session writes token logs.'
                 )}
               </div>
             ) : (

@@ -1,4 +1,5 @@
 import { StatsPane } from '../stats/StatsPane'
+import { getStatsPaneDescription } from '../stats/stats-search'
 import { AppearancePane } from './AppearancePane'
 import { InputPane } from './InputPane'
 import { NotificationsPane } from './NotificationsPane'
@@ -101,10 +102,7 @@ export function renderStatsSettingsSection(context: SettingsRenderContext): Reac
     <SettingsSection
       id="stats"
       title={translate('auto.components.settings.Settings.954a8f5aef', 'Stats & Usage')}
-      description={translate(
-        'auto.components.settings.Settings.8acf3f22e0',
-        'Orca stats plus Claude, Codex, OpenCode token analytics and Grok subscription usage.'
-      )}
+      description={getStatsPaneDescription()}
       searchEntries={navigation.getSectionSearchEntries('stats')}
     >
       {view.isSectionMounted('stats') ? <StatsPane /> : null}
