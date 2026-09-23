@@ -6,6 +6,7 @@ import {
   type TerminalShortcutPolicy
 } from '../../../../shared/keybindings'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 // Describes how a shortcut behaves while a terminal/TUI has keyboard focus,
 // surfaced as a badge on the command header. Lives in its own module so the
@@ -51,7 +52,13 @@ export function getShortcutTerminalStatus(
   })
   return activeInTerminal
     ? {
-        label: translate('auto.components.settings.ShortcutsPane.2a0e8aeccf', 'Orca first'),
+        label:
+          getOrcaBuildProfile() === 'corporate'
+            ? translate(
+                'auto.components.settings.ShortcutTerminalPolicyControl.applicationFirst',
+                'Application first'
+              )
+            : translate('auto.components.settings.ShortcutsPane.2a0e8aeccf', 'Orca first'),
         description: translate(
           'auto.components.settings.ShortcutsPane.dfa8ff612f',
           'Also runs while a terminal or TUI has keyboard focus.'

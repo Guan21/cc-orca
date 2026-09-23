@@ -6285,7 +6285,8 @@
           "overridingGlobal": "Overriding global setting: {{value0}}",
           "projectOnly": "Added in this project only.",
           "useGlobalFor": "Use global for {{value0}}",
-          "useGlobal": "Use global"
+          "useGlobal": "Use global",
+          "rootHelpCorporate": "Worktrees beneath this folder will be recognized automatically."
         },
         "RepoScanUnavailableIndicator": {
           "title": "Worktree scan failed for {{value0}}",
@@ -7123,7 +7124,10 @@
           "b82f86d7d2": "Rich Markdown Spellcheck",
           "5195f0b9ef": "Show browser spelling underlines and suggestions while editing rich Markdown.",
           "7ddd66fede": "Editor Word Wrap",
-          "9b18de6eea": "Wrap long lines in file editors instead of requiring horizontal scrolling."
+          "9b18de6eea": "Wrap long lines in file editors instead of requiring horizontal scrolling.",
+          "autoSaveDelayCorporate": "How long to wait after your last edit before saving automatically.",
+          "persistenceCorporate": "Configure how file edits are persisted.",
+          "autoSaveDelayDefaultCorporate": "How long to wait after your last edit before saving automatically. First launch defaults to"
         },
         "AdvancedNetworkSettingsSection": {
           "3e431564b5": "localhost, 127.0.0.1, *.internal",
@@ -7418,7 +7422,9 @@
           "1c2be2b2c6": "Edit File in Orca",
           "c5886a31cc": "Failed to open external editor.",
           "cdf794f46d": "Keybindings file is not available.",
-          "dd532a01ce": "Failed to open keybindings in Orca."
+          "dd532a01ce": "Failed to open keybindings in Orca.",
+          "openFailureCorporate": "Failed to open keybindings in the application.",
+          "editFileCorporate": "Edit File in {{productName}}"
         },
         "ManageSessionKillDialog": {
           "6bf4627168": "Cancel",
@@ -8281,7 +8287,9 @@
           "63308571d8": "Orca first",
           "c43c7ff5f9": "Decide who first intercepts shortcuts",
           "c3a554288e": "Shortcuts in Terminal",
-          "0f55c6f15c": "Choose whether Orca or the focused terminal wins when shortcuts overlap."
+          "0f55c6f15c": "Choose whether Orca or the focused terminal wins when shortcuts overlap.",
+          "applicationFirst": "Application first",
+          "conflictCorporate": "Choose whether the application or the focused terminal wins when shortcuts overlap."
         },
         "ShortcutsPane": {
           "4b7ae34062": "directly.",
@@ -10243,7 +10251,8 @@
             "7e3fc707aa": "terminal",
             "0ecba9aa5f": "keyboard",
             "ebd7d81e1d": "Choose whether Orca or the focused terminal wins when shortcuts overlap.",
-            "f052906167": "Shortcuts in Terminal"
+            "f052906167": "Shortcuts in Terminal",
+            "applicationFirst": "application first"
           }
         },
         "ssh": {
