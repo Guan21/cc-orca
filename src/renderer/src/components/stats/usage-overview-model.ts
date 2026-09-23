@@ -10,13 +10,28 @@ import {
   createOpenCodeProvider
 } from './usage-provider-normalization'
 
-export function buildUsageOverview(input: UsageOverviewInput): UsageOverviewModel {
+type UsageOverviewBuildOptions = {
+  includeOpenCode?: boolean
+}
+
+const EMPTY_OPENCODE_USAGE_INPUT: UsageOverviewInput['opencode'] = {
+  scanState: null,
+  summary: null,
+  daily: []
+}
+
+export function buildUsageOverview(
+  input: UsageOverviewInput,
+  options: UsageOverviewBuildOptions = {}
+): UsageOverviewModel {
+  const includeOpenCode = options.includeOpenCode ?? true
+  const overviewInput = includeOpenCode ? input : { ...input, opencode: EMPTY_OPENCODE_USAGE_INPUT }
   const providers = [
-    createClaudeProvider(input.claude),
-    createCodexProvider(input.codex),
-    createOpenCodeProvider(input.opencode)
+    createClaudeProvider(overviewInput.claude),
+    createCodexProvider(overviewInput.codex),
+    ...(includeOpenCode ? [createOpenCodeProvider(overviewInput.opencode)] : [])
   ]
-  const daily = buildDailyOverview(input)
+  const daily = buildDailyOverview(overviewInput)
   const bestDay =
     daily.length === 0
       ? null

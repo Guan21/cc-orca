@@ -2,7 +2,7 @@ import { getAppearancePaneSearchEntries } from '@/components/settings/appearance
 import { getInputPaneSearchEntries } from '@/components/settings/input-search'
 import { getNotificationsPaneSearchEntries } from '@/components/settings/notifications-search'
 import { getShortcutsPaneSearchEntries } from '@/components/settings/shortcuts-search'
-import { getStatsPaneSearchEntries } from '@/components/stats/stats-search'
+import { getStatsPaneDescription, getStatsPaneSearchEntries } from '@/components/stats/stats-search'
 import { translate } from '@/i18n/i18n'
 import type { SettingsNavSection } from '@/lib/settings-navigation-types'
 import { BarChart3, Bell, Keyboard, Palette, TextCursorInput } from 'lucide-react'
@@ -13,7 +13,8 @@ export function buildInterfaceSettingsSections({
   isWindows,
   isWebClient,
   managedBrowserCreationEnabled,
-  mobileEmulatorCreationEnabled
+  mobileEmulatorCreationEnabled,
+  buildProfile
 }: SettingsNavigationBuildOptions): SettingsNavSection[] {
   const showDesktopOnlySettings = !isWebClient
   return [
@@ -78,12 +79,9 @@ export function buildInterfaceSettingsSections({
     {
       id: 'stats',
       title: translate('auto.hooks.useSettingsNavigationMetadata.d72a58b5b9', 'Stats & Usage'),
-      description: translate(
-        'auto.hooks.useSettingsNavigationMetadata.b351014180',
-        'Orca stats plus Claude, Codex, OpenCode token analytics and Grok subscription usage.'
-      ),
+      description: getStatsPaneDescription(buildProfile),
       icon: BarChart3,
-      searchEntries: getStatsPaneSearchEntries(),
+      searchEntries: getStatsPaneSearchEntries(buildProfile),
       group: 'interface'
     }
   ]

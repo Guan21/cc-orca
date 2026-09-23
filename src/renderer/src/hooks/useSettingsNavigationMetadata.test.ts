@@ -1,6 +1,10 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import {
+  getSettingsSectionSearchEntries,
+  matchesSettingsSearch
+} from '../components/settings/settings-search'
 import { buildSettingsNavigationMetadata } from './useSettingsNavigationMetadata'
 import type { Repo } from '../../../shared/repo-types'
 import type { OrcaBuildProfile } from '../../../shared/corporate-build-profile'
@@ -144,6 +148,23 @@ describe('settings navigation metadata', () => {
     expect(corporateIds).not.toContain('orca-account')
     expect(corporateIds).not.toContain('mobile')
     expect(corporateIds).toContain('accounts')
+  })
+
+  it('omits unsupported provider-specific Stats search metadata in corporate builds', () => {
+    const sections = buildSettingsNavigationMetadata({
+      isMac: false,
+      isWindows: false,
+      isWebClient: false,
+      buildProfile: 'corporate',
+      repos: [repo]
+    })
+    const stats = sections.find((section) => section.id === 'stats')
+
+    expect(stats).toBeDefined()
+    expect(matchesSettingsSearch('Claude', getSettingsSectionSearchEntries(stats!))).toBe(true)
+    expect(matchesSettingsSearch('Codex', getSettingsSectionSearchEntries(stats!))).toBe(true)
+    expect(matchesSettingsSearch('OpenCode', getSettingsSectionSearchEntries(stats!))).toBe(false)
+    expect(matchesSettingsSearch('Grok', getSettingsSectionSearchEntries(stats!))).toBe(false)
   })
 
   it('puts web-safe AI capability panes at the top while hiding desktop-only panes', () => {

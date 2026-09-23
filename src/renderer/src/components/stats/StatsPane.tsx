@@ -16,6 +16,11 @@ import {
 } from '../ui/dropdown-menu'
 import { AgentIcon } from '@/lib/agent-catalog'
 import { getIntlLocale, translate } from '@/i18n/i18n'
+import { getTuiAgentDisplayLabel } from '../../../../shared/tui-agent-selection'
+import {
+  isProviderSettingsSurfaceEnabledForBuildProfile,
+  type ProviderSettingsSurface
+} from '../settings/corporate-provider-surface-policy'
 export { getStatsPaneSearchEntries } from './stats-search'
 
 function formatDuration(ms: number): string {
@@ -54,7 +59,13 @@ function formatTrackingSince(timestamp: number | null): string {
 
 type UsageTab = 'overview' | 'claude' | 'codex' | 'opencode' | 'grok'
 
-const USAGE_ANALYTICS_OPTIONS = [
+type UsageAnalyticsOption = {
+  id: UsageTab
+  label: string
+  providerSurface?: ProviderSettingsSurface
+}
+
+const USAGE_ANALYTICS_OPTIONS: readonly UsageAnalyticsOption[] = [
   {
     id: 'overview',
     get label() {
@@ -63,29 +74,44 @@ const USAGE_ANALYTICS_OPTIONS = [
   },
   {
     id: 'claude',
+    providerSurface: 'claude',
     get label() {
-      return translate('auto.components.stats.StatsPane.85457c02fe', 'Claude')
+      return getTuiAgentDisplayLabel(
+        'claude',
+        translate('auto.components.stats.StatsPane.85457c02fe', 'Claude')
+      )
     }
   },
   {
     id: 'codex',
+    providerSurface: 'codex',
     get label() {
       return translate('auto.components.stats.StatsPane.7d26110cea', 'Codex')
     }
   },
   {
     id: 'opencode',
+    providerSurface: 'opencode',
     get label() {
       return translate('auto.components.stats.StatsPane.1e696db2f6', 'OpenCode')
     }
   },
   {
     id: 'grok',
+    providerSurface: 'grok',
     get label() {
       return translate('auto.components.stats.StatsPane.grokUsageTab', 'Grok')
     }
   }
-] as const satisfies readonly { id: UsageTab; label: string }[]
+]
+
+function getVisibleUsageAnalyticsOptions() {
+  return USAGE_ANALYTICS_OPTIONS.filter(
+    (option) =>
+      option.providerSurface === undefined ||
+      isProviderSettingsSurfaceEnabledForBuildProfile(option.providerSurface)
+  )
+}
 
 function UsageAnalyticsOptionIcon({ tab }: { tab: UsageTab }): React.JSX.Element {
   if (tab === 'overview') {
@@ -99,8 +125,10 @@ export function StatsPane(): React.JSX.Element {
   const fetchStatsSummary = useAppStore((s) => s.fetchStatsSummary)
   const recordFeatureInteraction = useAppStore((s) => s.recordFeatureInteraction)
   const [activeUsageTab, setActiveUsageTab] = useState<UsageTab>('overview')
+  const usageAnalyticsOptions = getVisibleUsageAnalyticsOptions()
   const activeUsageOption =
-    USAGE_ANALYTICS_OPTIONS.find((option) => option.id === activeUsageTab) ??
+    usageAnalyticsOptions.find((option) => option.id === activeUsageTab) ??
+    usageAnalyticsOptions[0] ??
     USAGE_ANALYTICS_OPTIONS[0]
 
   useEffect(() => {
@@ -178,7 +206,7 @@ export function StatsPane(): React.JSX.Element {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
-              {USAGE_ANALYTICS_OPTIONS.map((option) => (
+              {usageAnalyticsOptions.map((option) => (
                 <DropdownMenuItem key={option.id} onSelect={() => setActiveUsageTab(option.id)}>
                   <span className="flex min-w-0 items-center gap-2">
                     <UsageAnalyticsOptionIcon tab={option.id} />
@@ -200,13 +228,13 @@ export function StatsPane(): React.JSX.Element {
             active panel mounted avoids hidden tab-content layout/focus churn that produced a visible
             vertical jitter below the usage card when switching disabled providers. */}
         <div>
-          {activeUsageTab === 'overview' ? (
+          {activeUsageOption.id === 'overview' ? (
             <UsageOverviewPane />
-          ) : activeUsageTab === 'claude' ? (
+          ) : activeUsageOption.id === 'claude' ? (
             <ClaudeUsagePane />
-          ) : activeUsageTab === 'codex' ? (
+          ) : activeUsageOption.id === 'codex' ? (
             <CodexUsagePane />
-          ) : activeUsageTab === 'opencode' ? (
+          ) : activeUsageOption.id === 'opencode' ? (
             <OpenCodeUsagePane />
           ) : (
             <GrokUsagePane />
