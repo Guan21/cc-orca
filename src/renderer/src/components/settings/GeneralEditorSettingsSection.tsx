@@ -1,4 +1,5 @@
 import type React from 'react'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { useState } from 'react'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import {
@@ -91,10 +92,17 @@ export function GeneralEditorSettingsSection({
           'auto.components.settings.GeneralEditorSettingsSection.45c6e85c4d',
           'Editor'
         )}
-        description={translate(
-          'auto.components.settings.GeneralEditorSettingsSection.d21136d9ef',
-          'Configure how Orca persists file edits.'
-        )}
+        description={
+          getOrcaBuildProfile() === 'corporate'
+            ? translate(
+                'auto.components.settings.GeneralEditorSettingsSection.persistenceCorporate',
+                'Configure how file edits are persisted.'
+              )
+            : translate(
+                'auto.components.settings.GeneralEditorSettingsSection.d21136d9ef',
+                'Configure how Orca persists file edits.'
+              )
+        }
       />
 
       <SearchableSetting
@@ -127,10 +135,17 @@ export function GeneralEditorSettingsSection({
           'auto.components.settings.GeneralEditorSettingsSection.d6cf227ca0',
           'Auto Save Delay'
         )}
-        description={translate(
-          'auto.components.settings.GeneralEditorSettingsSection.1bec6d8318',
-          'How long Orca waits after your last edit before saving automatically.'
-        )}
+        description={
+          getOrcaBuildProfile() === 'corporate'
+            ? translate(
+                'auto.components.settings.GeneralEditorSettingsSection.autoSaveDelayCorporate',
+                'How long to wait after your last edit before saving automatically.'
+              )
+            : translate(
+                'auto.components.settings.GeneralEditorSettingsSection.1bec6d8318',
+                'How long Orca waits after your last edit before saving automatically.'
+              )
+        }
         keywords={['autosave', 'delay', 'milliseconds']}
         className="flex items-center justify-between gap-4 py-2"
       >
@@ -142,10 +157,15 @@ export function GeneralEditorSettingsSection({
             )}
           </Label>
           <p className="text-xs text-muted-foreground">
-            {translate(
-              'auto.components.settings.GeneralEditorSettingsSection.8112cd6dcf',
-              'How long Orca waits after your last edit before saving automatically. First launch defaults to'
-            )}{' '}
+            {getOrcaBuildProfile() === 'corporate'
+              ? translate(
+                  'auto.components.settings.GeneralEditorSettingsSection.autoSaveDelayDefaultCorporate',
+                  'How long to wait after your last edit before saving automatically. First launch defaults to'
+                )
+              : translate(
+                  'auto.components.settings.GeneralEditorSettingsSection.8112cd6dcf',
+                  'How long Orca waits after your last edit before saving automatically. First launch defaults to'
+                )}{' '}
             {DEFAULT_EDITOR_AUTO_SAVE_DELAY_MS}{' '}
             {translate('auto.components.settings.GeneralEditorSettingsSection.fc5c5306ff', 'ms.')}
           </p>

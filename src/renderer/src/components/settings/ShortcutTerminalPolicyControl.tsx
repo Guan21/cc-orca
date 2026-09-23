@@ -1,4 +1,5 @@
 import React from 'react'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import type { TerminalShortcutPolicy } from '../../../../shared/keybindings'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { SearchableSetting } from './SearchableSetting'
@@ -23,10 +24,17 @@ export function ShortcutTerminalPolicyControl({
         'auto.components.settings.ShortcutTerminalPolicyControl.c3a554288e',
         'Shortcuts in Terminal'
       )}
-      description={translate(
-        'auto.components.settings.ShortcutTerminalPolicyControl.0f55c6f15c',
-        'Choose whether Orca or the focused terminal wins when shortcuts overlap.'
-      )}
+      description={
+        getOrcaBuildProfile() === 'corporate'
+          ? translate(
+              'auto.components.settings.ShortcutTerminalPolicyControl.conflictCorporate',
+              'Choose whether the application or the focused terminal wins when shortcuts overlap.'
+            )
+          : translate(
+              'auto.components.settings.ShortcutTerminalPolicyControl.0f55c6f15c',
+              'Choose whether Orca or the focused terminal wins when shortcuts overlap.'
+            )
+      }
       keywords={keywords}
       className="max-w-none"
     >
@@ -53,10 +61,15 @@ export function ShortcutTerminalPolicyControl({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="orca-first">
-                {translate(
-                  'auto.components.settings.ShortcutTerminalPolicyControl.63308571d8',
-                  'Orca first'
-                )}
+                {getOrcaBuildProfile() === 'corporate'
+                  ? translate(
+                      'auto.components.settings.ShortcutTerminalPolicyControl.applicationFirst',
+                      'Application first'
+                    )
+                  : translate(
+                      'auto.components.settings.ShortcutTerminalPolicyControl.63308571d8',
+                      'Orca first'
+                    )}
               </SelectItem>
               <SelectItem value="terminal-first">
                 {translate(

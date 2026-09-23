@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 export type WorktreeVisibilitySourceAddResult =
   | 'added'
@@ -90,10 +91,15 @@ export function WorktreeVisibilitySourceAddForm({
         role={inputError ? 'alert' : undefined}
       >
         {inputError ??
-          translate(
-            'auto.components.sidebar.WorktreeVisibilitySourceList.rootHelp',
-            'Orca will recognize worktrees beneath this folder.'
-          )}
+          (getOrcaBuildProfile() === 'corporate'
+            ? translate(
+                'auto.components.sidebar.WorktreeVisibilitySourceList.rootHelpCorporate',
+                'Worktrees beneath this folder will be recognized automatically.'
+              )
+            : translate(
+                'auto.components.sidebar.WorktreeVisibilitySourceList.rootHelp',
+                'Orca will recognize worktrees beneath this folder.'
+              ))}
       </p>
     </form>
   )

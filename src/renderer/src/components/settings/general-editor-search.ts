@@ -1,4 +1,5 @@
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { translateSearchKeyword } from './settings-search-keywords'
 import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 
@@ -16,10 +17,16 @@ export const getGeneralEditorSearchEntries = createLocalizedCatalog(() => [
   },
   {
     title: translate('auto.components.settings.general.search.14e46c745b', 'Auto Save Delay'),
-    description: translate(
-      'auto.components.settings.general.search.8ea61ad55c',
-      'How long Orca waits after your last edit before saving automatically.'
-    ),
+    description:
+      getOrcaBuildProfile() === 'corporate'
+        ? translate(
+            'auto.components.settings.GeneralEditorSettingsSection.autoSaveDelayCorporate',
+            'How long to wait after your last edit before saving automatically.'
+          )
+        : translate(
+            'auto.components.settings.general.search.8ea61ad55c',
+            'How long Orca waits after your last edit before saving automatically.'
+          ),
     keywords: [
       ...translateSearchKeyword('auto.components.settings.general.search.86f54575c7', 'autosave'),
       ...translateSearchKeyword('auto.components.settings.general.search.146728ac2c', 'delay'),

@@ -1,4 +1,6 @@
 import React from 'react'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
+import { getProductDisplayName } from '../../../../shared/product-display-name'
 import { ChevronDown, Code2, ExternalLink, FileText, FolderOpen, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
@@ -112,10 +114,15 @@ export function KeybindingsFileActions(): React.JSX.Element {
       toast.error(
         error instanceof Error
           ? error.message
-          : translate(
-              'auto.components.settings.KeybindingsFileActions.dd532a01ce',
-              'Failed to open keybindings in Orca.'
-            )
+          : getOrcaBuildProfile() === 'corporate'
+            ? translate(
+                'auto.components.settings.KeybindingsFileActions.openFailureCorporate',
+                'Failed to open keybindings in the application.'
+              )
+            : translate(
+                'auto.components.settings.KeybindingsFileActions.dd532a01ce',
+                'Failed to open keybindings in Orca.'
+              )
       )
     }
   }
@@ -161,10 +168,16 @@ export function KeybindingsFileActions(): React.JSX.Element {
         onClick={() => void editKeybindingsInOrca()}
       >
         <FileText className="size-3" />
-        {translate(
-          'auto.components.settings.KeybindingsFileActions.1c2be2b2c6',
-          'Edit File in Orca'
-        )}
+        {getOrcaBuildProfile() === 'corporate'
+          ? translate(
+              'auto.components.settings.KeybindingsFileActions.editFileCorporate',
+              'Edit File in {{productName}}',
+              { productName: getProductDisplayName() }
+            )
+          : translate(
+              'auto.components.settings.KeybindingsFileActions.1c2be2b2c6',
+              'Edit File in Orca'
+            )}
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
