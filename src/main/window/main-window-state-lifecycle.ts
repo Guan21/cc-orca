@@ -67,7 +67,7 @@ export function installMainWindowStateLifecycle(args: {
     showWindowWithoutStealingFocus(mainWindow)
   }
   mainWindow.on('ready-to-show', revealInitialWindow)
-  if (revealOnDidFinishLoad === true) {
+  if (revealOnDidFinishLoad === true || process.platform === 'darwin') {
     mainWindow.webContents.on('did-finish-load', revealInitialWindow)
   }
 

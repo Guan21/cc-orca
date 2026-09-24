@@ -133,19 +133,42 @@ describe('createMainWindow', () => {
     expect(browserWindowInstance.show).toHaveBeenCalledTimes(1)
   })
 
-  it('can reveal the startup window after renderer load before ready-to-show', () => {
+  it('reveals a normal macOS startup window after renderer load before ready-to-show', () => {
     const { browserWindowInstance, windowHandlers } = createStartupRevealWindowFixture()
 
-    createMainWindow(null, { revealOnDidFinishLoad: true })
-    const revealAfterLoad = browserWindowInstance.webContents.on.mock.calls.find(
-      ([event]) => event === 'did-finish-load'
-    )?.[1]
-    expect(revealAfterLoad).toBeTypeOf('function')
-    revealAfterLoad?.()
+    withPlatform('darwin', () => {
+      createMainWindow(null)
+      const revealAfterLoad = browserWindowInstance.webContents.on.mock.calls.find(
+        ([event]) => event === 'did-finish-load'
+      )?.[1]
+      expect(revealAfterLoad).toBeTypeOf('function')
+      revealAfterLoad?.()
 
-    expect(browserWindowInstance.show).toHaveBeenCalledTimes(1)
-    windowHandlers['ready-to-show']()
-    expect(browserWindowInstance.show).toHaveBeenCalledTimes(1)
+      expect(browserWindowInstance.show).toHaveBeenCalledTimes(1)
+      windowHandlers['ready-to-show']()
+      expect(browserWindowInstance.show).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('reveals a normal macOS startup window once when ready-to-show wins the race', () => {
+    const { browserWindowInstance } = createStartupRevealWindowFixture()
+
+    withPlatform('darwin', () => {
+      createMainWindow(null)
+      const revealAfterReady = browserWindowInstance.on.mock.calls.find(
+        ([event]) => event === 'ready-to-show'
+      )?.[1]
+      const revealAfterLoad = browserWindowInstance.webContents.on.mock.calls.find(
+        ([event]) => event === 'did-finish-load'
+      )?.[1]
+      expect(revealAfterReady).toBeTypeOf('function')
+      expect(revealAfterLoad).toBeTypeOf('function')
+
+      revealAfterReady?.()
+      revealAfterLoad?.()
+
+      expect(browserWindowInstance.show).toHaveBeenCalledTimes(1)
+    })
   })
 
   it('reveals the startup window on Windows when ready-to-show never fires', () => {
@@ -204,13 +227,48 @@ describe('createMainWindow', () => {
     })
   })
 
-  it('does not install the startup reveal fallback on macOS', () => {
+  it('does not install a timer startup reveal fallback on macOS', () => {
     vi.useFakeTimers()
     const { browserWindowInstance } = createStartupRevealWindowFixture()
 
     withPlatform('darwin', () => {
       createMainWindow(null)
       vi.advanceTimersByTime(10_000)
+
+      expect(browserWindowInstance.show).not.toHaveBeenCalled()
+      expect(browserWindowInstance.maximize).not.toHaveBeenCalled()
+    })
+  })
+
+  it('keeps a headless macOS startup hidden after renderer load and ready-to-show', () => {
+    vi.stubEnv('ORCA_E2E_HEADLESS', '1')
+    const { browserWindowInstance, windowHandlers } = createStartupRevealWindowFixture()
+
+    withPlatform('darwin', () => {
+      createMainWindow(createStartupRevealStore(true) as never)
+      const revealAfterLoad = browserWindowInstance.webContents.on.mock.calls.find(
+        ([event]) => event === 'did-finish-load'
+      )?.[1]
+      expect(revealAfterLoad).toBeTypeOf('function')
+      revealAfterLoad?.()
+      windowHandlers['ready-to-show']()
+
+      expect(browserWindowInstance.show).not.toHaveBeenCalled()
+      expect(browserWindowInstance.maximize).not.toHaveBeenCalled()
+    })
+  })
+
+  it('does not reveal a destroyed macOS window after renderer load', () => {
+    const { browserWindowInstance } = createStartupRevealWindowFixture()
+
+    withPlatform('darwin', () => {
+      createMainWindow(createStartupRevealStore(true) as never)
+      browserWindowInstance.isDestroyed.mockReturnValue(true)
+      const revealAfterLoad = browserWindowInstance.webContents.on.mock.calls.find(
+        ([event]) => event === 'did-finish-load'
+      )?.[1]
+      expect(revealAfterLoad).toBeTypeOf('function')
+      revealAfterLoad?.()
 
       expect(browserWindowInstance.show).not.toHaveBeenCalled()
       expect(browserWindowInstance.maximize).not.toHaveBeenCalled()
