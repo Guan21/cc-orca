@@ -1,0 +1,246 @@
+name: Secure Orca Lite Issue 37 Content Protection Diagnostic macOS x64
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ci-issue37-content-protection-diag-build
+
+permissions:
+  contents: read
+
+concurrency:
+  group: secure-orca-lite-issue37-content-protection-diag-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  DIAGNOSTIC_BRANCH: diag-macos-content-protection-37
+  DIAGNOSTIC_SOURCE_SHA: a1c88948303a10dd3b780fb6ce7339b2ef839111
+  ARTIFACT_NAME: secure-orca-lite-macos-x64-content-protection-diag
+  DMG_NAME: secure-orca-lite-macos-x64-content-protection-diag.dmg
+  NODE_OPTIONS: --max-old-space-size=4096
+  ORCA_BACKGROUND_LAUNCH: '1'
+
+jobs:
+  macos-x64:
+    if: github.repository == 'Guan21/cc-orca' && github.ref_name == 'ci-issue37-content-protection-diag-build'
+    runs-on: macos-15
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout diagnostic source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DIAGNOSTIC_SOURCE_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify diagnostic source isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "+refs/heads/${DIAGNOSTIC_BRANCH}:refs/remotes/origin/${DIAGNOSTIC_BRANCH}"
+          branch_sha="$(git rev-parse "origin/${DIAGNOSTIC_BRANCH}")"
+          head_sha="$(git rev-parse HEAD)"
+          echo "origin/${DIAGNOSTIC_BRANCH}: ${branch_sha}"
+          echo "HEAD: ${head_sha}"
+          echo "DIAGNOSTIC_SOURCE_SHA: ${DIAGNOSTIC_SOURCE_SHA}"
+          if [[ "${branch_sha}" != "${DIAGNOSTIC_SOURCE_SHA}" ]]; then
+            echo "::error::Diagnostic branch mismatch: expected ${DIAGNOSTIC_SOURCE_SHA}, got ${branch_sha}"
+            exit 1
+          fi
+          if [[ "${head_sha}" != "${DIAGNOSTIC_SOURCE_SHA}" ]]; then
+            echo "::error::Diagnostic checkout mismatch: expected ${DIAGNOSTIC_SOURCE_SHA}, got ${head_sha}"
+            exit 1
+          fi
+          {
+            echo "diagnostic_branch=${DIAGNOSTIC_BRANCH}"
+            echo "diagnostic_sha=${head_sha}"
+          } | tee diagnostic-source.env
+
+      - name: Record macOS build host
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-evidence
+          {
+            echo "runner=${RUNNER_NAME:-unknown}"
+            echo "runner_os=${RUNNER_OS:-unknown}"
+            echo "runner_arch=${RUNNER_ARCH:-unknown}"
+            echo "image=${ImageOS:-unknown} ${ImageVersion:-unknown}"
+            sw_vers
+            echo "uname=$(uname -a)"
+          } | tee build-evidence/macos-build-host.txt
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Prepare pnpm 12.0.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@12.0.0 --activate
+          node_version="$(node --version)"
+          pnpm_version="$(pnpm --version)"
+          echo "Node: ${node_version}"
+          echo "pnpm: ${pnpm_version}"
+          if [[ "${node_version}" != v24.* ]]; then
+            echo "::error::Expected Node 24, got ${node_version}"
+            exit 1
+          fi
+          if [[ "${pnpm_version}" != 12.0.0 ]]; then
+            echo "::error::Expected pnpm 12.0.0, got ${pnpm_version}"
+            exit 1
+          fi
+          {
+            echo "node=${node_version}"
+            echo "pnpm=${pnpm_version}"
+          } | tee build-evidence/toolchain.txt
+
+      - name: Install dependencies with frozen lockfile
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify lockfile unchanged
+        shell: bash
+        run: git diff --exit-code -- pnpm-lock.yaml package.json
+
+      - name: Build corporate desktop runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm run build:relay
+          pnpm run build:cli
+          pnpm run build:electron-vite:corporate
+          pnpm run build:web-from-renderer
+          pnpm run build:computer-macos
+          pnpm run build:keyboard-layout-macos
+          pnpm run build:notification-status-macos
+          pnpm run ensure:electron-runtime
+
+      - name: Package x64 content-protection diagnostic DMG
+        shell: bash
+        env:
+          ORCA_BUILD_PROFILE: corporate
+          ORCA_BUILD_COMMIT: ${{ env.DIAGNOSTIC_SOURCE_SHA }}
+        run: |
+          set -euo pipefail
+          pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --x64
+
+      - name: Collect x64 diagnostic artifact evidence
+        id: evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-artifacts build-evidence
+          x64_dmg="$(find dist -type f -name 'secure-orca-lite-macos-x64.dmg' | sort | head -n 1)"
+          if [[ -z "${x64_dmg}" || ! -f "${x64_dmg}" ]]; then
+            echo "::error::Missing secure-orca-lite-macos-x64.dmg"
+            exit 1
+          fi
+          cp "${x64_dmg}" "build-artifacts/${DMG_NAME}"
+          find dist -maxdepth 1 -type f -name '*.zip' -print0 | xargs -0 -I {} cp {} build-artifacts/ || true
+
+          x64_size="$(stat -f%z "build-artifacts/${DMG_NAME}")"
+          x64_sha="$(shasum -a 256 "build-artifacts/${DMG_NAME}" | awk '{print $1}')"
+
+          {
+            echo "diagnostic_branch=${DIAGNOSTIC_BRANCH}"
+            echo "diagnostic_sha=${DIAGNOSTIC_SOURCE_SHA}"
+            echo "x64_name=${DMG_NAME}"
+            echo "x64_size=${x64_size}"
+            echo "x64_sha256=${x64_sha}"
+          } | tee build-evidence/installers.env
+
+          {
+            echo "x64_name=${DMG_NAME}"
+            echo "x64_size=${x64_size}"
+            echo "x64_sha256=${x64_sha}"
+          } >>"${GITHUB_OUTPUT}"
+
+      - name: Structural acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-evidence/structural
+
+          dmg="build-artifacts/${DMG_NAME}"
+          mount_point="$(mktemp -d)"
+          echo "Checking x64: ${dmg}"
+          hdiutil attach -readonly -nobrowse -mountpoint "${mount_point}" "${dmg}" >/tmp/hdiutil-x64.log
+          trap 'hdiutil detach "${mount_point}" -quiet || true; rm -rf "${mount_point}"' EXIT
+
+          app_path="${mount_point}/Secure Orca Lite.app"
+          if [[ ! -d "${app_path}" ]]; then
+            echo "::error::Missing Secure Orca Lite.app in ${dmg}"
+            exit 1
+          fi
+
+          plist="${app_path}/Contents/Info.plist"
+          resources="${app_path}/Contents/Resources"
+          macos="${app_path}/Contents/MacOS"
+          display_name="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "${plist}")"
+          bundle_name="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleName' "${plist}")"
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "${plist}")"
+          bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "${plist}")"
+          icon_file="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "${plist}")"
+
+          [[ "${display_name}" == "Secure Orca Lite" ]]
+          [[ "${bundle_name}" == "Secure Orca Lite" ]]
+          [[ "${executable}" == "Secure Orca Lite" ]]
+          [[ "${bundle_id}" == "dev.orca.secure-lite" ]]
+          [[ -x "${macos}/Secure Orca Lite" ]]
+          [[ -f "${resources}/${icon_file}" || -f "${resources}/${icon_file}.icns" ]]
+          [[ -f "${resources}/tray/corporate-menu-barTemplate.png" ]]
+          [[ -f "${resources}/tray/corporate-menu-barTemplate@2x.png" ]]
+          grep -q 'Secure Orca Lite' "${plist}"
+
+          profile="$(node -e "const fs=require('fs'); const p='${resources}/app.asar.unpacked/out/package.json'; const j=JSON.parse(fs.readFileSync(p,'utf8')); process.stdout.write(j.orcaBuildProfile || '')")"
+          [[ "${profile}" == "corporate" ]]
+
+          {
+            echo "arch=x64"
+            echo "app_path=${app_path}"
+            echo "CFBundleDisplayName=${display_name}"
+            echo "CFBundleName=${bundle_name}"
+            echo "CFBundleExecutable=${executable}"
+            echo "CFBundleIdentifier=${bundle_id}"
+            echo "CFBundleIconFile=${icon_file}"
+            echo "executable_present=YES"
+            echo "icon_present=YES"
+            echo "corporate_tray_assets=YES"
+            echo "corporate_profile_marker=${profile}"
+          } | tee build-evidence/structural/x64.txt
+
+      - name: Upload x64 diagnostic artifact
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            build-artifacts/*
+            build-evidence/*
+
+      - name: Summarize build
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## Secure Orca Lite Issue 37 Content Protection Diagnostic"
+            echo
+            echo "- diagnostic branch: ${DIAGNOSTIC_BRANCH}"
+            echo "- diagnostic SHA: ${DIAGNOSTIC_SOURCE_SHA}"
+            echo "- command: corporate x64 electron-builder mac package"
+            echo "- x64 DMG: ${{ steps.evidence.outputs.x64_name }}"
+            echo "- x64 size: ${{ steps.evidence.outputs.x64_size }}"
+            echo "- x64 SHA256: ${{ steps.evidence.outputs.x64_sha256 }}"
+            echo "- structural acceptance: PASS"
+            echo "- artifact name: ${ARTIFACT_NAME}"
+            echo "- artifact ID: ${{ steps.upload.outputs.artifact-id }}"
+            echo "- artifact URL: ${{ steps.upload.outputs.artifact-url }}"
+          } | tee -a "${GITHUB_STEP_SUMMARY}"
