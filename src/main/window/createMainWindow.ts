@@ -32,6 +32,7 @@ import {
 import { installMainWindowWebviewSecurity } from './main-window-webview-security'
 import { rectHasVisibleAreaOnAnyDisplay } from './window-bounds-validation'
 import { installWindowsPathRegistryChangeListener } from '../pty/windows-path-registry-change'
+import { startMacosWindowPresentationDiagnostic } from './macos-window-presentation-diagnostic'
 
 export { WINDOW_QUIT_RENDERER_ACK_TIMEOUT_MS }
 
@@ -142,6 +143,7 @@ export function createMainWindow(
       additionalArguments: [formatBrowserClientHostIdArgument(getBrowserClientHostId())]
     }
   })
+  const macosWindowPresentationDiagnostic = startMacosWindowPresentationDiagnostic(mainWindow)
   const rendererWebContentsId = mainWindow.webContents.id
   installWindowsPathRegistryChangeListener(mainWindow)
   // Why: native paste fallback is privileged IPC; only the top-level renderer may request it.
@@ -215,6 +217,7 @@ export function createMainWindow(
     clearTrustedUIRendererWebContentsId(rendererWebContentsId)
     state.dispose()
   })
+  macosWindowPresentationDiagnostic?.installLifecycleObservers()
 
   if (!opts?.deferLoad) {
     loadMainWindow(mainWindow)
