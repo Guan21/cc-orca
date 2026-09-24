@@ -24,10 +24,7 @@ import {
   forceRepaint,
   installMacosVisibilityRepaint,
   MIN_HEIGHT,
-  MIN_WIDTH,
-  TITLEBAR_CSS_CENTER,
-  TRAFFIC_LIGHT_RADIUS,
-  TRAFFIC_LIGHT_X
+  MIN_WIDTH
 } from './main-window-visual-lifecycle'
 import { installMainWindowWebviewSecurity } from './main-window-webview-security'
 import { rectHasVisibleAreaOnAnyDisplay } from './window-bounds-validation'
@@ -110,24 +107,10 @@ export function createMainWindow(
     // Why: auto-hide the Windows/Linux menu bar to save a row (Alt reveals it); macOS uses the system menu bar anyway.
     autoHideMenuBar: true,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#0a0a0a' : '#ffffff',
-    // Why: macOS 'hiddenInset' keeps native traffic lights in our custom titlebar; Windows 'hidden' removes the OS title bar so it doesn't double up.
-    titleBarStyle:
-      process.platform === 'darwin'
-        ? 'hiddenInset'
-        : process.platform === 'win32'
-          ? 'hidden'
-          : undefined,
+    // Why: this diagnostic build leaves macOS on the default native titlebar; Windows keeps hidden chrome so it doesn't double up.
+    titleBarStyle: process.platform === 'win32' ? 'hidden' : undefined,
     // Why: Linux ignores titleBarStyle 'hidden'; frame:false drops the native frame so we don't get a double title bar (renderer draws its own).
     ...(process.platform === 'linux' ? { frame: false } : {}),
-    // Why: initial position for 1x zoom; syncTrafficLightPosition() adjusts on zoom change.
-    ...(process.platform === 'darwin'
-      ? {
-          trafficLightPosition: {
-            x: TRAFFIC_LIGHT_X,
-            y: TITLEBAR_CSS_CENTER - TRAFFIC_LIGHT_RADIUS
-          }
-        }
-      : {}),
     icon: getAppIconPath(settings?.appIcon),
     ...platformBlurOptions,
     webPreferences: {

@@ -163,9 +163,8 @@ describe('createMainWindow', () => {
     // first mouse, forcing a second click to focus the floating workspace.
     expect(browserWindowOptions.acceptFirstMouse).toBe(true)
     if (process.platform === 'darwin') {
-      expect(browserWindowOptions).toMatchObject({
-        titleBarStyle: 'hiddenInset'
-      })
+      expect(browserWindowOptions.titleBarStyle).toBeUndefined()
+      expect(browserWindowOptions.trafficLightPosition).toBeUndefined()
     } else if (process.platform === 'win32') {
       expect(browserWindowOptions).toMatchObject({
         titleBarStyle: 'hidden'
@@ -353,12 +352,16 @@ describe('createMainWindow', () => {
 
   it('sets platform-specific titlebar and frame options for every desktop platform', () => {
     for (const [platform, expected] of [
-      ['darwin', { titleBarStyle: 'hiddenInset', frame: undefined }],
-      ['win32', { titleBarStyle: 'hidden', frame: undefined }],
-      ['linux', { titleBarStyle: undefined, frame: false }]
+      ['darwin', { titleBarStyle: undefined, frame: undefined, trafficLightPosition: undefined }],
+      ['win32', { titleBarStyle: 'hidden', frame: undefined, trafficLightPosition: undefined }],
+      ['linux', { titleBarStyle: undefined, frame: false, trafficLightPosition: undefined }]
     ] satisfies [
       NodeJS.Platform,
-      { titleBarStyle: string | undefined; frame: boolean | undefined }
+      {
+        titleBarStyle: string | undefined
+        frame: boolean | undefined
+        trafficLightPosition: Electron.Point | undefined
+      }
     ][]) {
       browserWindowMock.mockReset()
       const webContents = {
@@ -395,7 +398,59 @@ describe('createMainWindow', () => {
       const browserWindowOptions = browserWindowMock.mock.calls[0]?.[0]
       expect(browserWindowOptions.titleBarStyle).toBe(expected.titleBarStyle)
       expect(browserWindowOptions.frame).toBe(expected.frame)
+      expect(browserWindowOptions.trafficLightPosition).toBe(expected.trafficLightPosition)
     }
+  })
+
+  it('does not reposition traffic lights during macOS startup zoom sync for native titlebar diagnostic', () => {
+    const windowHandlers = new Map<string, ((...args: any[]) => void)[]>()
+    const webContents = {
+      on: vi.fn((event, handler) => {
+        const handlers = windowHandlers.get(event) ?? []
+        handlers.push(handler)
+        windowHandlers.set(event, handlers)
+      }),
+      setZoomLevel: vi.fn(),
+      setBackgroundThrottling: vi.fn(),
+      invalidate: vi.fn(),
+      setWindowOpenHandler: vi.fn(),
+      send: vi.fn(),
+      isDevToolsOpened: vi.fn(),
+      openDevTools: vi.fn(),
+      closeDevTools: vi.fn()
+    }
+    const browserWindowInstance = {
+      webContents,
+      on: vi.fn(),
+      isDestroyed: vi.fn(() => false),
+      isMaximized: vi.fn(() => true),
+      isFullScreen: vi.fn(() => false),
+      getSize: vi.fn(() => [1200, 800]),
+      setSize: vi.fn(),
+      setWindowButtonPosition: vi.fn(),
+      maximize: vi.fn(),
+      show: vi.fn(),
+      loadFile: vi.fn(() => Promise.resolve()),
+      loadURL: vi.fn(() => Promise.resolve())
+    }
+    browserWindowMock.mockImplementation(function () {
+      return browserWindowInstance
+    })
+
+    withPlatform('darwin', () =>
+      createMainWindow({
+        getUI: () => ({ uiZoomLevel: 1 }),
+        getSettings: () => ({ windowBackgroundBlur: false }),
+        updateUI: vi.fn()
+      } as never)
+    )
+
+    for (const handler of windowHandlers.get('dom-ready') ?? []) {
+      handler()
+    }
+
+    expect(webContents.setZoomLevel).toHaveBeenCalledWith(1)
+    expect(browserWindowInstance.setWindowButtonPosition).not.toHaveBeenCalled()
   })
 
   it('never requests macOS vibrancy or transparency when window blur is enabled (#8482)', () => {

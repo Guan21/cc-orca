@@ -114,8 +114,13 @@ export const TRAFFIC_LIGHT_X = 16
 export const MIN_WIDTH = 600
 export const MIN_HEIGHT = 400
 
+function usesCustomMacosTrafficLights(): boolean {
+  // Diagnostic branch #37: default native titlebar owns traffic-light placement.
+  return false
+}
+
 export function syncTrafficLightPosition(win: BrowserWindow, zoomFactor: number): void {
-  if (process.platform !== 'darwin' || win.isDestroyed()) {
+  if (process.platform !== 'darwin' || !usesCustomMacosTrafficLights() || win.isDestroyed()) {
     return
   }
   const y = Math.round(TITLEBAR_CSS_CENTER * zoomFactor - TRAFFIC_LIGHT_RADIUS)

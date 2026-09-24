@@ -21,7 +21,8 @@ import {
   browserWindowMock,
   buildFromTemplateMock,
   menuPopupMock,
-  resetMainWindowMocks
+  resetMainWindowMocks,
+  withPlatform
 } from './createMainWindow-test-harness'
 
 describe('createMainWindow', () => {
@@ -31,7 +32,7 @@ describe('createMainWindow', () => {
     vi.useRealTimers()
   })
 
-  it('ignores traffic light sync IPC on non-macOS', () => {
+  it('ignores traffic light sync IPC when custom traffic lights are not active', () => {
     const windowHandlers: Record<string, (...args: any[]) => void> = {}
     const webContents = {
       on: vi.fn((event, handler) => {
@@ -61,7 +62,7 @@ describe('createMainWindow', () => {
       return browserWindowInstance
     })
 
-    createMainWindow(null)
+    withPlatform('darwin', () => createMainWindow(null))
 
     const syncListener = vi
       .mocked(ipcMain.on)
@@ -70,11 +71,6 @@ describe('createMainWindow', () => {
     expect(syncListener).toBeTypeOf('function')
 
     syncListener?.({} as never, 1.2)
-
-    if (process.platform === 'darwin') {
-      expect(browserWindowInstance.setWindowButtonPosition).toHaveBeenCalledWith({ x: 16, y: 16 })
-      return
-    }
 
     expect(browserWindowInstance.setWindowButtonPosition).not.toHaveBeenCalled()
   })
