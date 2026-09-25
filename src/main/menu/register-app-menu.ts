@@ -7,6 +7,7 @@ import {
 import { translateMain } from '../i18n/main-i18n'
 import { createAppMenuSelectionItem } from './app-menu-selection-item'
 import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
+import { getProductDisplayName } from '../../shared/product-display-name'
 import {
   getNextDefaultOnAppearanceSettingValue,
   type AppearanceMenuKey,
@@ -36,6 +37,13 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
 
   const isMac = process.platform === 'darwin'
   const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
+  const corporateAppRoleLabels = isCorporateBuild
+    ? {
+        about: `About ${getProductDisplayName()}`,
+        hide: `Hide ${getProductDisplayName()}`,
+        quit: `Quit ${getProductDisplayName()}`
+      }
+    : null
   const appearance = getAppearanceState()
   const shortcutLabel = (actionId: KeybindingActionId): string => {
     const bindings = getEffectiveKeybindingsForAction(
@@ -111,17 +119,17 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
   const macAppMenu: Electron.MenuItemConstructorOptions = {
     label: options.appMenuLabel ?? app.name,
     submenu: [
-      { role: 'about' },
+      { role: 'about', ...(corporateAppRoleLabels ? { label: corporateAppRoleLabels.about } : {}) },
       ...(!isCorporateBuild ? [checkForUpdatesItem] : []),
       settingsItem,
       { type: 'separator' },
       { role: 'services' },
       { type: 'separator' },
-      { role: 'hide' },
+      { role: 'hide', ...(corporateAppRoleLabels ? { label: corporateAppRoleLabels.hide } : {}) },
       { role: 'hideOthers' },
       { role: 'unhide' },
       { type: 'separator' },
-      { role: 'quit' }
+      { role: 'quit', ...(corporateAppRoleLabels ? { label: corporateAppRoleLabels.quit } : {}) }
     ]
   }
 

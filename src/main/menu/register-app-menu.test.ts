@@ -260,6 +260,40 @@ describe('registerAppMenu', () => {
     )
   })
 
+  it('uses corporate labels for macOS app menu roles while preserving native roles', () => {
+    vi.spyOn(process, 'platform', 'get').mockReturnValue('darwin')
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    registerAppMenu({ ...buildMenuOptions(), appMenuLabel: 'Secure Orca Lite' })
+
+    const appSubmenu = getSubmenu(getTemplate(), 'Secure Orca Lite')
+
+    expect(appSubmenu).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ role: 'about', label: 'About Secure Orca Lite' }),
+        expect.objectContaining({ role: 'hide', label: 'Hide Secure Orca Lite' }),
+        expect.objectContaining({ role: 'quit', label: 'Quit Secure Orca Lite' })
+      ])
+    )
+  })
+
+  it('keeps default macOS app menu role labels delegated to Electron', () => {
+    vi.spyOn(process, 'platform', 'get').mockReturnValue('darwin')
+    registerAppMenu(buildMenuOptions())
+
+    const appSubmenu = getSubmenu(getTemplate(), 'Orca')
+
+    expect(appSubmenu).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ role: 'about' }),
+        expect.objectContaining({ role: 'hide' }),
+        expect.objectContaining({ role: 'quit' })
+      ])
+    )
+    expect(appSubmenu.find((item) => item.role === 'about')?.label).toBeUndefined()
+    expect(appSubmenu.find((item) => item.role === 'hide')?.label).toBeUndefined()
+    expect(appSubmenu.find((item) => item.role === 'quit')?.label).toBeUndefined()
+  })
+
   it.each(['darwin', 'linux', 'win32'] as const)(
     'hides Check for Updates in corporate app menus on %s',
     (platform) => {
