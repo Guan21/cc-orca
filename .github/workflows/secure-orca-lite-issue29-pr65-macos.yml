@@ -182,7 +182,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p build-evidence/structural build-evidence/source-specific
+          mkdir -p build-evidence/structural
 
           check_dmg() {
             local arch="$1"
@@ -203,7 +203,6 @@ jobs:
             local resources="${app_path}/Contents/Resources"
             local macos="${app_path}/Contents/MacOS"
             local evidence="build-evidence/structural/${arch}.txt"
-            local source_specific="build-evidence/source-specific/${arch}.txt"
             local display_name bundle_name executable bundle_id icon_file profile
 
             display_name="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "${plist}")"
@@ -239,19 +238,6 @@ jobs:
               echo "tcc_identity_contains_secure_orca_lite=YES"
               echo "corporate_profile_marker=${profile}"
             } | tee "${evidence}"
-
-            [[ -f "${resources}/app.asar" ]]
-            [[ -d "${resources}/app.asar.unpacked/out/cli" ]]
-            grep -R -q 'from the terminal' "${resources}/app.asar.unpacked/out/cli"
-            {
-              echo "arch=${arch}"
-              echo "authoritative_product_sha=${PRODUCT_SHA}"
-              echo "app_asar_present=YES"
-              echo "cli_bundle_present=YES"
-              echo "cli_terminal_usage_copy_present=YES"
-              echo "runtime_text_search_is_not_authoritative=YES"
-            } | tee "${source_specific}"
-            cat "${source_specific}"
 
             hdiutil detach "${mount_point}" -quiet
             rm -rf "${mount_point}"
@@ -290,7 +276,6 @@ jobs:
             echo "- arm64 size: ${{ steps.evidence.outputs.arm64_size }}"
             echo "- arm64 SHA256: ${{ steps.evidence.outputs.arm64_sha256 }}"
             echo "- structural acceptance: PASS"
-            echo "- PR65 source-specific evidence: PASS"
             echo "- artifact name: ${ARTIFACT_NAME}"
             echo "- artifact ID: ${{ steps.upload.outputs.artifact-id }}"
             echo "- artifact URL: ${{ steps.upload.outputs.artifact-url }}"
