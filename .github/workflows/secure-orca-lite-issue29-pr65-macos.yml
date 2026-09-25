@@ -1,47 +1,47 @@
-name: Secure Orca Lite Issue 37 macOS Acceptance Build
+name: Secure Orca Lite Issue 29 PR65 macOS Acceptance Build
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - ci-issue37-post-pr64-5258002
+      - ci-issue29-pr65-macos-a79352b
 
 permissions:
   contents: read
 
 concurrency:
-  group: secure-orca-lite-issue37-macos-${{ github.ref_name }}
+  group: secure-orca-lite-issue29-pr65-macos-${{ github.ref_name }}
   cancel-in-progress: false
 
 env:
-  EXPECTED_PRODUCT_BRANCH: company-work
-  EXPECTED_SOURCE_SHA: 52580020f71f4699bb596df6f362bdee179a4987
-  ARTIFACT_NAME: secure-orca-lite-macos-5258002
+  EXPECTED_SOURCE_BRANCH: company-fix-final-macos-branding-29
+  EXPECTED_SOURCE_SHA: a79352b3f587ee09345e9a47ee93ebaab71b87af
+  ARTIFACT_NAME: secure-orca-lite-issue29-pr65-a79352b
   NODE_OPTIONS: --max-old-space-size=4096
   ORCA_BACKGROUND_LAUNCH: '1'
 
 jobs:
   macos:
-    if: github.repository == 'Guan21/cc-orca' && github.ref_name == 'ci-issue37-post-pr64-5258002'
+    if: github.repository == 'Guan21/cc-orca' && github.ref_name == 'ci-issue29-pr65-macos-a79352b'
     runs-on: macos-15
     timeout-minutes: 180
 
     steps:
-      - name: Checkout exact product source
+      - name: Checkout exact PR65 product source
         uses: actions/checkout@v4
         with:
           ref: ${{ env.EXPECTED_SOURCE_SHA }}
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Verify exact product source
+      - name: Verify exact PR65 product source
         shell: bash
         run: |
           set -euo pipefail
-          git fetch --no-tags origin "+refs/heads/${EXPECTED_PRODUCT_BRANCH}:refs/remotes/origin/${EXPECTED_PRODUCT_BRANCH}"
-          branch_sha="$(git rev-parse "origin/${EXPECTED_PRODUCT_BRANCH}")"
+          git fetch --no-tags origin "+refs/heads/${EXPECTED_SOURCE_BRANCH}:refs/remotes/origin/${EXPECTED_SOURCE_BRANCH}"
+          branch_sha="$(git rev-parse "origin/${EXPECTED_SOURCE_BRANCH}")"
           head_sha="$(git rev-parse HEAD)"
-          echo "origin/${EXPECTED_PRODUCT_BRANCH}: ${branch_sha}"
+          echo "origin/${EXPECTED_SOURCE_BRANCH}: ${branch_sha}"
           echo "HEAD: ${head_sha}"
           echo "EXPECTED_SOURCE_SHA: ${EXPECTED_SOURCE_SHA}"
           if [[ "${branch_sha}" != "${EXPECTED_SOURCE_SHA}" ]]; then
@@ -53,9 +53,28 @@ jobs:
             exit 1
           fi
           {
-            echo "PRODUCT_BRANCH=${EXPECTED_PRODUCT_BRANCH}"
+            echo "PRODUCT_BRANCH=${EXPECTED_SOURCE_BRANCH}"
             echo "PRODUCT_SHA=${head_sha}"
           } >>"${GITHUB_ENV}"
+
+      - name: Record source provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-evidence
+          {
+            echo "product_branch=${PRODUCT_BRANCH}"
+            echo "product_sha=${PRODUCT_SHA}"
+            echo "expected_source_branch=${EXPECTED_SOURCE_BRANCH}"
+            echo "expected_source_sha=${EXPECTED_SOURCE_SHA}"
+            echo
+            echo "Changed files from company-work:"
+            git diff --name-only 52580020f71f4699bb596df6f362bdee179a4987..HEAD
+            echo
+            echo "PR65 source strings:"
+            git grep -n -e 'corporateAppRoleLabels' -e 'getProductDisplayName()' -- src/main/menu/register-app-menu.ts
+            git grep -n -e 'getCliCommandTerminalUsageDetail' -e 'from the terminal' -- src/main/cli/cli-branding-copy.ts src/main/cli/cli-command-inspection.ts
+          } | tee build-evidence/source-provenance.txt
 
       - name: Record macOS build host
         shell: bash
@@ -103,9 +122,9 @@ jobs:
         shell: bash
         run: pnpm install --frozen-lockfile
 
-      - name: Verify lockfile unchanged
+      - name: Verify package metadata and lockfile unchanged
         shell: bash
-        run: git diff --exit-code -- pnpm-lock.yaml package.json
+        run: git diff --exit-code -- package.json pnpm-lock.yaml pnpm-workspace.yaml
 
       - name: Build corporate macOS installers
         shell: bash
@@ -129,7 +148,6 @@ jobs:
           fi
           cp "${x64_dmg}" build-artifacts/
           cp "${arm64_dmg}" build-artifacts/
-          find dist -maxdepth 1 -type f -name '*.zip' -print0 | xargs -0 -I {} cp {} build-artifacts/ || true
 
           x64_size="$(stat -f%z "${x64_dmg}")"
           arm64_size="$(stat -f%z "${arm64_dmg}")"
@@ -164,7 +182,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p build-evidence/structural
+          mkdir -p build-evidence/structural build-evidence/source-specific
 
           check_dmg() {
             local arch="$1"
@@ -185,6 +203,7 @@ jobs:
             local resources="${app_path}/Contents/Resources"
             local macos="${app_path}/Contents/MacOS"
             local evidence="build-evidence/structural/${arch}.txt"
+            local source_specific="build-evidence/source-specific/${arch}.txt"
             local display_name bundle_name executable bundle_id icon_file profile
 
             display_name="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "${plist}")"
@@ -221,6 +240,19 @@ jobs:
               echo "corporate_profile_marker=${profile}"
             } | tee "${evidence}"
 
+            [[ -f "${resources}/app.asar" ]]
+            [[ -d "${resources}/app.asar.unpacked/out/cli" ]]
+            grep -R -q 'from the terminal' "${resources}/app.asar.unpacked/out/cli"
+            {
+              echo "arch=${arch}"
+              echo "authoritative_product_sha=${PRODUCT_SHA}"
+              echo "app_asar_present=YES"
+              echo "cli_bundle_present=YES"
+              echo "cli_terminal_usage_copy_present=YES"
+              echo "runtime_text_search_is_not_authoritative=YES"
+            } | tee "${source_specific}"
+            cat "${source_specific}"
+
             hdiutil detach "${mount_point}" -quiet
             rm -rf "${mount_point}"
             trap - RETURN
@@ -238,14 +270,14 @@ jobs:
           retention-days: 14
           path: |
             build-artifacts/*
-            build-evidence/*
+            build-evidence/**
 
       - name: Summarize build
         shell: bash
         run: |
           set -euo pipefail
           {
-            echo "## Secure Orca Lite Issue 37 macOS Installer Build"
+            echo "## Secure Orca Lite Issue 29 PR65 macOS Acceptance Build"
             echo
             echo "- product branch: ${PRODUCT_BRANCH}"
             echo "- exact product SHA: ${PRODUCT_SHA}"
@@ -258,6 +290,7 @@ jobs:
             echo "- arm64 size: ${{ steps.evidence.outputs.arm64_size }}"
             echo "- arm64 SHA256: ${{ steps.evidence.outputs.arm64_sha256 }}"
             echo "- structural acceptance: PASS"
+            echo "- PR65 source-specific evidence: PASS"
             echo "- artifact name: ${ARTIFACT_NAME}"
             echo "- artifact ID: ${{ steps.upload.outputs.artifact-id }}"
             echo "- artifact URL: ${{ steps.upload.outputs.artifact-url }}"
