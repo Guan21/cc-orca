@@ -8,6 +8,10 @@ export function getCliCommandUsageDetail(commandPath: string): string {
   return `Register ${commandPath} to use the \`orca\` CLI from Command Prompt or PowerShell.`
 }
 
+export function getCliCommandTerminalUsageDetail(commandPath: string): string {
+  return `Register ${commandPath} to use ${getProductDisplayName()} from the terminal.`
+}
+
 export function getWindowsLauncherPathUnknownDetail(): string {
   const productName = getProductDisplayName()
   return productName === 'Orca'
