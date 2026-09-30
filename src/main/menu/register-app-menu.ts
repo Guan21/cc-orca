@@ -6,6 +6,7 @@ import {
   type KeybindingOverrides
 } from '../../shared/keybindings'
 import type { UpdateCheckOptions } from '../../shared/update-status-types'
+import { PRODUCT_DISPLAY_NAME, PRODUCT_MOBILE_DISPLAY_NAME } from '../../shared/product-identity'
 import { translateMain } from '../i18n/main-i18n'
 import { createAppMenuSelectionItem } from './app-menu-selection-item'
 
@@ -119,12 +120,12 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
   }
 
   const featureTourItem: Electron.MenuItemConstructorOptions = {
-    label: translateMain('menu.exploreOrca', 'Explore Orca'),
+    label: translateMain('menu.exploreOrca', `Explore ${PRODUCT_DISPLAY_NAME}`),
     click: (_menuItem, window) => onOpenFeatureTour(window)
   }
 
   const setupGuideItem: Electron.MenuItemConstructorOptions = {
-    label: translateMain('menu.gettingStarted', 'Getting Started with Orca'),
+    label: translateMain('menu.gettingStarted', `Getting Started with ${PRODUCT_DISPLAY_NAME}`),
     click: (_menuItem, window) => onOpenSetupGuide(window)
   }
 
@@ -255,7 +256,10 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
         click: () => onToggleAppearance('showAutomationsButton')
       },
       {
-        label: translateMain('menu.showMobileButton', 'Show Orca Mobile Button'),
+        label: translateMain(
+          'menu.showMobileButton',
+          `Show ${PRODUCT_MOBILE_DISPLAY_NAME} Button`
+        ),
         type: 'checkbox',
         checked: appearance.showMobileButton,
         click: () => onToggleAppearance('showMobileButton')

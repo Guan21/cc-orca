@@ -46,7 +46,7 @@ export function httpLinkDestinationLabel(destination: HttpLinkDestination): stri
   return destination === 'orca'
     ? translate(
         'auto.components.terminal.pane.TerminalLinkActionPopover.orcaBrowser',
-        'Orca Browser'
+        'DevCrew Browser'
       )
     : translate(
         'auto.components.terminal.pane.TerminalLinkActionPopover.systemBrowser',

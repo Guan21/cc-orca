@@ -108,7 +108,7 @@ export function WorktreeCardReviewDetailSection({
                       <Globe className="size-3.5" />
                       {translate(
                         'auto.components.sidebar.WorktreeCardMeta.openInOrcaBrowser',
-                        'Open in Orca browser'
+                        'Open in DevCrew browser'
                       )}
                     </DropdownMenuItem>
                   )}
@@ -144,7 +144,7 @@ export function WorktreeCardReviewDetailSection({
               <MetadataActionIcon
                 label={translate(
                   'auto.components.sidebar.WorktreeCardMeta.2c67730e07',
-                  'Open in Orca'
+                  'Open in DevCrew'
                 )}
                 onClick={dismissAndOpenReview}
               >

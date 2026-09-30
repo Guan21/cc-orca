@@ -18,16 +18,16 @@ function ownerDescription(record: AgentSessionRecord): string {
 function latchedMessage(record: AgentSessionRecord): string {
   const owner = record.lease.ownerProcess
   if (record.lease.settlementRetryRequired) {
-    return 'The provider exited, but Orca has not finished settling the terminal chat state. Reopen this chat to retry the settlement.'
+    return 'The provider exited, but DevCrew has not finished settling the terminal chat state. Reopen this chat to retry the settlement.'
   }
   if (record.lease.claimStatus === 'conflicted') {
     return owner
-      ? `Two runtimes claimed this session and Orca cannot yet prove that ${ownerDescription(record)} has exited. Quit that process, or reopen this chat once it is gone, and Orca will take the session back.`
-      : 'Two runtimes claimed this session and the record names no process to check. Quit any other Orca or agent process using this workspace, then reopen this chat.'
+      ? `Two runtimes claimed this session and DevCrew cannot yet prove that ${ownerDescription(record)} has exited. Quit that process, or reopen this chat once it is gone, and DevCrew will take the session back.`
+      : 'Two runtimes claimed this session and the record names no process to check. Quit any other DevCrew or agent process using this workspace, then reopen this chat.'
   }
   return owner
-    ? `Orca cannot prove that ${ownerDescription(record)} — the previous owner of this session — has exited, so it will not start a second agent on the same conversation. Quit that process and reopen this chat.`
-    : 'Orca cannot tell whether an agent started for this session before the app stopped, so it will not start a second one on the same conversation. Quit any leftover agent process for this workspace and reopen this chat.'
+    ? `DevCrew cannot prove that ${ownerDescription(record)} — the previous owner of this session — has exited, so it will not start a second agent on the same conversation. Quit that process and reopen this chat.`
+    : 'DevCrew cannot tell whether an agent started for this session before the app stopped, so it will not start a second one on the same conversation. Quit any leftover agent process for this workspace and reopen this chat.'
 }
 
 /** Null when the code has no session-specific story to tell; the caller keeps its own wording. */
@@ -42,7 +42,7 @@ export function structuredAgentSessionRefusalMessage(
     return latchedMessage(record)
   }
   if (code === 'execution_owner_reconciling') {
-    return 'Orca is still working out who owns this session on this machine. Reopen the chat in a moment.'
+    return 'DevCrew is still working out who owns this session on this machine. Reopen the chat in a moment.'
   }
   return null
 }
