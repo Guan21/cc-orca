@@ -169,7 +169,11 @@ export const LOCALE_PHRASE_FIXES = {
       whenEnIncludes: 'Listening for shortcut'
     },
     { pattern: /寻找捷径/g, replacement: '搜索快捷键', whenEnIncludes: 'Find shortcuts' },
-    { pattern: /连接到DevCrew/g, replacement: '连接到 DevCrew', whenEnIncludes: 'Connect to DevCrew' },
+    {
+      pattern: /连接到DevCrew/g,
+      replacement: '连接到 DevCrew',
+      whenEnIncludes: 'Connect to DevCrew'
+    },
     {
       pattern: /开始使用DevCrew/g,
       replacement: '开始使用 DevCrew',

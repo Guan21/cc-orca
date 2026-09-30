@@ -41,11 +41,11 @@ describe('OnboardingFlow', () => {
     })
 
     expect(html).toContain('Set up notifications')
-    expect(html).not.toContain('Set up Orca for agents')
-    expect(html).not.toContain('Explore Orca')
+    expect(html).not.toContain('Set up DevCrew for agents')
+    expect(html).not.toContain('Explore DevCrew')
     expect(html).not.toContain('Take the tour')
     expect(html).toContain('Add your first project')
-    expect(html).not.toContain('Point Orca at some code')
+    expect(html).not.toContain('Point DevCrew at some code')
   })
 
   it.each([
@@ -66,8 +66,8 @@ describe('OnboardingFlow', () => {
       })
 
       expect(html).toContain(title)
-      expect(html).not.toContain('Set up Orca for agents')
-      expect(html).not.toContain('Explore Orca')
+      expect(html).not.toContain('Set up DevCrew for agents')
+      expect(html).not.toContain('Explore DevCrew')
     }
   )
 
@@ -89,8 +89,8 @@ describe('OnboardingFlow', () => {
       })
 
       expect(html).toContain(title)
-      expect(html).not.toContain('Set up Orca for agents')
-      expect(html).not.toContain('Explore Orca')
+      expect(html).not.toContain('Set up DevCrew for agents')
+      expect(html).not.toContain('Explore DevCrew')
     }
   )
 
@@ -178,7 +178,7 @@ describe('OnboardingFlow', () => {
     expect(html).toContain('Add your first project')
     expect(html).not.toContain('Set up GitHub tasks')
     expect(html).not.toContain('Connect your task sources')
-    expect(html).not.toContain('Point Orca at some code')
+    expect(html).not.toContain('Point DevCrew at some code')
     // Why: with both integrations (gh installed) and Windows terminal (Mac)
     // skipped, the stepper shows only the three real steps — no dead dots.
     expect(html).toContain('3 of 3')
@@ -237,7 +237,7 @@ describe('OnboardingFlow', () => {
       onOnboardingChange: vi.fn()
     })
 
-    expect(html).toContain('Secure Orca Lite')
+    expect(html).toContain('DevCrew')
     expect(html).toContain('Claude Code and Codex')
     expect(html).not.toContain('Welcome to Orca')
     expect(html).not.toContain('Orca works with every CLI agent')

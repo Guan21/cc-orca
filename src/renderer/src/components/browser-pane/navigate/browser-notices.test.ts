@@ -22,14 +22,14 @@ describe('browser notice formatting', () => {
         permission: 'media',
         origin: 'https://example.com'
       })
-    ).toBe('https://example.com asked for camera or microphone access, and Orca denied it.')
+    ).toBe('https://example.com asked for camera or microphone access, and DevCrew denied it.')
     expect(
       formatPermissionNotice({
         browserPageId: 'browser-1',
         permission: 'geolocation',
         origin: 'unknown'
       })
-    ).toBe('this page asked for your location, and Orca denied it.')
+    ).toBe('this page asked for your location, and DevCrew denied it.')
   })
 
   it('names the storage permission in words rather than its raw token', () => {
@@ -40,7 +40,7 @@ describe('browser notice formatting', () => {
     })
     expect(notice).not.toContain('top-level-storage-access')
     expect(notice).toBe(
-      'https://example.com asked for cookie access on behalf of an embedded site, and Orca denied it.'
+      'https://example.com asked for cookie access on behalf of an embedded site, and DevCrew denied it.'
     )
   })
 
@@ -50,7 +50,7 @@ describe('browser notice formatting', () => {
     ['display-capture', 'permission to capture your screen'],
     ['window-management', 'screen information and multi-screen window placement'],
     ['keyboardLock', 'permission to capture keyboard input'],
-    ['openExternal', 'permission to open a link outside Orca'],
+    ['openExternal', 'permission to open a link outside DevCrew'],
     ['fileSystem', 'access to your files or folders'],
     ['hid', 'access to a connected human interface device'],
     ['usb', 'access to a USB device'],
@@ -66,7 +66,7 @@ describe('browser notice formatting', () => {
         permission,
         origin: 'https://example.com'
       })
-    ).toBe(`https://example.com asked for ${description}, and Orca denied it.`)
+    ).toBe(`https://example.com asked for ${description}, and DevCrew denied it.`)
   })
 
   // Pin the raw-token fallback for permissions Chromium adds later.
@@ -77,7 +77,7 @@ describe('browser notice formatting', () => {
         permission: 'some-future-permission',
         origin: 'https://example.com'
       })
-    ).toBe('https://example.com asked for some-future-permission, and Orca denied it.')
+    ).toBe('https://example.com asked for some-future-permission, and DevCrew denied it.')
   })
 
   it('formats popup outcomes', () => {
@@ -103,7 +103,7 @@ describe('browser notice formatting', () => {
         origin: 'unknown',
         action: 'blocked'
       })
-    ).toBe('A site tried to open a popup Orca does not support here.')
+    ).toBe('A site tried to open a popup DevCrew does not support here.')
   })
 
   it('formats download completion and byte counts', () => {
@@ -205,10 +205,10 @@ describe('browser notice formatting', () => {
       "The certificate for localhost:3443 isn't valid at the current date and time."
     )
     expect(formatLoadFailureDescription(loadError(-202), meta)).toBe(
-      "Orca doesn't trust the authority that issued the certificate for localhost:3443."
+      "DevCrew doesn't trust the authority that issued the certificate for localhost:3443."
     )
     expect(formatLoadFailureDescription(loadError(-208), meta)).toBe(
-      "Orca couldn't verify the certificate for localhost:3443."
+      "DevCrew couldn't verify the certificate for localhost:3443."
     )
     expect(isCertificateLoadError(loadError(-219))).toBe(true)
     expect(isCertificateLoadError(loadError(-215))).toBe(false)
@@ -225,11 +225,11 @@ describe('browser notice formatting', () => {
         origin: 'https://example.com'
       })
     ).toBe(
-      'https://example.com asked for permission to open a link outside Secure Orca Lite, and Secure Orca Lite denied it.'
+      'https://example.com asked for permission to open a link outside DevCrew, and DevCrew denied it.'
     )
     expect(
       formatPopupNotice({ browserPageId: 'browser-1', origin: 'unknown', action: 'blocked' })
-    ).toBe('A site tried to open a popup Secure Orca Lite does not support here.')
+    ).toBe('A site tried to open a popup DevCrew does not support here.')
     expect(
       formatLoadFailureDescription(
         {
@@ -239,8 +239,6 @@ describe('browser notice formatting', () => {
         },
         { host: 'localhost:3443', isLocalhostLike: true }
       )
-    ).toBe(
-      "Secure Orca Lite doesn't trust the authority that issued the certificate for localhost:3443."
-    )
+    ).toBe("DevCrew doesn't trust the authority that issued the certificate for localhost:3443.")
   })
 })

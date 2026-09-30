@@ -152,10 +152,14 @@ export async function prepareGitHubStackedPullRequest(
       )
     }
     if (parentPullRequests.length !== 1) {
-      return creationError(`DevCrew found multiple open pull requests for the parent branch ${base}.`)
+      return creationError(
+        `DevCrew found multiple open pull requests for the parent branch ${base}.`
+      )
     }
     if (currentPullRequests.length > 1) {
-      return creationError(`DevCrew found multiple open pull requests for the current branch ${head}.`)
+      return creationError(
+        `DevCrew found multiple open pull requests for the current branch ${head}.`
+      )
     }
     const parentReview = parentPullRequests[0]
     const currentReview = currentPullRequests[0] ?? null
@@ -233,21 +237,11 @@ export async function registerGitHubStackedPullRequest(args: {
   const connectionId = hostedReviewSshConnectionId(args.executionHostId)
   await acquire()
   try {
+    const getStacks = (review: NumberedHostedReviewSummary) =>
+      getStacksForPullRequest(args.repoPath, args.repository, review.number, connectionId, options)
     const [parentStacks, currentStacks] = await Promise.all([
-      getStacksForPullRequest(
-        args.repoPath,
-        args.repository,
-        args.parentReview.number,
-        connectionId,
-        options
-      ),
-      getStacksForPullRequest(
-        args.repoPath,
-        args.repository,
-        args.currentReview.number,
-        connectionId,
-        options
-      )
+      getStacks(args.parentReview),
+      getStacks(args.currentReview)
     ])
     const existingStackNumber = registeredStackNumber(
       args.parentReview,

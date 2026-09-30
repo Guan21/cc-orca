@@ -35,15 +35,15 @@ describe('showBlockedNotificationFallbackToast', () => {
     vi.unstubAllGlobals()
   })
 
-  it('keeps default blocked-notification copy on Orca', async () => {
+  it('keeps default blocked-notification copy on DevCrew', async () => {
     const { showBlockedNotificationFallbackToast } = await import('./blocked-notification-fallback')
 
     showBlockedNotificationFallbackToast()
 
     expect(toastWarning).toHaveBeenCalledWith(
-      'macOS is blocking Orca notifications',
+      'macOS is blocking DevCrew notifications',
       expect.objectContaining({
-        description: 'Turn on Allow notifications for Orca in System Settings.'
+        description: 'Turn on Allow notifications for DevCrew in System Settings.'
       })
     )
   })
@@ -55,9 +55,9 @@ describe('showBlockedNotificationFallbackToast', () => {
     showBlockedNotificationFallbackToast()
 
     expect(toastWarning).toHaveBeenCalledWith(
-      'macOS is blocking Secure Orca Lite notifications',
+      'macOS is blocking DevCrew notifications',
       expect.objectContaining({
-        description: 'Turn on Allow notifications for Secure Orca Lite in System Settings.'
+        description: 'Turn on Allow notifications for DevCrew in System Settings.'
       })
     )
   })

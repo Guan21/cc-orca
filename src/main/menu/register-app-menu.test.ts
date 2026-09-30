@@ -242,18 +242,16 @@ describe('registerAppMenu', () => {
     const appearanceSubmenu = getSubmenu(getSubmenu(getTemplate(), 'View'), 'Appearance')
 
     expect(helpSubmenu).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ label: 'Explore Orca' })])
+      expect.arrayContaining([expect.objectContaining({ label: 'Explore DevCrew' })])
     )
     expect(helpSubmenu).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ label: 'Explore Secure Orca Lite' })])
+      expect.arrayContaining([expect.objectContaining({ label: 'Explore DevCrew' })])
     )
     expect(helpSubmenu).not.toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ label: 'Getting Started with Secure Orca Lite' })
-      ])
+      expect.arrayContaining([expect.objectContaining({ label: 'Getting Started with DevCrew' })])
     )
     expect(appearanceSubmenu).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ label: 'Show Orca Mobile Button' })])
+      expect.arrayContaining([expect.objectContaining({ label: 'Show DevCrew Mobile Button' })])
     )
     expect(helpSubmenu).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ label: 'Check for Updates...' })])
@@ -263,15 +261,15 @@ describe('registerAppMenu', () => {
   it('uses corporate labels for macOS app menu roles while preserving native roles', () => {
     vi.spyOn(process, 'platform', 'get').mockReturnValue('darwin')
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
-    registerAppMenu({ ...buildMenuOptions(), appMenuLabel: 'Secure Orca Lite' })
+    registerAppMenu({ ...buildMenuOptions(), appMenuLabel: 'DevCrew' })
 
-    const appSubmenu = getSubmenu(getTemplate(), 'Secure Orca Lite')
+    const appSubmenu = getSubmenu(getTemplate(), 'DevCrew')
 
     expect(appSubmenu).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ role: 'about', label: 'About Secure Orca Lite' }),
-        expect.objectContaining({ role: 'hide', label: 'Hide Secure Orca Lite' }),
-        expect.objectContaining({ role: 'quit', label: 'Quit Secure Orca Lite' })
+        expect.objectContaining({ role: 'about', label: 'About DevCrew' }),
+        expect.objectContaining({ role: 'hide', label: 'Hide DevCrew' }),
+        expect.objectContaining({ role: 'quit', label: 'Quit DevCrew' })
       ])
     )
   })
@@ -280,7 +278,7 @@ describe('registerAppMenu', () => {
     vi.spyOn(process, 'platform', 'get').mockReturnValue('darwin')
     registerAppMenu(buildMenuOptions())
 
-    const appSubmenu = getSubmenu(getTemplate(), 'Orca')
+    const appSubmenu = getSubmenu(getTemplate(), 'DevCrew')
 
     expect(appSubmenu).toEqual(
       expect.arrayContaining([
@@ -302,7 +300,7 @@ describe('registerAppMenu', () => {
       registerAppMenu(buildMenuOptions())
 
       const template = getTemplate()
-      const appSubmenu = platform === 'darwin' ? getSubmenu(template, 'Orca') : []
+      const appSubmenu = platform === 'darwin' ? getSubmenu(template, 'DevCrew') : []
       const helpSubmenu = getSubmenu(template, 'Help')
 
       expect([...appSubmenu, ...helpSubmenu]).not.toEqual(
@@ -314,7 +312,7 @@ describe('registerAppMenu', () => {
   // Why: pin the platform on every case — CI runs this suite on Linux only, so an
   // unpinned test leaves the other platforms' branches entirely uncovered.
   it.each(['darwin', 'linux', 'win32'] as const)(
-    'routes Edit > Paste through Orca coordinated paste ownership on %s',
+    'routes Edit > Paste through DevCrew coordinated paste ownership on %s',
     (platform) => {
       vi.spyOn(process, 'platform', 'get').mockReturnValue(platform)
       const send = vi.fn()
@@ -379,7 +377,7 @@ describe('registerAppMenu', () => {
   })
 
   it.each(['darwin', 'linux', 'win32'] as const)(
-    'routes Edit selection actions through the focused Orca window on %s',
+    'routes Edit selection actions through the focused DevCrew window on %s',
     (platform) => {
       vi.spyOn(process, 'platform', 'get').mockReturnValue(platform)
       const send = vi.fn()

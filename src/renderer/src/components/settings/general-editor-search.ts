@@ -21,11 +21,11 @@ export const getGeneralEditorSearchEntries = createLocalizedCatalog(() => [
       getOrcaBuildProfile() === 'corporate'
         ? translate(
             'auto.components.settings.GeneralEditorSettingsSection.autoSaveDelayCorporate',
-            'How long to wait after your last edit before saving automatically.'
+            'How long DevCrew waits after your last edit before saving automatically.'
           )
         : translate(
             'auto.components.settings.general.search.8ea61ad55c',
-            'How long Orca waits after your last edit before saving automatically.'
+            'How long DevCrew waits after your last edit before saving automatically.'
           ),
     keywords: [
       ...translateSearchKeyword('auto.components.settings.general.search.86f54575c7', 'autosave'),

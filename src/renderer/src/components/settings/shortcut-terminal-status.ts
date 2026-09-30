@@ -56,9 +56,9 @@ export function getShortcutTerminalStatus(
           getOrcaBuildProfile() === 'corporate'
             ? translate(
                 'auto.components.settings.ShortcutTerminalPolicyControl.applicationFirst',
-                'Application first'
+                'DevCrew first'
               )
-            : translate('auto.components.settings.ShortcutsPane.2a0e8aeccf', 'Orca first'),
+            : translate('auto.components.settings.ShortcutsPane.2a0e8aeccf', 'DevCrew first'),
         description: translate(
           'auto.components.settings.ShortcutsPane.dfa8ff612f',
           'Also runs while a terminal or TUI has keyboard focus.'

@@ -15,8 +15,8 @@ describe('dev-instance-identity', () => {
 
   it('uses the corporate product name for packaged corporate builds without renaming internal ids', () => {
     expect(getDevInstanceIdentity(false, { ORCA_BUILD_PROFILE: 'corporate' })).toMatchObject({
-      name: 'Secure Orca Lite',
-      appName: 'Secure Orca Lite',
+      name: 'DevCrew',
+      appName: 'DevCrew',
       isDev: false,
       appUserModelId: 'com.stablyai.orca'
     })
@@ -36,7 +36,7 @@ describe('dev-instance-identity', () => {
 
   it('never renames a packaged build before ready', () => {
     // Packaged builds must keep deriving the safeStorage key from their own CFBundleName;
-    // a pre-ready rename would repoint forks ("Orca ALab Edition") at Orca's key.
+    // a pre-ready rename would repoint forks ("DevCrew ALab Edition") at DevCrew's key.
     expect(shouldApplyPreReadyAppName(getDevInstanceIdentity(false, {}))).toBe(false)
     expect(shouldApplyPreReadyAppName({ isDev: false })).toBe(false)
   })

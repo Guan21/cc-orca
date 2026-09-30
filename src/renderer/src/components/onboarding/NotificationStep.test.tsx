@@ -54,7 +54,7 @@ describe('NotificationStep', () => {
     expect(html).not.toContain('Connect task sources')
   })
 
-  it('keeps default notification setup product copy on Orca', () => {
+  it('keeps default notification setup product copy on DevCrew', () => {
     const stepHtml = renderToStaticMarkup(
       <NotificationStep settings={createSettings()} updateSettings={vi.fn()} />
     )
@@ -64,11 +64,11 @@ describe('NotificationStep', () => {
     const blockedHtml = renderToStaticMarkup(<MacNotificationPermissionCard state="blocked" />)
 
     expect(stepHtml).toContain(
-      'Pick the alert Orca plays after a desktop notification is delivered.'
+      'Pick the alert DevCrew plays after a desktop notification is delivered.'
     )
-    expect(permissionHtml).toContain('Allow notifications for Orca')
-    expect(blockedHtml).toContain('macOS is not delivering Orca notifications')
-    expect(blockedHtml).toContain('Turn on Allow notifications for Orca in System Settings.')
+    expect(permissionHtml).toContain('Allow notifications for DevCrew')
+    expect(blockedHtml).toContain('macOS is not delivering DevCrew notifications')
+    expect(blockedHtml).toContain('Turn on Allow notifications for DevCrew in System Settings.')
   })
 
   it('uses the corporate product name in notification setup product copy', () => {
@@ -83,13 +83,11 @@ describe('NotificationStep', () => {
     const blockedHtml = renderToStaticMarkup(<MacNotificationPermissionCard state="blocked" />)
 
     expect(stepHtml).toContain(
-      'Pick the alert Secure Orca Lite plays after a desktop notification is delivered.'
+      'Pick the alert DevCrew plays after a desktop notification is delivered.'
     )
-    expect(permissionHtml).toContain('Allow notifications for Secure Orca Lite')
-    expect(blockedHtml).toContain('macOS is not delivering Secure Orca Lite notifications')
-    expect(blockedHtml).toContain(
-      'Turn on Allow notifications for Secure Orca Lite in System Settings.'
-    )
+    expect(permissionHtml).toContain('Allow notifications for DevCrew')
+    expect(blockedHtml).toContain('macOS is not delivering DevCrew notifications')
+    expect(blockedHtml).toContain('Turn on Allow notifications for DevCrew in System Settings.')
     expect(permissionHtml).not.toContain('for Orca')
     expect(blockedHtml).not.toContain('delivering Orca notifications')
   })

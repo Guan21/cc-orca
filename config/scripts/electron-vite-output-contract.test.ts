@@ -138,16 +138,18 @@ describe('Electron Vite output contract', () => {
 
   it('rewrites all static renderer HTML titles for corporate builds without changing defaults', () => {
     const defaultHtml = [
-      '<title>Orca</title>',
-      '<title>Orca Web</title>',
+      '<title>DevCrew</title>',
+      '<title>DevCrew Web</title>',
       '<title>Orca Agent Dashboard</title>'
     ].join('\n')
-    const corporateHtml = transformProductDisplayNameHtml(defaultHtml, 'Secure Orca Lite')
+    const corporateHtml = transformProductDisplayNameHtml(defaultHtml, 'DevCrew')
 
-    expect(transformProductDisplayNameHtml(defaultHtml, 'Orca')).toContain('<title>Orca</title>')
-    expect(corporateHtml).toContain('<title>Secure Orca Lite</title>')
-    expect(corporateHtml).toContain('<title>Secure Orca Lite Web</title>')
-    expect(corporateHtml).toContain('<title>Secure Orca Lite - Agent Dashboard</title>')
+    expect(transformProductDisplayNameHtml(defaultHtml, 'DevCrew')).toContain(
+      '<title>DevCrew</title>'
+    )
+    expect(corporateHtml).toContain('<title>DevCrew</title>')
+    expect(corporateHtml).toContain('<title>DevCrew Web</title>')
+    expect(corporateHtml).toContain('<title>DevCrew - Agent Dashboard</title>')
     expect(corporateHtml).not.toContain('<title>Orca')
   })
 
@@ -254,7 +256,7 @@ describe('Electron Vite output contract', () => {
     expect(targetConfig).toContain('Object.hasOwn(configByTarget, target)')
   })
 
-  it('gives the dev terminal daemon helper the TCC identity watched by Orca', () => {
+  it('gives the dev terminal daemon helper the TCC identity watched by DevCrew', () => {
     // Asserted on the values rather than the source text: the ids moved into
     // dev-electron-bundle-identity.mjs so every dev bundle signs to one cdhash.
     expect(DEV_HELPER_BUNDLE_ID).toBe(`${DEV_BUNDLE_ID}.helper`)

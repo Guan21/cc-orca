@@ -28,11 +28,11 @@ export function ShortcutTerminalPolicyControl({
         getOrcaBuildProfile() === 'corporate'
           ? translate(
               'auto.components.settings.ShortcutTerminalPolicyControl.conflictCorporate',
-              'Choose whether the application or the focused terminal wins when shortcuts overlap.'
+              'Choose whether DevCrew or the focused terminal wins when shortcuts overlap.'
             )
           : translate(
               'auto.components.settings.ShortcutTerminalPolicyControl.0f55c6f15c',
-              'Choose whether Orca or the focused terminal wins when shortcuts overlap.'
+              'Choose whether DevCrew or the focused terminal wins when shortcuts overlap.'
             )
       }
       keywords={keywords}
@@ -64,11 +64,11 @@ export function ShortcutTerminalPolicyControl({
                 {getOrcaBuildProfile() === 'corporate'
                   ? translate(
                       'auto.components.settings.ShortcutTerminalPolicyControl.applicationFirst',
-                      'Application first'
+                      'DevCrew first'
                     )
                   : translate(
                       'auto.components.settings.ShortcutTerminalPolicyControl.63308571d8',
-                      'Orca first'
+                      'DevCrew first'
                     )}
               </SelectItem>
               <SelectItem value="terminal-first">

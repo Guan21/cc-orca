@@ -73,7 +73,9 @@ describe('corporate branding audit', () => {
 
     expect(CORPORATE_BRANDING_AUDIT_TARGETS).toContain('config/electron-builder.config.cjs')
     expect(CORPORATE_BRANDING_LOCALE_TARGETS).toContain('src/renderer/src/i18n/locales/en.json')
-    expect(CORPORATE_BRANDING_LOCALE_TARGETS).toContain('src/renderer/src/i18n/en-runtime-required.json')
+    expect(CORPORATE_BRANDING_LOCALE_TARGETS).toContain(
+      'src/renderer/src/i18n/en-runtime-required.json'
+    )
     expect(CORPORATE_BRANDING_AUDIT_TARGETS).not.toContain('src/shared/pairing.ts')
   })
 

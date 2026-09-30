@@ -99,7 +99,7 @@ describe('app icon selection', () => {
     }
   })
 
-  it('persists the corporate macOS Dock icon without reusing Orca app-icon variants', async () => {
+  it('persists the corporate macOS Dock icon without reusing DevCrew app-icon variants', async () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
     const execFile = vi.fn(
       (
@@ -117,7 +117,7 @@ describe('app icon selection', () => {
     )
 
     persistMacDockIcon('classic', {
-      appBundlePath: '/Applications/Secure Orca Lite.app',
+      appBundlePath: '/Applications/DevCrew.app',
       execFile,
       isDevApp: false,
       platform: 'darwin'
@@ -129,7 +129,7 @@ describe('app icon selection', () => {
       expect.arrayContaining(['-e', expect.stringContaining('setIcon:image forFile:appPath')]),
       expect.objectContaining({
         env: expect.objectContaining({
-          ORCA_APP_BUNDLE_PATH: '/Applications/Secure Orca Lite.app',
+          ORCA_APP_BUNDLE_PATH: '/Applications/DevCrew.app',
           ORCA_APP_ICON_PATH: expect.stringMatching(
             /resources[\\/]build[\\/]corporate[\\/]icon\.png$/
           )

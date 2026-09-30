@@ -290,8 +290,8 @@ describe('triggerStartupNotificationRegistration', () => {
     triggerStartupNotificationRegistration(store as never)
 
     expect(notificationCtorMock).toHaveBeenCalledWith({
-      title: 'Secure Orca Lite is ready to notify you',
-      body: 'Allow notifications so Secure Orca Lite can alert you when agents finish or terminals need attention.'
+      title: 'DevCrew is ready to notify you',
+      body: 'Allow notifications so DevCrew can alert you when agents finish or terminals need attention.'
     })
     expect(notificationShowMock).toHaveBeenCalledTimes(1)
   })

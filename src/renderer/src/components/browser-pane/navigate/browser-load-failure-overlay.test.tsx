@@ -86,7 +86,7 @@ describe('BrowserLoadFailureOverlay', () => {
     expect(screen.getByText("Connection isn't secure")).toBeInTheDocument()
     expect(
       screen.getByText(
-        "Orca doesn't trust the authority that issued the certificate for localhost:3443."
+        "DevCrew doesn't trust the authority that issued the certificate for localhost:3443."
       )
     ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Proceed Anyway (Unsafe)' })).toBeNull()
@@ -401,7 +401,7 @@ describe('BrowserLoadFailureOverlay', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Proceed Anyway (Unsafe)' }))
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent(
-        'Secure Orca Lite could not approve this certificate request.'
+        'DevCrew could not approve this certificate request.'
       )
     )
   })

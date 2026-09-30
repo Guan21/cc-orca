@@ -94,11 +94,11 @@ export function WorktreeVisibilitySourceAddForm({
           (getOrcaBuildProfile() === 'corporate'
             ? translate(
                 'auto.components.sidebar.WorktreeVisibilitySourceList.rootHelpCorporate',
-                'Worktrees beneath this folder will be recognized automatically.'
+                'DevCrew will recognize worktrees beneath this folder.'
               )
             : translate(
                 'auto.components.sidebar.WorktreeVisibilitySourceList.rootHelp',
-                'Orca will recognize worktrees beneath this folder.'
+                'DevCrew will recognize worktrees beneath this folder.'
               ))}
       </p>
     </form>

@@ -8,10 +8,36 @@ const REPO_ROOT = join(import.meta.dirname, '..', '..')
 const SRC_MAIN_DIR = join(REPO_ROOT, 'src', 'main')
 
 const require = createRequire(import.meta.url)
-const electronBuilderConfig = require('../electron-builder.config.cjs')
+const electronBuilderConfigPath = require.resolve('../electron-builder.config.cjs')
+const electronBuilderConfig = require(electronBuilderConfigPath)
 const { FileMatcher } = require('app-builder-lib/out/fileMatcher')
 const FpmTarget = require('app-builder-lib/out/targets/FpmTarget').default
 const electronBuilderNativeRebuild = require('./electron-builder-native-rebuild.cjs')
+
+function withElectronBuilderEnv(env, callback) {
+  const original = new Map(Object.keys(env).map((key) => [key, process.env[key]]))
+  try {
+    for (const [key, value] of Object.entries(env)) {
+      if (value === undefined) {
+        delete process.env[key]
+      } else {
+        process.env[key] = value
+      }
+    }
+    delete require.cache[electronBuilderConfigPath]
+    return callback(require(electronBuilderConfigPath))
+  } finally {
+    for (const [key, value] of original) {
+      if (value === undefined) {
+        delete process.env[key]
+      } else {
+        process.env[key] = value
+      }
+    }
+    delete require.cache[electronBuilderConfigPath]
+    require(electronBuilderConfigPath)
+  }
+}
 
 describe('electron-builder config', () => {
   it('keeps the packaged app identity aligned with local-build validation', () => {
@@ -93,7 +119,7 @@ describe('electron-builder config', () => {
     const packs = (repoPath) => isPacked(join('/app', repoPath), { isDirectory: () => false })
 
     for (const devBundlePath of [
-      'out/electron-dev/1a2b3c4d5e6f/Orca: dev.app/Contents/MacOS/Electron',
+      'out/electron-dev/1a2b3c4d5e6f/DevCrew: dev.app/Contents/MacOS/Electron',
       'out/electron-dev/1a2b3c4d5e6f/orca-dev-electron-app.json'
     ]) {
       expect(packs(devBundlePath)).toBe(false)
@@ -148,12 +174,14 @@ describe('electron-builder config', () => {
   })
 
   it('uses DevCrew for product-facing corporate package identity', () => {
-    expect(electronBuilderConfig.productName).toBe('DevCrew')
-    expect(electronBuilderConfig.protocols).toEqual([{ name: 'DevCrew', schemes: ['orca'] }])
-    expect(electronBuilderConfig.win.executableName).toBe('DevCrew')
-    expect(electronBuilderConfig.nsis.artifactName).toBe('devcrew-windows-setup.${ext}')
-    expect(electronBuilderConfig.dmg.artifactName).toBe('devcrew-macos-${arch}.${ext}')
-    expect(electronBuilderConfig.appImage.artifactName).toBe('devcrew-linux.${ext}')
+    withElectronBuilderEnv({ ORCA_BUILD_PROFILE: 'corporate' }, (corporateConfig) => {
+      expect(corporateConfig.productName).toBe('DevCrew')
+      expect(corporateConfig.protocols).toEqual([{ name: 'DevCrew', schemes: ['orca'] }])
+      expect(corporateConfig.win.executableName).toBe('DevCrew')
+      expect(corporateConfig.nsis.artifactName).toBe('devcrew-windows-setup.${ext}')
+      expect(corporateConfig.dmg.artifactName).toBe('devcrew-macos-${arch}.${ext}')
+      expect(corporateConfig.appImage.artifactName).toBe('devcrew-linux.${ext}')
+    })
   })
 
   it('keeps legacy compatibility identifiers where renaming would break installs or state', () => {
@@ -170,6 +198,10 @@ describe('electron-builder config', () => {
     )
     expect(electronBuilderConfig.deb.packageName).toBe('orca-ide')
     expect(electronBuilderConfig.rpm.packageName).toBe('orca-ide')
+    withElectronBuilderEnv({ ORCA_BUILD_PROFILE: 'corporate' }, (corporateConfig) => {
+      expect(corporateConfig.appId).toBe('dev.orca.secure-lite')
+      expect(corporateConfig.protocols[0].schemes).toEqual(['orca'])
+    })
   })
 
   it('ships one macOS serve-sim package through the runtime closure', () => {
@@ -406,7 +438,7 @@ describe('electron-builder config', () => {
     }
   })
 
-  it('uses Orca native rebuild hook instead of electron-builder default rebuild', () => {
+  it('uses DevCrew native rebuild hook instead of electron-builder default rebuild', () => {
     expect(electronBuilderConfig.beforeBuild).toBe(electronBuilderNativeRebuild)
     expect(electronBuilderConfig.npmRebuild).toBe(true)
   })

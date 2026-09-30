@@ -37,11 +37,13 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
 
   const isMac = process.platform === 'darwin'
   const isCorporateBuild = getOrcaBuildProfile() === 'corporate'
+  const productDisplayName = getProductDisplayName()
+  const mobileProductDisplayName = `${productDisplayName} Mobile`
   const corporateAppRoleLabels = isCorporateBuild
     ? {
-        about: `About ${getProductDisplayName()}`,
-        hide: `Hide ${getProductDisplayName()}`,
-        quit: `Quit ${getProductDisplayName()}`
+        about: `About ${productDisplayName}`,
+        hide: `Hide ${productDisplayName}`,
+        quit: `Quit ${productDisplayName}`
       }
     : null
   const appearance = getAppearanceState()
@@ -100,14 +102,14 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
   const featureTourItem: Electron.MenuItemConstructorOptions | null = isCorporateBuild
     ? null
     : {
-        label: translateMain('menu.exploreOrca', 'Explore Orca'),
+        label: translateMain('menu.exploreOrca', `Explore ${productDisplayName}`),
         click: (_menuItem, window) => onOpenFeatureTour(window)
       }
 
   const setupGuideItem: Electron.MenuItemConstructorOptions | null = isCorporateBuild
     ? null
     : {
-        label: translateMain('menu.gettingStarted', 'Getting Started with Orca'),
+        label: translateMain('menu.gettingStarted', `Getting Started with ${productDisplayName}`),
         click: (_menuItem, window) => onOpenSetupGuide(window)
       }
 
@@ -213,7 +215,10 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
       ...(!isCorporateBuild
         ? ([
             {
-              label: translateMain('menu.showMobileButton', 'Show Orca Mobile Button'),
+              label: translateMain(
+                'menu.showMobileButton',
+                `Show ${mobileProductDisplayName} Button`
+              ),
               type: 'checkbox',
               checked: appearance.showMobileButton,
               click: () => onToggleAppearance('showMobileButton')

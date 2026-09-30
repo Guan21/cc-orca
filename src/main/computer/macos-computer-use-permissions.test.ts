@@ -194,9 +194,7 @@ describe('openComputerUsePermissions', () => {
   it('throws when the helper app is missing on macOS', async () => {
     resolveHelperAppPathMock.mockReturnValue(null)
 
-    await expect(openComputerUsePermissions()).rejects.toThrow(
-      'DevCrew Computer Use was not found'
-    )
+    await expect(openComputerUsePermissions()).rejects.toThrow('DevCrew Computer Use was not found')
   })
 
   it('throws when the helper executable is missing during setup', async () => {

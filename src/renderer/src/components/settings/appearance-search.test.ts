@@ -42,8 +42,8 @@ describe('appearance product copy', () => {
   })
 
   it.each([
-    ['default', 'Orca'],
-    ['corporate', 'Secure Orca Lite']
+    ['default', 'DevCrew'],
+    ['corporate', 'DevCrew']
   ] as const)('uses the %s product name in visible search descriptions', async (profile, name) => {
     ;(globalThis as { __ORCA_BUILD_PROFILE__?: typeof profile }).__ORCA_BUILD_PROFILE__ = profile
     vi.resetModules()
@@ -64,22 +64,22 @@ describe('appearance product copy', () => {
       `When enabled, closing the window keeps ${name} running in the system tray instead of quitting.`
     )
     expect(getMenuBarIconEntries({ showMenuBarIcon: true })[0]?.description).toBe(
-      `Keep ${profile === 'default' ? 'an' : 'a'} ${name} shortcut and activity indicator in the macOS menu bar.`
+      `Keep a ${name} shortcut and activity indicator in the macOS menu bar.`
     )
   })
 
   it.each([
     [
       'default',
-      "Choisissez la langue utilisée par l'interface d'Orca.",
-      "Choisissez la police utilisée par l'interface d'Orca.",
-      "Choisissez l'apparence d'Orca dans la fenêtre de l'app."
+      "Choisissez la langue utilisée par l'interface de DevCrew.",
+      "Choisissez la police utilisée par l'interface de DevCrew.",
+      "Choisissez l'apparence de DevCrew dans la fenêtre de l'app."
     ],
     [
       'corporate',
-      "Choisissez la langue utilisée par l'interface de Secure Orca Lite.",
-      "Choisissez la police utilisée par l'interface de Secure Orca Lite.",
-      "Choisissez l'apparence de Secure Orca Lite dans la fenêtre de l'app."
+      "Choisissez la langue utilisée par l'interface de DevCrew.",
+      "Choisissez la police utilisée par l'interface de DevCrew.",
+      "Choisissez l'apparence de DevCrew dans la fenêtre de l'app."
     ]
   ] as const)(
     'keeps French %s product grammar intact',

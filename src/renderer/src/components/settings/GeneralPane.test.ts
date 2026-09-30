@@ -137,19 +137,19 @@ describe('GeneralPane search entries', () => {
     const cliEntry = entries.find((entry) => entry.targetSectionId === 'cli')
     const skillEntry = entries.find((entry) => entry.title === 'Agent skill')
 
-    expect(cliEntry?.title).toContain('Secure Orca Lite')
+    expect(cliEntry?.title).toContain('DevCrew')
     expect(cliEntry?.description).toContain('orca')
     expect(cliEntry?.description).not.toContain('Orca CLI')
-    expect(skillEntry?.description).toContain('Secure Orca Lite')
+    expect(skillEntry?.description).toContain('DevCrew')
     expect(skillEntry?.description).toContain('orca')
   })
 
-  it('keeps default Orca CLI search wording outside corporate builds', () => {
+  it('keeps default DevCrew CLI search wording outside corporate builds', () => {
     const entries = getGeneralPaneSearchEntries()
     const cliEntry = entries.find((entry) => entry.targetSectionId === 'cli')
 
-    expect(cliEntry?.title).toBe('Orca CLI')
-    expect(cliEntry?.description).toBe('Register or remove the Orca CLI command.')
+    expect(cliEntry?.title).toBe('DevCrew CLI')
+    expect(cliEntry?.description).toBe('Register or remove the `orca` command for DevCrew.')
   })
 })
 

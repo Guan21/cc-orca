@@ -32,8 +32,8 @@ const stepCopy = {
           ? 'auto.components.onboarding.OnboardingFlow.corporateAgentSubtitle'
           : 'auto.components.onboarding.OnboardingFlow.322fc50a18',
         getOrcaBuildProfile() === 'corporate'
-          ? "Secure Orca Lite supports Claude Code and Codex. Choose the one you'll reach for most."
-          : "Orca works with every CLI agent. Choose the one you'll reach for most. Switch any time."
+          ? "DevCrew supports Claude Code and Codex. Choose the one you'll reach for most."
+          : "DevCrew works with every CLI agent. Choose the one you'll reach for most. Switch any time."
       )
     }
   },
@@ -63,7 +63,7 @@ const stepCopy = {
         ? `${getProductDisplayName()} will notify you when agents are done or need help.`
         : translate(
             'auto.components.onboarding.OnboardingFlow.ff92d15436',
-            'Orca will notify you when agents are done or need help.'
+            'DevCrew will notify you when agents are done or need help.'
           )
     }
   },
@@ -227,7 +227,7 @@ export default function OnboardingFlow({
             isCorporateBuild
               ? 'auto.components.onboarding.OnboardingFlow.productOnboardingLabel'
               : 'auto.components.onboarding.OnboardingFlow.277ba45540',
-            isCorporateBuild ? '{{productDisplayName}} onboarding' : 'Orca onboarding',
+            isCorporateBuild ? '{{productDisplayName}} onboarding' : 'DevCrew onboarding',
             { productDisplayName }
           )}
           aria-modal="true"
@@ -299,7 +299,7 @@ export default function OnboardingFlow({
                     isCorporateBuild
                       ? 'auto.components.onboarding.OnboardingFlow.productWelcome'
                       : 'auto.components.onboarding.OnboardingFlow.1b5e182e9f',
-                    isCorporateBuild ? 'Welcome to {{productDisplayName}}' : 'Welcome to Orca',
+                    isCorporateBuild ? 'Welcome to {{productDisplayName}}' : 'Welcome to DevCrew',
                     { productDisplayName }
                   )}
                 </div>

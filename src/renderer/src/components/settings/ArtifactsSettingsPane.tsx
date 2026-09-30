@@ -70,7 +70,10 @@ export function ArtifactsSettingsPane({
     },
     {
       key: 'manage',
-      title: translate('auto.components.settings.artifacts.manageStepTitle', 'Manage it in DevCrew'),
+      title: translate(
+        'auto.components.settings.artifacts.manageStepTitle',
+        'Manage it in DevCrew'
+      ),
       description: translate(
         'auto.components.settings.artifacts.manageStepDescription',
         'Open Artifacts from the sidebar to preview or remove links.'

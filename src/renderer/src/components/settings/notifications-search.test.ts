@@ -16,15 +16,17 @@ describe('getNotificationsPaneSearchEntries', () => {
     }
   })
 
-  it('keeps default notification search product copy on Orca', async () => {
+  it('keeps default notification search product copy on DevCrew', async () => {
     const { getNotificationsPaneSearchEntries } = await import('./notifications-search')
 
     const descriptions = getNotificationsPaneSearchEntries().map((entry) => entry.description)
 
-    expect(descriptions).toContain('Master switch for Orca desktop notifications.')
-    expect(descriptions).toContain('Avoid notifying when Orca is focused on the active worktree.')
+    expect(descriptions).toContain('Master switch for DevCrew desktop notifications.')
     expect(descriptions).toContain(
-      'Choose the built-in, system, or local audio file Orca plays for desktop notifications.'
+      'Avoid notifying when DevCrew is focused on the active worktree.'
+    )
+    expect(descriptions).toContain(
+      'Choose the built-in, system, or local audio file DevCrew plays for desktop notifications.'
     )
   })
 
@@ -34,12 +36,12 @@ describe('getNotificationsPaneSearchEntries', () => {
 
     const descriptions = getNotificationsPaneSearchEntries().map((entry) => entry.description)
 
-    expect(descriptions).toContain('Master switch for Secure Orca Lite desktop notifications.')
+    expect(descriptions).toContain('Master switch for DevCrew desktop notifications.')
     expect(descriptions).toContain(
-      'Avoid notifying when Secure Orca Lite is focused on the active worktree.'
+      'Avoid notifying when DevCrew is focused on the active worktree.'
     )
     expect(descriptions).toContain(
-      'Choose the built-in, system, or local audio file Secure Orca Lite plays for desktop notifications.'
+      'Choose the built-in, system, or local audio file DevCrew plays for desktop notifications.'
     )
   })
 })

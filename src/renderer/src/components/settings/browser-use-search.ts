@@ -4,7 +4,10 @@ import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 
 export const getBrowserUsePaneSearchEntries = createLocalizedCatalog(() => [
   {
-    title: translate('auto.components.settings.browser.use.search.50f0860e18', 'Enable DevCrew CLI'),
+    title: translate(
+      'auto.components.settings.browser.use.search.50f0860e18',
+      'Enable DevCrew CLI'
+    ),
     description: translate(
       'auto.components.settings.browser.use.search.890ddf943d',
       'Register the DevCrew CLI so agents can drive the browser.'

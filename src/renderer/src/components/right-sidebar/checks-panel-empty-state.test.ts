@@ -129,7 +129,7 @@ describe('getChecksPanelReviewState — precedence', () => {
     expect(state.workflowAction).toBe('publish_branch')
     // Hard error concurrent with the blocker: detail appended, create suppressed.
     expect(state.detail).toBe(
-      'Orca also could not confirm whether this branch already has a pull request.'
+      'DevCrew also could not confirm whether this branch already has a pull request.'
     )
   })
 
@@ -145,7 +145,7 @@ describe('getChecksPanelReviewState — precedence', () => {
     )
 
     expect(state.detail).toBe(
-      'Secure Orca Lite also could not confirm whether this branch already has a pull request.'
+      'DevCrew also could not confirm whether this branch already has a pull request.'
     )
   })
 
@@ -321,7 +321,7 @@ describe('getChecksPanelReviewState — git status', () => {
     )
 
     expect(state.description).toBe(
-      "Secure Orca Lite could not confirm this branch's upstream from this environment. Retry before publishing or creating a pull request."
+      "DevCrew could not confirm this branch's upstream from this environment. Retry before publishing or creating a pull request."
     )
   })
 })

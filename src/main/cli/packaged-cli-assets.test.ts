@@ -34,7 +34,7 @@ const unixLauncherFixtures = [
   {
     name: 'Linux',
     asset: linuxLauncherAsset,
-    appDir: ['Orca'],
+    appDir: ['DevCrew'],
     launcher: ['resources', 'bin', 'orca-ide'],
     executable: ['orca-ide'],
     cli: ['resources', 'app.asar.unpacked', 'out', 'cli', 'index.js']
@@ -44,16 +44,16 @@ const unixLauncherFixtures = [
     asset: darwinLauncherAsset,
     appDir: ['Orca.app'],
     launcher: ['Contents', 'Resources', 'bin', 'orca'],
-    executable: ['Contents', 'MacOS', 'Orca'],
+    executable: ['Contents', 'MacOS', 'DevCrew'],
     cli: ['Contents', 'Resources', 'app.asar.unpacked', 'out', 'cli', 'index.js']
   }
 ] as const
 const macLauncherProfiles = [
-  { name: 'default Orca', appDirName: 'Orca.app', executableName: 'Orca' },
+  { name: 'default DevCrew', appDirName: 'Orca.app', executableName: 'DevCrew' },
   {
-    name: 'corporate Secure Orca Lite',
-    appDirName: 'Secure Orca Lite.app',
-    executableName: 'Secure Orca Lite'
+    name: 'corporate DevCrew',
+    appDirName: 'DevCrew.app',
+    executableName: 'DevCrew'
   }
 ] as const
 
@@ -160,7 +160,7 @@ describe('packaged CLI assets', () => {
           await mkdir(dirname(cliPath), { recursive: true })
           await copyFile(launcherFixture.asset, launcherPath)
           if (launcherFixture.name === 'macOS') {
-            await writeMacInfoPlist(join(appDir, 'Contents', 'Info.plist'), 'Orca')
+            await writeMacInfoPlist(join(appDir, 'Contents', 'Info.plist'), 'DevCrew')
           }
           await writeFile(cliPath, '', 'utf8')
           await writeFile(
@@ -218,7 +218,7 @@ server.listen(0, '127.0.0.1', () => {
     async () => {
       const root = await mkdtemp(join(tmpdir(), 'orca-linux-cli-'))
       try {
-        const appDir = join(root, 'Orca')
+        const appDir = join(root, 'DevCrew')
         const resourcesDir = join(appDir, 'resources')
         const launcherDir = join(resourcesDir, 'bin')
         const cliDir = join(resourcesDir, 'app.asar.unpacked', 'out', 'cli')
@@ -272,13 +272,13 @@ printf 'arg=%s\\n' "$@"
 
     expect(content).toContain('CFBundleExecutable')
     expect(content).toContain('ELECTRON="$CONTENTS/MacOS/$EXECUTABLE_NAME"')
-    expect(content).not.toContain('ELECTRON="$CONTENTS/MacOS/Orca"')
+    expect(content).not.toContain('ELECTRON="$CONTENTS/MacOS/DevCrew"')
     expect(macLauncherProfiles).toEqual([
-      { name: 'default Orca', appDirName: 'Orca.app', executableName: 'Orca' },
+      { name: 'default DevCrew', appDirName: 'Orca.app', executableName: 'DevCrew' },
       {
-        name: 'corporate Secure Orca Lite',
-        appDirName: 'Secure Orca Lite.app',
-        executableName: 'Secure Orca Lite'
+        name: 'corporate DevCrew',
+        appDirName: 'DevCrew.app',
+        executableName: 'DevCrew'
       }
     ])
   })
@@ -337,7 +337,7 @@ printf 'arg=%s\\n' "$@"
 
       await expect(execFileAsync('bash', [launcherPath, '--version'])).rejects.toMatchObject({
         stderr: expect.stringContaining(
-          'Unable to determine Orca executable: missing bundle metadata'
+          'Unable to determine DevCrew executable: missing bundle metadata'
         )
       })
     } finally {
@@ -348,16 +348,16 @@ printf 'arg=%s\\n' "$@"
   itRunsBash('fails clearly when the metadata executable is absent', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-macos-cli-missing-executable-'))
     try {
-      const appDir = join(root, 'Secure Orca Lite.app')
+      const appDir = join(root, 'DevCrew.app')
       const contentsDir = join(appDir, 'Contents')
       const launcherPath = join(contentsDir, 'Resources', 'bin', 'orca')
       await mkdir(dirname(launcherPath), { recursive: true })
       await copyFile(darwinLauncherAsset, launcherPath)
-      await writeMacInfoPlist(join(contentsDir, 'Info.plist'), 'Secure Orca Lite')
+      await writeMacInfoPlist(join(contentsDir, 'Info.plist'), 'DevCrew')
 
       await expect(execFileAsync('bash', [launcherPath, '--version'])).rejects.toMatchObject({
         stderr: expect.stringContaining(
-          'Unable to launch Orca CLI: expected Electron executable from CFBundleExecutable'
+          'Unable to launch DevCrew CLI: expected Electron executable from CFBundleExecutable'
         )
       })
     } finally {
@@ -371,7 +371,7 @@ printf 'arg=%s\\n' "$@"
   itRunsUnixShell('sanitizes node env and forwards argv verbatim', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-linux-cli-env-'))
     try {
-      const appDir = join(root, 'Orca')
+      const appDir = join(root, 'DevCrew')
       const resourcesDir = join(appDir, 'resources')
       const launcherDir = join(resourcesDir, 'bin')
       const cliDir = join(resourcesDir, 'app.asar.unpacked', 'out', 'cli')
@@ -429,7 +429,7 @@ node -e 'console.log(JSON.stringify({
   itRunsUnixShell('keeps Linux serve on the CLI entrypoint in node mode', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-linux-cli-serve-'))
     try {
-      const appDir = join(root, 'Orca')
+      const appDir = join(root, 'DevCrew')
       const resourcesDir = join(appDir, 'resources')
       const launcherDir = join(resourcesDir, 'bin')
       const cliDir = join(resourcesDir, 'app.asar.unpacked', 'out', 'cli')

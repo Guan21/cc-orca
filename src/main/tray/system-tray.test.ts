@@ -269,7 +269,7 @@ describe('createSystemTray', () => {
       2,
       expect.stringMatching(/resources\/tray\/corporate-menu-barTemplate@2x\.png$/)
     )
-    expect(builtMenuItems().map((item) => item.label)).toContain('Open Secure Orca Lite')
+    expect(builtMenuItems().map((item) => item.label)).toContain('Open DevCrew')
     expect(builtMenuItems().map((item) => item.label)).not.toContain('Check for Updates...')
     builtMenuItems().forEach((item) => item.click?.())
     expect(options.onCheckForUpdates).not.toHaveBeenCalled()
@@ -283,12 +283,8 @@ describe('createSystemTray', () => {
 
     createSystemTray(options)
 
-    expect(trayInstances[0].setToolTip).toHaveBeenCalledWith('Secure Orca Lite')
-    expect(builtMenuItems().map((item) => item.label)).toEqual([
-      'Open Secure Orca Lite',
-      undefined,
-      'Quit'
-    ])
+    expect(trayInstances[0].setToolTip).toHaveBeenCalledWith('DevCrew')
+    expect(builtMenuItems().map((item) => item.label)).toEqual(['Open DevCrew', undefined, 'Quit'])
   })
 
   it('does not create a blank macOS item when the template asset fails to load', async () => {
@@ -384,9 +380,7 @@ describe('dev instance indicator', () => {
 
     setTrayAttention(true)
     flushTraySceneMutation()
-    expect(created.setToolTip).toHaveBeenCalledWith(
-      'DevCrew DEV (my-branch) - activity waiting'
-    )
+    expect(created.setToolTip).toHaveBeenCalledWith('DevCrew DEV (my-branch) - activity waiting')
     setTrayAttention(false)
     flushTraySceneMutation()
     expect(created.setToolTip).toHaveBeenLastCalledWith('DevCrew DEV (my-branch)')

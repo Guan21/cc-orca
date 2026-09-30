@@ -371,7 +371,8 @@ const JA_AUDIT_OVERRIDES = {
   'This QR code grants limited (mobile) access. To use the full web app, open the browser access link from Settings → Runtime Environments → Share this DevCrew server → New Link.':
     'この QR コードでは、モバイル向けの制限付きアクセスのみ利用できます。完全版の Web アプリを使用するには、[設定] → [リモート DevCrew サーバー] → [この DevCrew サーバーを共有する] → [新規リンク] から、ブラウザ用アクセスリンクを開いてください。',
   'Loading skills...': 'スキルを読み込み中…',
-  'Start agents on your tasks without leaving DevCrew': 'DevCrew から離れずに、タスクから Agent を開始',
+  'Start agents on your tasks without leaving DevCrew':
+    'DevCrew から離れずに、タスクから Agent を開始',
   'Workspace created from {{value0}}, but DevCrew could not fast-forward local {{value1}} because {{value2}}':
     'ワークスペースは {{value0}} から作成されましたが、{{value2}} のため DevCrew はローカル {{value1}} を fast-forward できませんでした',
   'Terminal, browser, or editor rendering failed in this workspace. Retry to remount it.':
