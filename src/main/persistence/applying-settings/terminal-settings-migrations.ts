@@ -1,4 +1,5 @@
 import type { GlobalSettings, OrcaWorkspaceLayout } from '../../../shared/global-settings-types'
+import type { TuiAgent } from '../../../shared/tui-agent'
 import { normalizeRuntimePathForComparison } from '../../../shared/cross-platform-path'
 import {
   legacyTerminalScrollbackBytesToRows,
@@ -8,8 +9,10 @@ import {
   DEFAULT_TUI_AGENT_ARGS,
   DEFAULT_TUI_AGENT_ENV,
   normalizeTuiAgentArgsRecord,
-  normalizeTuiAgentEnvRecord
+  normalizeTuiAgentEnvRecord,
+  sanitizeLegacyGeneratedTuiAgentDefaultArgsForBuildProfile
 } from '../../../shared/tui-agent-launch-defaults'
+import { getOrcaBuildProfile, type OrcaBuildProfile } from '../../../shared/corporate-build-profile'
 
 export function buildWorkspaceDirHistoryForUpdate(
   current: GlobalSettings,
@@ -122,9 +125,18 @@ export function getWorkspaceLayoutHistoryKey(layout: OrcaWorkspaceLayout): strin
 }
 
 export function migrateAgentYoloDefaults(
-  settings: GlobalSettings | undefined
+  settings: GlobalSettings | undefined,
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
 ): Pick<GlobalSettings, 'agentDefaultArgs' | 'agentDefaultEnv' | 'agentYoloDefaultsMigrated'> {
   const existingArgs = normalizeTuiAgentArgsRecord(settings?.agentDefaultArgs)
+  for (const [rawAgent, args] of Object.entries(existingArgs)) {
+    const agent = rawAgent as TuiAgent
+    existingArgs[agent] = sanitizeLegacyGeneratedTuiAgentDefaultArgsForBuildProfile(
+      agent,
+      args,
+      profile
+    )
+  }
   const existingEnv = normalizeTuiAgentEnvRecord(settings?.agentDefaultEnv)
   if (settings?.agentYoloDefaultsMigrated === true) {
     // Keep newly added agents manual for profiles migrated by an older build.
@@ -148,15 +160,20 @@ export function migrateAgentYoloDefaults(
 
   const commandOverrides = settings?.agentCmdOverrides ?? {}
   const migratedArgs = { ...existingArgs }
-  for (const [agent, args] of Object.entries(DEFAULT_TUI_AGENT_ARGS)) {
+  for (const [rawAgent, args] of Object.entries(DEFAULT_TUI_AGENT_ARGS)) {
+    const agent = rawAgent as TuiAgent
     if (agent in migratedArgs) {
       continue
     }
     if (agent in commandOverrides) {
-      migratedArgs[agent as keyof typeof DEFAULT_TUI_AGENT_ARGS] = ''
+      migratedArgs[agent] = ''
       continue
     }
-    migratedArgs[agent as keyof typeof DEFAULT_TUI_AGENT_ARGS] = args
+    migratedArgs[agent] = sanitizeLegacyGeneratedTuiAgentDefaultArgsForBuildProfile(
+      agent,
+      args,
+      profile
+    )
   }
 
   const migratedEnv = { ...existingEnv }

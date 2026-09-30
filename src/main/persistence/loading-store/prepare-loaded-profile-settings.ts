@@ -12,7 +12,10 @@ import {
 import { normalizeSourceControlGroupOrder } from '../../../shared/source-control-group-order'
 import { normalizeProjectGroups } from '../../../shared/project-groups'
 import { normalizeDisabledTuiAgents } from '../../../shared/tui-agent-selection'
-import { hasUnsupportedTuiAgentArgs } from '../../../shared/tui-agent-launch-defaults'
+import {
+  hasLegacyGeneratedTuiAgentDefaultArgsForBuildProfile,
+  hasUnsupportedTuiAgentArgs
+} from '../../../shared/tui-agent-launch-defaults'
 import { normalizeTerminalCursorStyleDefault } from '../../../shared/terminal-cursor-style-settings'
 import { normalizeTerminalLineHeight } from '../../../shared/terminal-line-height-settings'
 import { migrateAgentYoloDefaults } from '../applying-settings/terminal-settings-migrations'
@@ -137,7 +140,15 @@ export function prepareLoadedProfileSettings(
   if (
     parsed.settings?.agentYoloDefaultsMigrated !== true ||
     hasUnsupportedTuiAgentArgs('opencode', parsed.settings?.agentDefaultArgs?.opencode) ||
-    hasUnsupportedTuiAgentArgs('kilo', parsed.settings?.agentDefaultArgs?.kilo)
+    hasUnsupportedTuiAgentArgs('kilo', parsed.settings?.agentDefaultArgs?.kilo) ||
+    hasLegacyGeneratedTuiAgentDefaultArgsForBuildProfile(
+      'claude',
+      parsed.settings?.agentDefaultArgs?.claude
+    ) ||
+    hasLegacyGeneratedTuiAgentDefaultArgsForBuildProfile(
+      'codex',
+      parsed.settings?.agentDefaultArgs?.codex
+    )
   ) {
     markNeedsSave()
   }

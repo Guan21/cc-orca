@@ -13,6 +13,11 @@ const UNSUPPORTED_TUI_AGENT_ARGS: Partial<Record<TuiAgent, readonly string[]>> =
   kilo: ['--dangerously-skip-permissions']
 }
 
+const CORPORATE_LEGACY_GENERATED_AGENT_DEFAULT_ARGS: Partial<Record<TuiAgent, string>> = {
+  claude: YOLO_TUI_AGENT_ARGS.claude,
+  codex: YOLO_TUI_AGENT_ARGS.codex
+}
+
 export const DEFAULT_TUI_AGENT_ARGS: Partial<Record<TuiAgent, string>> = YOLO_TUI_AGENT_ARGS
 
 export const DEFAULT_TUI_AGENT_ENV: Partial<Record<TuiAgent, Record<string, string>>> =
@@ -37,6 +42,28 @@ function sanitizeTuiAgentLaunchArgs(agent: TuiAgent, args: string): string {
   // Why: a few agents have removed, relocated, or never exposed Claude-style
   // skip-permission flags on the interactive TUI command Orca launches.
   return unsupportedArgs.reduce((next, arg) => next.replace(argPattern(arg), ' '), args).trim()
+}
+
+export function hasLegacyGeneratedTuiAgentDefaultArgsForBuildProfile(
+  agent: TuiAgent,
+  value: unknown,
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): boolean {
+  return (
+    profile === 'corporate' &&
+    typeof value === 'string' &&
+    value.trim() === CORPORATE_LEGACY_GENERATED_AGENT_DEFAULT_ARGS[agent]
+  )
+}
+
+export function sanitizeLegacyGeneratedTuiAgentDefaultArgsForBuildProfile(
+  agent: TuiAgent,
+  args: string,
+  profile: OrcaBuildProfile = getOrcaBuildProfile()
+): string {
+  return hasLegacyGeneratedTuiAgentDefaultArgsForBuildProfile(agent, args, profile)
+    ? ''
+    : args.trim()
 }
 
 export function normalizeTuiAgentArgsRecord(value: unknown): Partial<Record<TuiAgent, string>> {
@@ -95,7 +122,15 @@ export function resolveTuiAgentLaunchArgs(
     Object.hasOwn(configuredArgs, agent) &&
     typeof configuredArgs[agent] === 'string'
   ) {
-    return resolveAgentArgsForBuildProfile(agent, configuredArgs[agent], profile)
+    return resolveAgentArgsForBuildProfile(
+      agent,
+      sanitizeLegacyGeneratedTuiAgentDefaultArgsForBuildProfile(
+        agent,
+        configuredArgs[agent],
+        profile
+      ),
+      profile
+    )
   }
   const defaultArgs = getTuiAgentDefaultArgs(agent)
   return areAgentArgsAllowedForBuildProfile(agent, defaultArgs, profile)
