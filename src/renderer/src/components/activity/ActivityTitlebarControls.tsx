@@ -1,14 +1,11 @@
-import { ArrowLeft, Bell } from 'lucide-react'
+import { Activity, ArrowLeft } from 'lucide-react'
 
 import { useAppStore } from '@/store'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useActivityUnreadCount } from './useActivityUnreadCount'
 import { translate } from '@/i18n/i18n'
 
 export function ActivityTitlebarControls(): React.JSX.Element {
-  const unreadCount = useActivityUnreadCount()
   const closeActivityPage = useAppStore((s) => s.closeActivityPage)
 
   return (
@@ -29,7 +26,7 @@ export function ActivityTitlebarControls(): React.JSX.Element {
               onClick={closeActivityPage}
               aria-label={translate(
                 'auto.components.activity.ActivityTitlebarControls.dc708f3eff',
-                'Close agents'
+                'Close DevCrew Pulse'
               )}
             >
               <ArrowLeft className="size-3.5" />
@@ -38,18 +35,17 @@ export function ActivityTitlebarControls(): React.JSX.Element {
           <TooltipContent side="bottom" sideOffset={6}>
             {translate(
               'auto.components.activity.ActivityTitlebarControls.dc708f3eff',
-              'Close agents'
+              'Close DevCrew Pulse'
             )}
           </TooltipContent>
         </Tooltip>
-        <Bell className="size-3.5 shrink-0 text-muted-foreground" />
+        <Activity className="size-3.5 shrink-0 text-muted-foreground" />
         <span className="truncate text-xs font-medium">
-          {translate('auto.components.activity.ActivityTitlebarControls.d6a8de3934', 'agents')}
+          {translate(
+            'auto.components.activity.ActivityTitlebarControls.d6a8de3934',
+            'DevCrew Pulse'
+          )}
         </span>
-        <Badge variant="secondary" className="h-5 px-1.5 text-[11px] font-normal">
-          {unreadCount}{' '}
-          {translate('auto.components.activity.ActivityTitlebarControls.f915168c8e', 'unread')}
-        </Badge>
       </div>
     </div>
   )
