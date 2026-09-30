@@ -14,7 +14,9 @@
   "app": {
     "recoverableError": {
       "productRootDescription": "The app shell could not finish rendering. Retry to remount it, or relaunch the application if the error persists.",
-      "rootDescription": "The app shell could not finish rendering. Retry to remount it, or relaunch DevCrew if the error persists."
+      "rootDescription": "The app shell could not finish rendering. Retry to remount it, or relaunch DevCrew if the error persists.",
+      "rootTitle": "DevCrew hit a renderer error.",
+      "webTitle": "DevCrew web hit a renderer error."
     }
   },
   "auto": {
@@ -67,6 +69,7 @@
       },
       "Landing": {
         "16e9e3df89": "starred",
+        "520304a067": "DevCrew logo",
         "ce44fad849": "Missing dependencies",
         "f05d237049": "Add a project first"
       },
@@ -623,13 +626,15 @@
                 "button": "Open in app",
                 "note": "The app browser can use imported cookies for logged-in sites."
               },
+              "description": "Use DevCrew's browser for terminal links, or keep your system browser.",
               "keep": {
                 "app": {
                   "button": "Keep in app"
                 },
                 "orca": {
                   "button": "Keep DevCrew"
-                }
+                },
+                "title": "Keep terminal links in DevCrew's browser?"
               },
               "orca": {
                 "button": "Open in DevCrew",
@@ -642,7 +647,8 @@
                   },
                   "prefix": "When links open in DevCrew,"
                 }
-              }
+              },
+              "title": "Open terminal links in DevCrew's browser?"
             }
           }
         }
@@ -686,6 +692,9 @@
         }
       },
       "onboarding": {
+        "AgentStep": {
+          "69af7e9c1c": "isn't on your PATH yet. DevCrew will set it as your default and you can install it any time."
+        },
         "IntegrationsStep": {
           "93f0c49ad1": "not-authenticated",
           "a3bcf13694": "connected",
@@ -1147,11 +1156,13 @@
           "42554f615f": "Choose the font used by the DevCrew interface.",
           "4de76f6902": "Control what appears in the application titlebar.",
           "5db6ba961f": "Show the DevCrew Mobile button at the top of the left sidebar.",
+          "61d842eca0": "Show the DevCrew Mobile shortcut in the sidebar. It remains available from Toolbox.",
           "622e1c3465": "Scale the entire application interface.",
           "661942ab7f": "Show the Tasks button at the top of the left sidebar.",
           "6a272ca553": "Titlebar",
           "75f07ab60c": "Show files matched by .gitignore in the file explorer.",
           "872af9556e": "System Tray",
+          "9da1020447": "Show DevCrew Mobile Button",
           "e9f2ca5582": "Turn off to hide files matched by .gitignore from the file explorer.",
           "ea943d0db0": "Choose which indicators appear at the bottom of the window. You can also right-click the status bar for the same toggles.",
           "f687711a9b": "Scale the entire application interface. Use",
@@ -1160,6 +1171,7 @@
           "workspaceCardLayoutGuidance": "Managed from the workspace sidebar."
         },
         "AutoRenameBranchFromWorkSetting": {
+          "5d569f5199": ". DevCrew generates only the final segment, like",
           "ef787db0e3": "Auto-Rename Branch"
         },
         "AutoRenameBranchPromptEditor": {
@@ -1187,10 +1199,14 @@
           "e44c5d681e": "From"
         },
         "CliSection": {
+          "36a6f919ba": "Give agents DevCrew-aware workspace, terminal, and progress workflows.",
           "4c7e3e4c5f": "install",
           "5d432fe44d": "installed",
+          "6930feda9e": "Use DevCrew from your terminal to open the app, manage worktrees, and interact with DevCrew terminals.",
           "8a9b784c60": "stale",
           "8d96213669": "remove",
+          "a030816e3e": "This removes the shell command symlink. DevCrew itself remains installed.",
+          "c5c0f2641d": "DevCrew CLI",
           "cliSkillCorporateDescription": "Enables agents to use {{productName}} workspace, terminal, and progress commands.",
           "cliSkillTerminalAria": "CLI skill install terminal",
           "cliSkillTerminalTitle": "CLI skill setup",
@@ -1504,6 +1520,7 @@
           "9abb9be3bc": "Set Up",
           "dd72ed437a": "Choose which task providers appear in the Tasks page and sidebar.",
           "e1578cd4bc": "Workflows",
+          "linearDescription": "How Linear works in DevCrew, setup checklist, agent skill, and example prompts.",
           "mobile_group": "Mobile"
         },
         "SettingsFormControls": {
@@ -1581,6 +1598,7 @@
         "WslCliRegistration": {
           "41a1480d3e": "install",
           "7c3bb36706": "remove",
+          "d8216eb22e": "This removes the WSL shell command. DevCrew itself remains installed on Windows.",
           "e2b0ee267f": "stale"
         },
         "agent-awake-copy": {
@@ -1643,6 +1661,14 @@
             "ff8de8a2ad": "display"
           }
         },
+        "appearance": {
+          "search": {
+            "0709c794f7": "Choose how DevCrew looks in the app window.",
+            "07c7c38fac": "Choose the font used by the DevCrew interface.",
+            "1de96ec8a6": "Show DevCrew Mobile Button",
+            "682293cadf": "Show the DevCrew Mobile button at the top of the left sidebar."
+          }
+        },
         "artifacts": {
           "account": "DevCrew account",
           "connected": "Connected",
@@ -1665,6 +1691,11 @@
             "dialog": {
               "remoteRuntime": "Bitbucket credentials saved here are stored on this local machine only. Set ORCA_BITBUCKET_* environment variables on the remote runtime instead."
             }
+          }
+        },
+        "browser": {
+          "search": {
+            "060ac1fcba": "Import cookies from Chrome, Edge, or other browsers to use existing logins inside DevCrew."
           }
         },
         "computerUseSkillRuntime": {
@@ -1699,12 +1730,15 @@
         },
         "general": {
           "search": {
+            "244e3fb4c8": "Install the DevCrew skill so agents know to use the DevCrew CLI.",
             "27d9b996ba": "codex",
+            "327e3fa70d": "DevCrew CLI",
             "3c30fe2d51": "gemini",
             "41c2f9a025": "default",
             "5baf51c4d9": "open claude",
             "5d9ba08673": "copilot",
             "5fdf1dc2d1": "omp",
+            "79ff46776e": "Check for app updates and install a newer DevCrew version.",
             "8436ff6f8e": "Proxy Bypass Rules",
             "882c4896fd": "opencode",
             "8ea37a05bc": "agent",
@@ -1713,11 +1747,13 @@
             "aea7d2cccb": "openclaude",
             "c29f23ab57": "HTTP Proxy",
             "c61b14be7c": "grok",
+            "ca529079bf": "Register or remove the DevCrew CLI command.",
             "db11502270": "Default Agent",
             "e2da948f59": "Pre-select an AI coding agent in the new-workspace composer.",
             "e3b1d42f95": "Proxy URL for DevCrew network requests and local terminal children.",
             "e55d62dfa4": "launchpad",
             "eb8946b2c9": "Hosts that should bypass the configured HTTP proxy.",
+            "externalWorktreesDescription": "Choose whether worktrees created outside DevCrew appear by default.",
             "f472e97440": "aider"
           }
         },
@@ -1763,6 +1799,10 @@
             }
           }
         },
+        "orcaAccount": {
+          "description": "Share work instantly and reach your desktop from DevCrew Mobile wherever you are.",
+          "title": "DevCrew Account"
+        },
         "providerAccountScope": {
           "localMac": "Local Mac"
         },
@@ -1799,6 +1839,14 @@
           }
         },
         "terminal": {
+          "search": {
+            "warp_import": {
+              "description": "Import Warp themes as DevCrew terminal themes."
+            },
+            "yaml_import": {
+              "description": "Import theme YAML files as DevCrew terminal themes."
+            }
+          },
           "windows": {
             "search": {
               "02c772582a": "linux",
@@ -1838,6 +1886,13 @@
           "imported_other": "Imported {{value0}} themes",
           "over_limit_one": "Importing these themes would exceed the {{value0}} custom terminal theme limit. Deselect 1 new theme and try again.",
           "over_limit_other": "Importing these themes would exceed the {{value0}} custom terminal theme limit. Deselect {{value1}} new themes and try again."
+        }
+      },
+      "setup": {
+        "guide": {
+          "SetupGuideModal": {
+            "3598a3ca0c": "Finish the core workflows that make DevCrew useful for parallel agent work."
+          }
         }
       },
       "shared": {
@@ -1936,6 +1991,8 @@
           "9c95e1ce91": "Agents"
         },
         "SidebarSettingsHelpMenu": {
+          "4e8f5710d3": "Couldn't restart DevCrew.",
+          "5161eef55d": "Restarting DevCrew…",
           "ad3d3ed7f1": "Restart DevCrew",
           "d396773ef0": "checking"
         },
@@ -2505,6 +2562,9 @@
           "MobileDriverOverlay": {
             "3eed73394f": "Your keyboard is paused"
           },
+          "TerminalLinkActionPopover": {
+            "orcaBrowser": "DevCrew Browser"
+          },
           "TerminalRemoteRuntimeReconnectBanner": {
             "retryingBody": "DevCrew will retry for up to one minute. This terminal will resume if the connection returns."
           },
@@ -2617,10 +2677,26 @@
       },
       "useSettingsNavigationMetadata": {
         "5235c215ca": "Choose which task providers appear in the Tasks page and sidebar.",
-        "b351014180": "DevCrew stats plus Claude, Codex, OpenCode token analytics and Grok subscription usage."
+        "b351014180": "DevCrew stats plus Claude, Codex, OpenCode token analytics and Grok subscription usage.",
+        "linearDescription": "How Linear works in DevCrew, setup checklist, agent skill, and example prompts."
       }
     },
     "lib": {
+      "agent": {
+        "skill": {
+          "cli": {
+            "prerequisite": {
+              "0f116999f1": "Restart your shell or add the DevCrew CLI directory to PATH before setup.",
+              "15cbedc3e3": "Install the DevCrew CLI before running agent skill setup.",
+              "2db0bd7515": "DevCrew CLI registration is unavailable",
+              "79371593b0": "DevCrew CLI is not visible on PATH yet",
+              "8d6eedf97e": "Failed to register the DevCrew CLI in PATH.",
+              "e99d7dc36f": "DevCrew CLI registration needs attention",
+              "windowsPathUnknown": "DevCrew could not check your Windows user PATH"
+            }
+          }
+        }
+      },
       "browser": {
         "cookie": {
           "import": {
@@ -2629,6 +2705,9 @@
             }
           }
         }
+      },
+      "remotePairingCopy": {
+        "invalidInput": "Enter an DevCrew access link or bare pairing code."
       },
       "terminal": {
         "shortcut": {
@@ -2671,6 +2750,11 @@
           "f4503ca505": "Open Settings > Git and try again.",
           "fa9299a66f": "Your new worktree is current, but local {{value0}} is {{value1}} {{value2}} behind. AI diffs may miss recent commits."
         }
+      }
+    },
+    "web": {
+      "WebConnect": {
+        "3affe7de3a": "Paste a pairing URL from an DevCrew server that this browser can reach."
       }
     }
   },
@@ -2811,6 +2895,11 @@
       "map": "Agent Map"
     }
   },
+  "menu": {
+    "exploreOrca": "Explore DevCrew",
+    "gettingStarted": "Getting Started with DevCrew",
+    "showMobileButton": "Show DevCrew Mobile Button"
+  },
   "rendererRecovery": {
     "crashLoopDetail": "DevCrew tried to recover {{recoveryCount}} times in a row without success.",
     "genericDetail": "This is often a graphics-driver or installation problem. Reload to try again, or quit and relaunch DevCrew.",
@@ -2840,6 +2929,12 @@
   },
   "settings": {
     "appearance": {
+      "language": {
+        "description": "Choose the language used by the DevCrew interface."
+      },
+      "menuBarIcon": {
+        "description": "Keep an DevCrew shortcut and activity indicator in the macOS menu bar."
+      },
       "statusBar": {
         "sshToggleDescription": "Show configured SSH and remote DevCrew hosts when any are available.",
         "sshToggleDescriptionCorporate": "Show configured SSH and remote hosts when any are available."
@@ -2861,6 +2956,9 @@
   },
   "tray": {
     "activityWaiting": "DevCrew - activity waiting",
+    "minimizeNotice": {
+      "body": "DevCrew is still running in the system tray"
+    },
     "openOrca": "Open DevCrew",
     "openProduct": "Open {{productName}}"
   },
