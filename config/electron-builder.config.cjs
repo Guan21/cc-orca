@@ -41,16 +41,16 @@ const isLinuxArm64Release = process.env.ORCA_LINUX_ARM64_RELEASE === '1'
 const orcaBuildProfile = process.env.ORCA_BUILD_PROFILE === 'corporate' ? 'corporate' : 'default'
 const isCorporateBuild = orcaBuildProfile === 'corporate'
 const productName = isCorporateBuild
-  ? readNonEmptyEnv('ORCA_CORPORATE_PRODUCT_NAME', 'Secure Orca Lite')
+  ? readNonEmptyEnv('ORCA_CORPORATE_PRODUCT_NAME', 'DevCrew')
   : 'Orca'
 const appId = isCorporateBuild
   ? readNonEmptyEnv('ORCA_CORPORATE_APP_ID', 'dev.orca.secure-lite')
   : 'com.stablyai.orca'
 const windowsArtifactName = isCorporateBuild
-  ? 'secure-orca-lite-windows-setup.${ext}'
+  ? 'devcrew-windows-setup.${ext}'
   : 'orca-windows-setup.${ext}'
 const macDmgArtifactName = isCorporateBuild
-  ? 'secure-orca-lite-macos-${arch}.${ext}'
+  ? 'devcrew-macos-${arch}.${ext}'
   : 'orca-macos-${arch}.${ext}'
 const packagedIcon = isCorporateBuild
   ? 'resources/build/corporate/icon.icns'
@@ -184,7 +184,7 @@ const MARKDOWN_FILE_EXTENSIONS = ['md', 'markdown', 'mdx']
 module.exports = {
   appId,
   productName,
-  protocols: [{ name: 'Orca', schemes: ['orca'] }],
+  protocols: [{ name: productName, schemes: ['orca'] }],
   toolsets: { appimage: '1.0.3' },
   ...(devChannelBuildVersion
     ? { extraMetadata: { version: devChannelBuildVersion } }
@@ -427,7 +427,7 @@ module.exports = {
     }
   },
   win: {
-    executableName: 'Orca',
+    executableName: productName,
     ...(isCorporateBuild ? { icon: corporateWindowsIcon } : {}),
     // Why: Windows installers are signed after electron-builder packaging by
     // SignPath, so the packager cannot infer the updater publisherName.
@@ -621,7 +621,7 @@ module.exports = {
     category: 'Utility'
   },
   appImage: {
-    artifactName: isLinuxArm64Release ? 'orca-linux-arm64.${ext}' : 'orca-linux.${ext}'
+    artifactName: isLinuxArm64Release ? 'devcrew-linux-arm64.${ext}' : 'devcrew-linux.${ext}'
   },
   deb: {
     packageName: 'orca-ide',
@@ -734,7 +734,7 @@ function chmodMacServeSimHelpers(resourcesDir, electronPlatformName) {
 async function signMacComputerUseHelper(helperAppPath, packager) {
   if (!existsSync(helperAppPath)) {
     if (isMacRelease) {
-      throw new Error(`Missing Orca Computer Use helper app at ${helperAppPath}`)
+      throw new Error(`Missing DevCrew Computer Use helper app at ${helperAppPath}`)
     }
     return
   }
@@ -748,7 +748,7 @@ async function signMacComputerUseHelper(helperAppPath, packager) {
     findInstalledMacSigningIdentity(codeSigningInfo?.keychainFile) ??
     (isMacRelease ? null : '-')
   if (!identity) {
-    throw new Error('Missing signing identity for Orca Computer Use helper app')
+    throw new Error('Missing signing identity for DevCrew Computer Use helper app')
   }
   // Why: TCC grants attach to this nested app's code identity. Sign it before
   // the outer Orca.app is sealed so production builds preserve that identity.
