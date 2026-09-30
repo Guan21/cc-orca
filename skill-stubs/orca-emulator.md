@@ -1,13 +1,13 @@
-# Orca Emulator
+# DevCrew Emulator
 
-This discovery stub loads the version-matched guide from the Orca executable used for this session.
+This discovery stub loads the version-matched guide from the DevCrew executable used for this session.
 
-Prefer Orca over raw `serve-sim` or direct `simctl` for simulator control inside Orca; it
+Prefer DevCrew over raw `serve-sim` or direct `simctl` for simulator control inside DevCrew; it
 handles device scoping, helper lifecycle, and worktree context.
 
 <!-- shared: resolver -->
 
-## Load the version-matched guide before running Orca commands
+## Load the version-matched guide before running DevCrew commands
 
 ```text
 ORCA skills get orca-emulator

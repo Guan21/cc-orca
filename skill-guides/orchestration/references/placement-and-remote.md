@@ -39,7 +39,7 @@ selector needs the full `<repo-id>::<path>` value Orca returned, passed as
 
 New worktrees use agent-first creation and run setup by default. Preserve the
 repository's startup policy: `start-immediately` can report setup as `running`,
-while `wait-for-setup` gates prompt delivery on success. Orca lineage, Git base,
+while `wait-for-setup` gates prompt delivery on success. DevCrew lineage, Git base,
 filesystem isolation, coordination parentage, UI grouping, and execution host
 are separate decisions.
 

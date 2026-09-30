@@ -84,7 +84,7 @@ ORCA orchestration request-show --request <request_id> --json
 
 `completed` means the mutation already took effect; read its recorded receipt
 instead of rerunning. `pending` means the original mutation is still running or
-Orca restarted before recording its outcome; replay the original command with
+DevCrew restarted before recording its outcome; replay the original command with
 `--retry-request <request_id>`. `absent` means this runtime holds no receipt
 under your caller identity — that is not proof nothing happened, so inspect the
 affected Task, Dispatch, and terminal before deciding whether to retry.
