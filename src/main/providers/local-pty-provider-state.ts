@@ -112,6 +112,34 @@ export function runPtyCleanup(id: string): void {
   cleanup()
 }
 
+export function addPtyCleanupCallback(id: string, cleanup: () => void): void {
+  const existing = ptyCleanupCallbacks.get(id)
+  if (!existing) {
+    ptyCleanupCallbacks.set(id, cleanup)
+    return
+  }
+  ptyCleanupCallbacks.set(id, () => {
+    let firstError: unknown
+    try {
+      existing()
+    } catch (error) {
+      firstError = error
+    }
+    try {
+      cleanup()
+    } catch (error) {
+      if (!firstError) {
+        firstError = error
+      } else {
+        console.warn('[pty] chained cleanup failed:', error)
+      }
+    }
+    if (firstError) {
+      throw firstError
+    }
+  })
+}
+
 /**
  * Removes all local tracking state for a PTY id after teardown.
  */

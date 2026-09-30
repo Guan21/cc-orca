@@ -7,7 +7,11 @@ import { finalizeLocalPtySpawnEnvironment } from './local-pty-finalize-environme
 import { normalizeLocalCallerSessionId } from './local-pty-launch-helpers'
 import { createLocalPtyLaunchPlan, DeferredLocalPtyLaunchPlan } from './local-pty-launch-plan'
 import type { LocalPtyProviderOptions } from './local-pty-provider-types'
-import { allocatePtyId, ptyShutdownOperations } from './local-pty-provider-state'
+import {
+  addPtyCleanupCallback,
+  allocatePtyId,
+  ptyShutdownOperations
+} from './local-pty-provider-state'
 import { activateLocalPtySession } from './local-pty-session-activation'
 import {
   buildLocalPtySpawnEnvironment,
@@ -18,6 +22,11 @@ import { spawnShellWithFallback } from './local-pty-utils'
 import { updateHistoryEnvForFallback, type HistoryInjectionResult } from '../terminal-history'
 import type { PtySpawnOptions, PtySpawnResult } from './types'
 import { assertAgentLaunchAllowedForBuildProfile } from '../../shared/corporate-build-profile'
+import {
+  disposePreparedAgentExecutionRuntime,
+  prepareAgentExecutionBoundaryForPtySpawn,
+  type PreparedAgentExecutionRuntime
+} from '../agent-execution-boundary/agent-execution-boundary'
 
 export async function spawnLocalPty(
   args: PtySpawnOptions,
@@ -41,23 +50,49 @@ export async function spawnLocalPty(
     command: args.command,
     launchAgent: args.launchAgent
   })
+  const preparedResult = prepareAgentExecutionBoundaryForPtySpawn(args, 'local-pty')
+  const preparedRuntime = preparedResult instanceof Promise ? await preparedResult : preparedResult
+  const spawnArgs = preparedRuntime.spawn
   const id = allocatePtyId(reattachId ?? undefined)
-  const incarnationId = randomUUID()
-  const planResult = createLocalPtyLaunchPlan(args, getOptions)
+  try {
+    return await spawnPreparedLocalPty({
+      id,
+      incarnationId: randomUUID(),
+      spawnArgs,
+      preparedRuntime,
+      reattachId,
+      getOptions
+    })
+  } catch (error) {
+    await disposePreparedAgentExecutionRuntime(preparedRuntime)
+    throw error
+  }
+}
+
+async function spawnPreparedLocalPty(args: {
+  id: string
+  incarnationId: string
+  spawnArgs: PtySpawnOptions
+  preparedRuntime: PreparedAgentExecutionRuntime
+  reattachId: string | null
+  getOptions: () => LocalPtyProviderOptions
+}): Promise<PtySpawnResult> {
+  const { id, incarnationId, spawnArgs, preparedRuntime, reattachId, getOptions } = args
+  const planResult = createLocalPtyLaunchPlan(spawnArgs, getOptions)
   const plan =
     planResult instanceof DeferredLocalPtyLaunchPlan
       ? planResult.finish(await planResult.availability)
       : planResult
   const envResult = buildLocalPtySpawnEnvironment({
     id,
-    spawn: args,
+    spawn: spawnArgs,
     getOptions,
     plan
   })
   const finalEnv = envResult instanceof Promise ? await envResult : envResult
-  enforceLocalPtySpawnEnvironmentOverrides(args, finalEnv)
+  enforceLocalPtySpawnEnvironmentOverrides(spawnArgs, finalEnv)
   const historyResult = finalizeLocalPtySpawnEnvironment({
-    spawn: args,
+    spawn: spawnArgs,
     getOptions,
     plan,
     env: finalEnv
@@ -65,19 +100,20 @@ export async function spawnLocalPty(
 
   // Why: the async macOS capability probe runs before node-pty exists.
   await awaitCancelableLocalPtySpawn(id, prepareMacosTccLoginShell())
-  if (args.signal?.aborted) {
+  if (spawnArgs.signal?.aborted) {
     throw new Error('client_disconnected')
   }
   // Why: another same-id request can win while this one awaits preflight; attach before launching a redundant shell.
-  const concurrentWinner = reattachId ? reattachLocalPty(id, args.cols, args.rows) : null
+  const concurrentWinner = reattachId ? reattachLocalPty(id, spawnArgs.cols, spawnArgs.rows) : null
   if (concurrentWinner) {
+    await disposePreparedAgentExecutionRuntime(preparedRuntime)
     return concurrentWinner
   }
   const spawnResult = spawnShellWithFallback({
     shellPath: plan.shellPath,
     shellArgs: plan.shellArgs,
-    cols: args.cols,
-    rows: args.rows,
+    cols: spawnArgs.cols,
+    rows: spawnArgs.rows,
     cwd: plan.effectiveCwd,
     env: finalEnv,
     termName: finalEnv.TERM,
@@ -91,13 +127,13 @@ export async function spawnLocalPty(
       : undefined,
     windowsFallbackAttempts: plan.windowsFallbackAttempts
   })
-  args.onPtySpawnCommitted?.()
+  spawnArgs.onPtySpawnCommitted?.()
   plan.shellPath = spawnResult.shellPath
   // Why: a Windows fallback embeds its startup command in argv; honor the winning shell's delivery flag to avoid a double write.
   if (spawnResult.startupCommandDeliveredInShellArgs !== undefined) {
     plan.startupCommandDeliveredInShellArgs = spawnResult.startupCommandDeliveredInShellArgs
   }
-  if (args.command && plan.getFallbackShellReadyConfig) {
+  if (spawnArgs.command && plan.getFallbackShellReadyConfig) {
     plan.shellReadyLaunch = plan.getFallbackShellReadyConfig(plan.shellPath)
   }
 
@@ -113,15 +149,37 @@ export async function spawnLocalPty(
     : process.platform === 'win32'
       ? null
       : undefined
+  registerLocalAgentExecutionBoundaryCleanup(id, preparedRuntime)
   return activateLocalPtySession({
     id,
     incarnationId,
-    spawn: args,
+    spawn: spawnArgs,
     getOptions,
     plan,
     env: finalEnv,
     proc,
     reportsChildExitStatus: spawnResult.reportsChildExitStatus !== false,
     spawnedWslDistro
+  })
+}
+
+function registerLocalAgentExecutionBoundaryCleanup(
+  id: string,
+  runtime: PreparedAgentExecutionRuntime
+): void {
+  if (!runtime.dispose) {
+    return
+  }
+  addPtyCleanupCallback(id, () => {
+    try {
+      const disposed = runtime.dispose?.()
+      if (disposed instanceof Promise) {
+        void disposed.catch((error) => {
+          console.warn('[agent-execution-boundary] dispose failed:', error)
+        })
+      }
+    } catch (error) {
+      console.warn('[agent-execution-boundary] dispose failed:', error)
+    }
   })
 }
