@@ -1,5 +1,6 @@
 import { ipcMain, Menu, Notification, type BrowserWindow } from 'electron'
 import { QUIT_RENDERER_ACK_TIMEOUT_MS } from '../../shared/quit-teardown-deadline'
+import { PRODUCT_DISPLAY_NAME } from '../../shared/product-identity'
 import { translateMain } from '../i18n/main-i18n'
 import type { Store } from '../persistence'
 import { resolveWindowCloseAction } from './window-close-decision'
@@ -75,10 +76,10 @@ export function installMainWindowCloseLifecycle(args: {
     if (store.getUI().trayMinimizeNoticeShown !== true) {
       try {
         new Notification({
-          title: 'Orca',
+          title: PRODUCT_DISPLAY_NAME,
           body: translateMain(
             'tray.minimizeNotice.body',
-            'Orca is still running in the system tray'
+            `${PRODUCT_DISPLAY_NAME} is still running in the system tray`
           )
         }).show()
       } catch {

@@ -65,11 +65,11 @@ export function getDeleteWorktreeToastCopy(
         description: isProvenLivePtyRemovalError(error)
           ? translate(
               'auto.components.sidebar.delete.worktree.toast.unstoppedPtyLive',
-              'This workspace still has running terminals, so Orca stopped before deleting any files. Force Delete will kill them and discard any uncommitted work they hold.'
+              'This workspace still has running terminals, so DevCrew stopped before deleting any files. Force Delete will kill them and discard any uncommitted work they hold.'
             )
           : translate(
               'auto.components.sidebar.delete.worktree.toast.unstoppedPty',
-              'Orca could not confirm every terminal in this workspace has exited, so it stopped before deleting any files. Use Force Delete to remove it anyway.'
+              'DevCrew could not confirm every terminal in this workspace has exited, so it stopped before deleting any files. Use Force Delete to remove it anyway.'
             ),
         isDestructive: false
       }
@@ -86,7 +86,7 @@ export function getDeleteWorktreeToastCopy(
         // running right now, and any work it holds goes with it.
         description: translate(
           'auto.components.sidebar.delete.worktree.toast.runningAgentSession',
-          'This workspace still has running agent sessions, so Orca stopped before deleting any files. Force Delete will close them and discard any work they hold.'
+          'This workspace still has running agent sessions, so DevCrew stopped before deleting any files. Force Delete will close them and discard any work they hold.'
         ),
         isDestructive: false
       }
@@ -100,7 +100,7 @@ export function getDeleteWorktreeToastCopy(
         ),
         description: translate(
           'auto.components.sidebar.delete.worktree.toast.905fc8efac',
-          'Git already removed this workspace. Use Force Delete to clear it from Orca.'
+          'Git already removed this workspace. Use Force Delete to clear it from DevCrew.'
         ),
         isDestructive: false
       }

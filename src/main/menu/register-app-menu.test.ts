@@ -24,7 +24,7 @@ vi.mock('electron', () => ({
     sendActionToFirstResponder: sendActionToFirstResponderMock
   },
   app: {
-    name: 'Orca'
+    name: 'DevCrew'
   },
   webContents: {
     getFocusedWebContents: getFocusedWebContentsMock
@@ -166,7 +166,7 @@ describe('registerAppMenu', () => {
     // Why: Check for Updates lives under the app-name menu on macOS and
     // under Help on Windows/Linux. The click behavior must be identical
     // either way.
-    const parentLabel = isMac ? 'Orca' : 'Help'
+    const parentLabel = isMac ? 'DevCrew' : 'Help'
     const item = getSubmenu(getTemplate(), parentLabel).find(
       (entry) => entry.label === 'Check for Updates...'
     )
@@ -453,10 +453,10 @@ describe('registerAppMenu', () => {
     registerAppMenu(buildMenuOptions())
 
     const template = getTemplate()
-    // Why: no redundant app-named "Orca" menu should exist on non-mac — the
+    // Why: no redundant app-named DevCrew menu should exist on non-mac — the
     // app-menu contents (Settings, Exit, Check for Updates, About) have been
     // redistributed so users see them in File / Help instead.
-    expect(template.find((item) => item.label === 'Orca')).toBeUndefined()
+    expect(template.find((item) => item.label === 'DevCrew')).toBeUndefined()
 
     const fileLabels = getSubmenu(template, 'File').map((item) => item.label)
     expect(fileLabels).not.toContain(`Export as PDF...\t${isMac ? '⌘⇧E' : 'Ctrl+Shift+E'}`)
@@ -469,8 +469,8 @@ describe('registerAppMenu', () => {
     expect(helpLabels).toEqual(
       expect.arrayContaining([
         'Report Crash...',
-        'Getting Started with Orca',
-        'Explore Orca',
+        'Getting Started with DevCrew',
+        'Explore DevCrew',
         'Check for Updates...'
       ])
     )
@@ -480,7 +480,7 @@ describe('registerAppMenu', () => {
     registerAppMenu(buildMenuOptions())
 
     const template = getTemplate()
-    const appSubmenu = getSubmenu(template, 'Orca')
+    const appSubmenu = getSubmenu(template, 'DevCrew')
     const appLabels = appSubmenu.map((item) => item.label)
     expect(appLabels).toEqual(
       expect.arrayContaining(['Check for Updates...', `Settings\t${isMac ? '⌘,' : 'Ctrl+,'}`])
@@ -492,17 +492,17 @@ describe('registerAppMenu', () => {
     expect(helpLabels).toEqual([
       'Report Crash...',
       undefined,
-      'Explore Orca',
-      'Getting Started with Orca'
+      'Explore DevCrew',
+      'Getting Started with DevCrew'
     ])
   })
 
-  it('routes Getting Started with Orca through its callback', () => {
+  it('routes Getting Started with DevCrew through its callback', () => {
     const options = buildMenuOptions()
     registerAppMenu(options)
 
     const setupGuideItem = getSubmenu(getTemplate(), 'Help').find(
-      (entry) => entry.label === 'Getting Started with Orca'
+      (entry) => entry.label === 'Getting Started with DevCrew'
     )
     expect(setupGuideItem?.accelerator).toBeUndefined()
 
@@ -518,7 +518,7 @@ describe('registerAppMenu', () => {
     registerAppMenu(options)
 
     const featureTourItem = getSubmenu(getTemplate(), 'Help').find(
-      (entry) => entry.label === 'Explore Orca'
+      (entry) => entry.label === 'Explore DevCrew'
     )
     expect(featureTourItem?.accelerator).toBeUndefined()
 
@@ -571,7 +571,7 @@ describe('registerAppMenu', () => {
     expect(automationsItem?.type).toBe('checkbox')
     expect(automationsItem?.checked).toBe(false)
 
-    const mobileItem = appearanceSubmenu.find((item) => item.label === 'Show Orca Mobile Button')
+    const mobileItem = appearanceSubmenu.find((item) => item.label === 'Show DevCrew Mobile Button')
     expect(mobileItem?.type).toBe('checkbox')
     expect(mobileItem?.checked).toBe(true)
 
@@ -597,7 +597,7 @@ describe('registerAppMenu', () => {
       .find((item) => item.label === 'Show Automations Button')
       ?.click?.({} as never, {} as never, {} as never)
     appearanceSubmenu
-      .find((item) => item.label === 'Show Orca Mobile Button')
+      .find((item) => item.label === 'Show DevCrew Mobile Button')
       ?.click?.({} as never, {} as never, {} as never)
     appearanceSubmenu
       .find((item) => item.label === 'Show Titlebar App Name')

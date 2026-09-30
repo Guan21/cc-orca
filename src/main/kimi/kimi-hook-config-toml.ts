@@ -22,7 +22,7 @@ export const KIMI_HOOK_EVENTS = [
   'StopFailure'
 ] as const
 
-const BLOCK_START = '# >>> orca-managed-kimi-hooks (managed by Orca; do not edit) >>>'
+const BLOCK_START = '# >>> orca-managed-kimi-hooks (managed by DevCrew; do not edit) >>>'
 const BLOCK_END = '# <<< orca-managed-kimi-hooks <<<'
 
 // Matches the managed block plus any blank lines immediately preceding it so
