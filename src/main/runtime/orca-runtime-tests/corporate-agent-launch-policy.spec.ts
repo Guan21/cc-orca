@@ -141,6 +141,38 @@ describe('corporate agent launch policy', () => {
   })
 
   it.each([
+    ['Claude', 'claude', { claude: '--dangerously-skip-permissions' }, '--permission-mode'],
+    [
+      'Codex',
+      'codex',
+      { codex: '--dangerously-bypass-approvals-and-sandbox' },
+      '--ask-for-approval'
+    ]
+  ] as const)(
+    'sanitizes inherited legacy corporate %s defaults before spawn',
+    async (_label, startupAgent, agentDefaultArgs, expectedSafeArg) => {
+      enableCorporateBuildProfile()
+      const { runtime, spawn } = createRuntime(vi.fn().mockResolvedValue({ id: 'pty-bg' }), {
+        agentDefaultArgs
+      })
+
+      await runtime.createTerminal(`id:${TEST_WORKTREE_ID}`, { startupAgent })
+
+      expect(spawn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          command: expect.stringContaining(expectedSafeArg),
+          launchAgent: startupAgent
+        })
+      )
+      expect(spawn).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          command: expect.stringContaining('dangerously')
+        })
+      )
+    }
+  )
+
+  it.each([
     ['Claude', 'claude --model sonnet', 'claude --model sonnet --permission-mode default'],
     ['Claude terminator', 'claude --', 'claude --permission-mode default --'],
     [
@@ -246,8 +278,16 @@ describe('corporate agent launch policy', () => {
   )
 
   it.each([
-    ['Claude default args', 'claude', { claude: '--dangerously-skip-permissions' }],
-    ['Codex default args', 'codex', { codex: '--dangerously-bypass-approvals-and-sandbox' }],
+    [
+      'Claude customized default args',
+      'claude',
+      { claude: '--dangerously-skip-permissions --model sonnet' }
+    ],
+    [
+      'Codex customized default args',
+      'codex',
+      { codex: '--dangerously-bypass-approvals-and-sandbox --model gpt-5' }
+    ],
     ['Claude permission mode args', 'claude', { claude: '--permission-mode bypassPermissions' }],
     ['Codex sandbox args', 'codex', { codex: '--sandbox danger-full-access' }],
     ['Codex approval args', 'codex', { codex: '--ask-for-approval never' }],

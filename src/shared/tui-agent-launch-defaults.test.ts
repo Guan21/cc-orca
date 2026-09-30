@@ -27,6 +27,17 @@ describe('tui agent launch defaults', () => {
     ).toBe('--dangerously-skip-permissions --model sonnet')
   })
 
+  it.each([
+    ['claude', '--dangerously-skip-permissions', '--permission-mode default'],
+    [
+      'codex',
+      '--dangerously-bypass-approvals-and-sandbox',
+      '--sandbox workspace-write --ask-for-approval on-request'
+    ]
+  ] as const)('sanitizes inherited legacy corporate %s yolo defaults', (agent, legacyArgs, safeArgs) => {
+    expect(resolveTuiAgentLaunchArgs(agent, { [agent]: legacyArgs }, 'corporate')).toBe(safeArgs)
+  })
+
   it('adds corporate safe permission overrides to explicit safe args', () => {
     expect(resolveTuiAgentLaunchArgs('claude', { claude: '--model sonnet' }, 'corporate')).toBe(
       '--model sonnet --permission-mode default'

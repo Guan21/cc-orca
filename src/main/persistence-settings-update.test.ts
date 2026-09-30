@@ -517,6 +517,48 @@ describe('Store', () => {
     expect((readDataFile() as PersistedState).settings.agentDefaultArgs?.kilo).toBe('')
   })
 
+  it('sanitizes corporate legacy Claude and Codex yolo defaults on load once', async () => {
+    const buildProfileGlobal = globalThis as { __ORCA_BUILD_PROFILE__?: string }
+    const previousBuildProfile = buildProfileGlobal.__ORCA_BUILD_PROFILE__
+    buildProfileGlobal.__ORCA_BUILD_PROFILE__ = 'corporate'
+    try {
+      writeFileSync(
+        join(testState.dir, 'orca-data.json'),
+        JSON.stringify({
+          settings: {
+            agentYoloDefaultsMigrated: true,
+            agentDefaultArgs: {
+              claude: '--dangerously-skip-permissions',
+              codex: '--dangerously-bypass-approvals-and-sandbox'
+            }
+          }
+        })
+      )
+      const store = await createStore()
+      store.flush()
+
+      expect(store.getSettings().agentDefaultArgs?.claude).toBe('')
+      expect(store.getSettings().agentDefaultArgs?.codex).toBe('')
+
+      const firstPersistedArgs = (readDataFile() as PersistedState).settings.agentDefaultArgs
+      expect(firstPersistedArgs?.claude).toBe('')
+      expect(firstPersistedArgs?.codex).toBe('')
+
+      const reloaded = await createStore()
+      reloaded.flush()
+
+      expect((readDataFile() as PersistedState).settings.agentDefaultArgs).toEqual(
+        firstPersistedArgs
+      )
+    } finally {
+      if (previousBuildProfile === undefined) {
+        delete buildProfileGlobal.__ORCA_BUILD_PROFILE__
+      } else {
+        buildProfileGlobal.__ORCA_BUILD_PROFILE__ = previousBuildProfile
+      }
+    }
+  })
+
   it('normalizes app icon on load and update', async () => {
     writeFileSync(
       join(testState.dir, 'orca-data.json'),
