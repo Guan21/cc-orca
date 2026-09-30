@@ -772,22 +772,22 @@ jobs:
           [[ "$rpm_marker" == rpm ]] || { echo "Expected rpm marker, got: $rpm_marker"; exit 1; }
 
       - name: Verify headless serve signal shutdown
-        run: node config/scripts/run-headless-serve-shutdown-docker.mjs --appimage dist/orca-linux.AppImage
+        run: node config/scripts/run-headless-serve-shutdown-docker.mjs --appimage dist/devcrew-linux.AppImage
 
       - name: Verify extracted launcher serve signal shutdown
         run: >-
           node config/scripts/run-headless-serve-shutdown-docker.mjs
-          --appimage dist/orca-linux.AppImage --entrypoint launcher
+          --appimage dist/devcrew-linux.AppImage --entrypoint launcher
 
       - name: Verify AppImage CLI registration and serve signal shutdown
         run: >-
           node config/scripts/run-headless-serve-shutdown-docker.mjs
-          --appimage dist/orca-linux.AppImage --entrypoint appimage
+          --appimage dist/devcrew-linux.AppImage --entrypoint appimage
           --signal-target serving-electron --int-delivery pid
 
       # A default container reproduces the hostile AppImage launch environment.
       - name: Verify Linux CLI launch contract
-        run: node config/scripts/run-linux-cli-launch-contract-docker.mjs --appimage dist/orca-linux.AppImage
+        run: node config/scripts/run-linux-cli-launch-contract-docker.mjs --appimage dist/devcrew-linux.AppImage
 
       - name: Smoke packaged CLI
         run: node config/scripts/smoke-packaged-cli.mjs --app-dir=dist/linux-unpacked
@@ -913,7 +913,7 @@ jobs:
         run: pnpm exec electron-builder --config config/electron-builder.config.cjs --dir
 
       - name: Smoke packaged Windows PTY native capability
-        run: pnpm run smoke:windows-pty-native-capability -- --exe=dist/win-unpacked/Orca.exe
+        run: pnpm run smoke:windows-pty-native-capability -- --exe=dist/win-unpacked/DevCrew.exe
 
       - name: Smoke packaged CLI
         run: node config/scripts/smoke-packaged-cli.mjs --app-dir=dist/win-unpacked
