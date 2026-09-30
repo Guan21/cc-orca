@@ -1,0 +1,210 @@
+name: Issue 74 macOS ARM64 Validation
+
+run-name: Issue 74 macOS ARM64 validation
+
+on:
+  push:
+    branches:
+      - fix/issue-74-company-safe-agent-defaults
+
+permissions:
+  contents: read
+
+jobs:
+  build-macos-validation:
+    runs-on: macos-15
+    timeout-minutes: 180
+    env:
+      ISSUE_FIX_SHA: d80dcc35348fa5435f422fcf4c9bbd986ef92c1a
+      ARTIFACT_NAME: issue-74-secure-orca-lite-macos
+      NODE_OPTIONS: --max-old-space-size=4096
+      ORCA_BACKGROUND_LAUNCH: '1'
+    steps:
+      - name: Checkout validation branch HEAD
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Record source evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-evidence
+          head_sha="$(git rev-parse HEAD)"
+          {
+            echo "HEAD: $head_sha"
+            echo
+            echo "Recent history:"
+            git log -3 --oneline
+            echo
+            echo "Status:"
+            git status --short
+          } | tee build-evidence/source.txt
+          if ! git merge-base --is-ancestor "$ISSUE_FIX_SHA" HEAD; then
+            echo "::error::Issue #74 fix commit $ISSUE_FIX_SHA is not in the validation build history."
+            exit 1
+          fi
+          {
+            echo "VALIDATION_BRANCH=${GITHUB_REF_NAME}"
+            echo "VALIDATION_HEAD=$head_sha"
+          } >>"$GITHUB_ENV"
+
+      - name: Report macOS runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-evidence
+          {
+            echo "macOS runner image: ${ImageOS:-unknown} ${ImageVersion:-unknown}"
+            sw_vers
+            echo "architecture: $(uname -m)"
+            echo "runner name: ${RUNNER_NAME:-unknown}"
+            echo "runner os: ${RUNNER_OS:-unknown}"
+            echo "runner arch: ${RUNNER_ARCH:-unknown}"
+          } | tee build-evidence/runner.txt
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Setup pnpm 12.0.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@12.0.0 --activate
+
+      - name: Verify toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_version="$(node --version)"
+          pnpm_version="$(pnpm --version)"
+          echo "Node: $node_version"
+          echo "pnpm: $pnpm_version"
+          if [[ "$node_version" != v24.* ]]; then
+            echo "::error::Expected Node 24, got $node_version"
+            exit 1
+          fi
+          if [[ "$pnpm_version" != 12.0.0 ]]; then
+            echo "::error::Expected pnpm 12.0.0, got $pnpm_version"
+            exit 1
+          fi
+          {
+            echo "Node: $node_version"
+            echo "pnpm: $pnpm_version"
+          } | tee build-evidence/toolchain.txt
+
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Build corporate macOS installers
+        shell: bash
+        run: pnpm run build:mac:corporate
+
+      - name: Collect installer evidence
+        id: evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-artifacts build-evidence
+          x64_dmg="$(find dist -type f -name 'secure-orca-lite-macos-x64.dmg' | sort | head -n 1)"
+          arm64_dmg="$(find dist -type f -name 'secure-orca-lite-macos-arm64.dmg' | sort | head -n 1)"
+          if [[ -z "$arm64_dmg" || ! -f "$arm64_dmg" ]]; then
+            echo "::error::Missing secure-orca-lite-macos-arm64.dmg"
+            exit 1
+          fi
+          cp "$arm64_dmg" build-artifacts/
+          x64_available="NO"
+          if [[ -n "$x64_dmg" && -f "$x64_dmg" ]]; then
+            cp "$x64_dmg" build-artifacts/
+            x64_available="YES"
+          fi
+          while IFS= read -r zip_file; do
+            [[ -n "$zip_file" ]] || continue
+            cp "$zip_file" build-artifacts/
+          done < <(find dist -maxdepth 1 -type f -name '*.zip' | sort)
+
+          arm64_size="$(stat -f%z "$arm64_dmg")"
+          arm64_sha="$(shasum -a 256 "$arm64_dmg" | awk '{print $1}')"
+          x64_size=""
+          x64_sha=""
+          if [[ "$x64_available" == "YES" ]]; then
+            x64_size="$(stat -f%z "$x64_dmg")"
+            x64_sha="$(shasum -a 256 "$x64_dmg" | awk '{print $1}')"
+          fi
+
+          signed="NO"
+          notarized="NO"
+          if app_path="$(find dist -type d -name 'Secure Orca Lite.app' | sort | head -n 1)" && [[ -n "$app_path" ]]; then
+            if codesign --verify --deep --strict "$app_path" >/dev/null 2>&1; then
+              signed="YES"
+            fi
+          fi
+
+          {
+            echo "validation_branch=$VALIDATION_BRANCH"
+            echo "validation_head=$VALIDATION_HEAD"
+            echo "issue_fix_sha=$ISSUE_FIX_SHA"
+            echo "arm64_path=$arm64_dmg"
+            echo "arm64_size=$arm64_size"
+            echo "arm64_sha256=$arm64_sha"
+            echo "x64_available=$x64_available"
+            echo "x64_path=$x64_dmg"
+            echo "x64_size=$x64_size"
+            echo "x64_sha256=$x64_sha"
+            echo "signed=$signed"
+            echo "notarized=$notarized"
+            find build-artifacts -maxdepth 1 -type f -name '*.zip' | sort | sed 's/^/zip_artifact=/'
+          } | tee build-evidence/installers.env
+
+          {
+            echo "arm64_path=$arm64_dmg"
+            echo "arm64_size=$arm64_size"
+            echo "arm64_sha256=$arm64_sha"
+            echo "x64_available=$x64_available"
+            echo "x64_path=$x64_dmg"
+            echo "x64_size=$x64_size"
+            echo "x64_sha256=$x64_sha"
+            echo "signed=$signed"
+            echo "notarized=$notarized"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Upload macOS validation artifact
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue-74-secure-orca-lite-macos
+          path: |
+            build-artifacts/*
+            build-evidence/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Summarize build
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## Issue 74 macOS ARM64 Validation"
+            echo
+            echo "- validation branch: $VALIDATION_BRANCH"
+            echo "- validation HEAD: $VALIDATION_HEAD"
+            echo "- issue fix SHA: $ISSUE_FIX_SHA"
+            echo "- command: pnpm run build:mac:corporate"
+            echo "- arm64 DMG: ${{ steps.evidence.outputs.arm64_path }}"
+            echo "- arm64 size: ${{ steps.evidence.outputs.arm64_size }}"
+            echo "- arm64 SHA256: ${{ steps.evidence.outputs.arm64_sha256 }}"
+            echo "- x64 available: ${{ steps.evidence.outputs.x64_available }}"
+            echo "- x64 DMG: ${{ steps.evidence.outputs.x64_path }}"
+            echo "- x64 size: ${{ steps.evidence.outputs.x64_size }}"
+            echo "- x64 SHA256: ${{ steps.evidence.outputs.x64_sha256 }}"
+            echo "- signed: ${{ steps.evidence.outputs.signed }}"
+            echo "- notarized: ${{ steps.evidence.outputs.notarized }}"
+            echo "- artifact name: $ARTIFACT_NAME"
+            echo "- artifact ID: ${{ steps.upload.outputs.artifact-id }}"
+            echo "- artifact URL: ${{ steps.upload.outputs.artifact-url }}"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
