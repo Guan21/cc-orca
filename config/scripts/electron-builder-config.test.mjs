@@ -147,6 +147,31 @@ describe('electron-builder config', () => {
     )
   })
 
+  it('uses DevCrew for product-facing corporate package identity', () => {
+    expect(electronBuilderConfig.productName).toBe('DevCrew')
+    expect(electronBuilderConfig.protocols).toEqual([{ name: 'DevCrew', schemes: ['orca'] }])
+    expect(electronBuilderConfig.win.executableName).toBe('DevCrew')
+    expect(electronBuilderConfig.nsis.artifactName).toBe('devcrew-windows-setup.${ext}')
+    expect(electronBuilderConfig.dmg.artifactName).toBe('devcrew-macos-${arch}.${ext}')
+    expect(electronBuilderConfig.appImage.artifactName).toBe('devcrew-linux.${ext}')
+  })
+
+  it('keeps legacy compatibility identifiers where renaming would break installs or state', () => {
+    expect(electronBuilderConfig.appId).toBe('com.stablyai.orca')
+    expect(electronBuilderConfig.protocols[0].schemes).toEqual(['orca'])
+    expect(electronBuilderConfig.win.extraResources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ from: 'resources/win32/bin/orca.cmd', to: 'bin/orca.cmd' }),
+        expect.objectContaining({
+          from: 'native/windows-cli-launcher/.build/orca.exe',
+          to: 'bin/orca.exe'
+        })
+      ])
+    )
+    expect(electronBuilderConfig.deb.packageName).toBe('orca-ide')
+    expect(electronBuilderConfig.rpm.packageName).toBe('orca-ide')
+  })
+
   it('ships one macOS serve-sim package through the runtime closure', () => {
     const serveSimResources = electronBuilderConfig.mac.extraResources.filter((resource) =>
       [join('node_modules', 'serve-sim'), 'serve-sim'].includes(resource.to)
@@ -271,10 +296,10 @@ describe('electron-builder config', () => {
     expect(electronBuilderConfig.linux.desktop.entry.StartupWMClass).toBe('orca')
   })
 
-  it('uses the release artifact set as local Linux targets without changing existing names', () => {
+  it('uses DevCrew AppImage names while retaining Linux package compatibility names', () => {
     expect(electronBuilderConfig.linux.target).toEqual(['AppImage', 'deb', 'rpm'])
     expect(electronBuilderConfig.toolsets).toEqual({ appimage: '1.0.3' })
-    expect(electronBuilderConfig.appImage.artifactName).toBe('orca-linux.${ext}')
+    expect(electronBuilderConfig.appImage.artifactName).toBe('devcrew-linux.${ext}')
     expect(electronBuilderConfig.deb.artifactName).toBe('orca-ide_${version}_${arch}.${ext}')
     expect(electronBuilderConfig.rpm).toMatchObject({
       packageName: 'orca-ide',
@@ -316,7 +341,7 @@ describe('electron-builder config', () => {
       delete require.cache[configPath]
       process.env.ORCA_LINUX_ARM64_RELEASE = '1'
       expect(require('../electron-builder.config.cjs').appImage.artifactName).toBe(
-        'orca-linux-arm64.${ext}'
+        'devcrew-linux-arm64.${ext}'
       )
     } finally {
       if (original === undefined) {
