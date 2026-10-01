@@ -31,7 +31,7 @@ const TAILSCALE_HINT = 'check Tailscale'
 
 // No hint field: the remedy is the label, and appending "— check Tailscale" to
 // it would be wrong advice for a desktop that is reachable but signed out.
-const SIGNED_OUT_LABEL = 'Desktop signed out — sign in to Orca on your desktop to reconnect'
+const SIGNED_OUT_LABEL = 'Desktop signed out — sign in to DevCrew on your desktop to reconnect'
 
 export type ConnectionVerdict =
   | { kind: 'normal'; label: string }

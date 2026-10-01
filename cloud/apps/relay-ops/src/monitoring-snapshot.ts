@@ -310,10 +310,10 @@ async function readAlertPolicies(
     }>
   }
   return (body.alertPolicies ?? [])
-    .filter((policy) => policy.displayName?.startsWith('Orca Relay:'))
+    .filter((policy) => policy.displayName?.startsWith('DevCrew Relay:'))
     .map((policy) => ({
       id: policy.name ?? '',
-      displayName: policy.displayName ?? 'Orca Relay alert',
+      displayName: policy.displayName ?? 'DevCrew Relay alert',
       enabled: policy.enabled === true,
       documentation: policy.documentation?.content ?? null
     }))

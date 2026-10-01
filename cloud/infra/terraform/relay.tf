@@ -1,17 +1,17 @@
 resource "google_service_account" "relay_runtime" {
   project      = var.project_id
   account_id   = "${var.name_prefix}-relay"
-  display_name = var.environment == "staging" ? "Orca Relay" : "Orca Relay cells"
+  display_name = var.environment == "staging" ? "DevCrew Relay" : "DevCrew Relay cells"
   description = var.environment == "staging" ? (
-    "Runtime identity for the Orca Relay director and stamped cells."
-  ) : "Runtime identity for stamped Orca Relay cells."
+    "Runtime identity for the DevCrew Relay director and stamped cells."
+  ) : "Runtime identity for stamped DevCrew Relay cells."
 }
 
 resource "google_service_account" "relay_director_runtime" {
   project      = var.project_id
   account_id   = "${var.name_prefix}-relay-dir"
-  display_name = "Orca Relay director"
-  description  = "Runtime and regional rehoming caller identity for the Orca Relay director."
+  display_name = "DevCrew Relay director"
+  description  = "Runtime and regional rehoming caller identity for the DevCrew Relay director."
 }
 
 resource "google_project_iam_member" "relay_runtime_cloudsql_client" {

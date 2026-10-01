@@ -49,7 +49,7 @@ export function getMobilePrCreateBlockMessage(prefill: MobilePrPrefill): string 
     // mobile has no refresh/review-lookup signal of its own, so it must not
     // offer create, or the needs_push Push & Create path would slip through.
     if (prefill.reviewLookupOutcome !== 'not_found') {
-      return `Orca could not confirm whether this branch already has a ${copy.reviewLabel}. Try again in a moment.`
+      return `DevCrew could not confirm whether this branch already has a ${copy.reviewLabel}. Try again in a moment.`
     }
     return null
   }
