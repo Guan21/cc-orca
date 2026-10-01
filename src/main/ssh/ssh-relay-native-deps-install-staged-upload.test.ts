@@ -204,7 +204,7 @@ describe('installNativeDeps staged uploads', () => {
     expect(commands.some((command) => command.includes('command -v "$t"'))).toBe(false)
   })
 
-  it('reports an DevCrew defect when headers were exported but node-gyp downloaded anyway', async () => {
+  it('reports a DevCrew defect when headers were exported but node-gyp downloaded anyway', async () => {
     // The marker says the export happened; a download after it means node-gyp never read the env.
     const conn = makeMockConnection(sftpCapture)
     feed(makeStagedFirstInstallExecPrefix())

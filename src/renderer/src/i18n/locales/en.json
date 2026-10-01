@@ -150,7 +150,7 @@
       },
       "menuBarIcon": {
         "title": "Show Menu Bar Icon",
-        "description": "Keep an DevCrew shortcut and activity indicator in the macOS menu bar.",
+        "description": "Keep a DevCrew shortcut and activity indicator in the macOS menu bar.",
         "corporateDescription": "Keep a {{productName}} shortcut and activity indicator in the macOS menu bar.",
         "keyword": {
           "menuBar": "menu bar",
@@ -340,7 +340,7 @@
         "27393856e4": "orca://pair?code=...",
         "7a566540de": "Pairing URL or code",
         "cb4d287238": "Server name",
-        "3affe7de3a": "Paste a pairing URL from an DevCrew server that this browser can reach.",
+        "3affe7de3a": "Paste a pairing URL from a DevCrew server that this browser can reach.",
         "e3bcd082ac": "Connect to DevCrew",
         "mobileScopeRejected": "This QR code grants limited (mobile) access. To use the full web app, open the browser access link from Settings → Runtime Environments → Share this DevCrew server → New Link."
       },
@@ -609,7 +609,7 @@
         }
       },
       "remotePairingCopy": {
-        "invalidInput": "Enter an DevCrew access link or bare pairing code.",
+        "invalidInput": "Enter a DevCrew access link or bare pairing code.",
         "mobileOnly": "This link grants mobile-only access. Generate a link for another DevCrew client.",
         "invalidDestination": "This access link contains an invalid destination.",
         "unsupportedDestination": "This access link contains an unsupported destination.",
@@ -2257,12 +2257,12 @@
         "loadPageUnreachable": "Page {{value0}} is beyond what GitHub search can return.",
         "loadPageFailed": "Page {{value0}} could not be loaded from GitHub.",
         "loadPageNoMoreResults": "No more results on page {{value0}}.",
-        "linearHasWorktreeLoadFailed": "Unable to load Linear issues linked to an DevCrew workspace.",
-        "linearHasWorktreePartialLoadFailed": "Some Linear issues linked to an DevCrew workspace could not be loaded. Refresh to try again.",
-        "linearHasWorktreeSearchPlaceholder": "Filter issues linked to an DevCrew workspace...",
+        "linearHasWorktreeLoadFailed": "Unable to load Linear issues linked to a DevCrew workspace.",
+        "linearHasWorktreePartialLoadFailed": "Some Linear issues linked to a DevCrew workspace could not be loaded. Refresh to try again.",
+        "linearHasWorktreeSearchPlaceholder": "Filter issues linked to a DevCrew workspace...",
         "linearModeHasWorktree": "Has Workspace",
-        "linearModeHasWorktreeTooltip": "Linear tickets linked to an DevCrew workspace",
-        "linearEmptyHasWorktree": "No Linear tickets are linked to an DevCrew workspace yet. Start work from a Linear issue to see it here.",
+        "linearModeHasWorktreeTooltip": "Linear tickets linked to a DevCrew workspace",
+        "linearEmptyHasWorktree": "No Linear tickets are linked to a DevCrew workspace yet. Start work from a Linear issue to see it here.",
         "linearOpenAttachedWorkspace": "Open workspace attached to {{value0}}",
         "linearWorktreesColumn": "Workspaces"
       },
@@ -4493,7 +4493,7 @@
         },
         "SkillShareDialog": {
           "reconnect": "Reconnect your DevCrew account before sharing.",
-          "unconfigured": "Connect an DevCrew Cloud account before sharing.",
+          "unconfigured": "Connect a DevCrew Cloud account before sharing.",
           "prepareFailed": "Could not prepare this skill for sharing.",
           "peopleRequired": "Select at least one teammate.",
           "publishCancelled": "Upload cancelled. The prepared copy is still available to retry.",
@@ -4814,7 +4814,7 @@
           "reconnectBeforeInstalling": "Reconnect your DevCrew account before installing.",
           "bundleVerificationFailed": "Installation failed before DevCrew could verify the requested bundle.",
           "destinationAlreadyFinished": "The destination had already finished this installation.",
-          "enterShareLink": "Enter an DevCrew skill share link.",
+          "enterShareLink": "Enter a DevCrew skill share link.",
           "shareUnavailable": "This share is unavailable. The link may be invalid, expired, or revoked.",
           "requestedVersionVerificationFailed": "Installation failed before DevCrew could verify the requested version.",
           "versionVerificationFailed": "DevCrew could not verify the requested version.",
@@ -5006,7 +5006,7 @@
           "addSshHost": "Add SSH host",
           "addRemoteServer": "Add remote server",
           "addRemoteHost": "Add remote host",
-          "addRemoteHostTooltip": "Choose SSH for a machine you can log into, or remote server for an DevCrew server.",
+          "addRemoteHostTooltip": "Choose SSH for a machine you can log into, or remote server for a DevCrew server.",
           "addSshHostDetail": "Use an existing machine over SSH.",
           "addRemoteServerDetail": "Pair with DevCrew running on another computer.",
           "addRemoteHostDetail": "SSH host or DevCrew server"
@@ -11045,7 +11045,7 @@
           "copyError": "Could not copy the prompt.",
           "skillDescription": "Sets up, builds, authenticates, and validates repo-owned environment recipes.",
           "whatTitle": "What the skill does, with you",
-          "whatScaffold": "Writes the recipe & scripts for your provider — connected over an DevCrew server or SSH.",
+          "whatScaffold": "Writes the recipe & scripts for your provider — connected over a DevCrew server or SSH.",
           "whatBuild": "Builds a reusable base image and signs your agent in.",
           "whatValidate": "Validates it so you can create a workspace on it.",
           "promptHint": "In any workspace, ask your agent:",
@@ -11665,7 +11665,7 @@
           "allowAccess": "Allow access"
         },
         "TerminalTccAttributionNotice": {
-          "body": "The terminal daemon was started by an DevCrew install that no longer exists, so macOS can’t attribute its commands to DevCrew — Accessibility and Automation grants are silently ignored (osascript fails with error -25211). Restarting the daemon fixes this; running terminal sessions will close.",
+          "body": "The terminal daemon was started by a DevCrew install that no longer exists, so macOS can’t attribute its commands to DevCrew — Accessibility and Automation grants are silently ignored (osascript fails with error -25211). Restarting the daemon fixes this; running terminal sessions will close.",
           "openManageSessions": "Open Manage Sessions",
           "title": "macOS permission grants aren’t reaching terminals"
         },

@@ -72,7 +72,7 @@ export function getStatusPluginEndpointSource(): string[] {
     '',
     'function resolveHookCoords() {',
     '  // Why: prefer the on-disk endpoint file over process.env because env was',
-    '  // frozen when OpenCode was fork()ed — stale after an DevCrew restart. The',
+    '  // frozen when OpenCode was fork()ed — stale after a DevCrew restart. The',
     '  // file is rewritten on every DevCrew start(), so sourcing it per post lets',
     '  // a long-running OpenCode session reach the current server. Falls back',
     '  // to process.env when the file is absent (first-run / pre-endpoint-file / DevCrew',

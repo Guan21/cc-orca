@@ -186,7 +186,7 @@ describe('formatNodeHeadersDownloadError', () => {
     expect(msg).toContain('ECONNREFUSED')
   })
 
-  it('reports an DevCrew defect, not a host problem, when headers were exported and ignored', () => {
+  it('reports a DevCrew defect, not a host problem, when headers were exported and ignored', () => {
     const msg = formatNodeHeadersDownloadError(HEADERS_REFUSED, '/usr/local')
     expect(msg).toContain('/usr/local/include/node')
     expect(msg).toContain('DevCrew defect')

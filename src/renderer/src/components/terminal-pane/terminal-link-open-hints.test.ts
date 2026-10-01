@@ -139,7 +139,7 @@ describe('terminalUrlOpenHintOptionsFor', () => {
     expect(getTerminalUrlOpenHint(options)).toContain('to open in DevCrew')
   })
 
-  it('keeps inversion for a runtime pane when its host can open an DevCrew browser', () => {
+  it('keeps inversion for a runtime pane when its host can open a DevCrew browser', () => {
     const options = terminalUrlOpenHintOptionsFor(
       {
         openLinksInApp: false,

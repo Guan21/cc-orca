@@ -12,7 +12,11 @@ internal static class OrcaCliLauncher
             string launcherDirectory = Path.GetDirectoryName(typeof(OrcaCliLauncher).Assembly.Location);
             string resourcesDirectory = Directory.GetParent(launcherDirectory).FullName;
             string appDirectory = Directory.GetParent(resourcesDirectory).FullName;
-            string electronPath = Path.Combine(appDirectory, "Orca.exe");
+            string electronPath = Path.Combine(appDirectory, "DevCrew.exe");
+            if (!File.Exists(electronPath))
+            {
+                electronPath = Path.Combine(appDirectory, "Orca.exe");
+            }
             string cliPath = Path.Combine(
                 resourcesDirectory,
                 "app.asar.unpacked",
@@ -23,13 +27,13 @@ internal static class OrcaCliLauncher
 
             if (!File.Exists(electronPath))
             {
-                Console.Error.WriteLine("Unable to locate Orca.exe next to \"{0}\"", resourcesDirectory);
+                Console.Error.WriteLine("Unable to locate DevCrew.exe or legacy Orca.exe next to \"{0}\"", resourcesDirectory);
                 return 1;
             }
 
             if (!File.Exists(cliPath))
             {
-                Console.Error.WriteLine("Unable to locate the Orca CLI entrypoint at \"{0}\"", cliPath);
+                Console.Error.WriteLine("Unable to locate the DevCrew CLI entrypoint at \"{0}\"", cliPath);
                 return 1;
             }
 
@@ -62,7 +66,7 @@ internal static class OrcaCliLauncher
         }
         catch (Exception error)
         {
-            Console.Error.WriteLine("Unable to start the Orca CLI: {0}", error.Message);
+            Console.Error.WriteLine("Unable to start the DevCrew CLI: {0}", error.Message);
             return 1;
         }
     }

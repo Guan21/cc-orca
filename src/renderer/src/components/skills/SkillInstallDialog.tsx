@@ -88,7 +88,7 @@ export function SkillInstallDialog({
       setError(
         translate(
           'auto.components.skills.install.enterShareLink',
-          'Enter an DevCrew skill share link.'
+          'Enter a DevCrew skill share link.'
         )
       )
       return

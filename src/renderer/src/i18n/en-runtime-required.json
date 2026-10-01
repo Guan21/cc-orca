@@ -1921,7 +1921,7 @@
           "sshPersistenceDefault": "Remote terminals on this host stay alive until you end them or reset the relay."
         },
         "AddRepoHostSelector": {
-          "addRemoteHostTooltip": "Choose SSH for a machine you can log into, or remote server for an DevCrew server.",
+          "addRemoteHostTooltip": "Choose SSH for a machine you can log into, or remote server for a DevCrew server.",
           "local": "Local",
           "runtime": "Server",
           "ssh": "SSH"
@@ -2707,7 +2707,7 @@
         }
       },
       "remotePairingCopy": {
-        "invalidInput": "Enter an DevCrew access link or bare pairing code."
+        "invalidInput": "Enter a DevCrew access link or bare pairing code."
       },
       "terminal": {
         "shortcut": {
@@ -2754,7 +2754,7 @@
     },
     "web": {
       "WebConnect": {
-        "3affe7de3a": "Paste a pairing URL from an DevCrew server that this browser can reach."
+        "3affe7de3a": "Paste a pairing URL from a DevCrew server that this browser can reach."
       }
     }
   },
@@ -2933,7 +2933,7 @@
         "description": "Choose the language used by the DevCrew interface."
       },
       "menuBarIcon": {
-        "description": "Keep an DevCrew shortcut and activity indicator in the macOS menu bar."
+        "description": "Keep a DevCrew shortcut and activity indicator in the macOS menu bar."
       },
       "statusBar": {
         "sshToggleDescription": "Show configured SSH and remote DevCrew hosts when any are available.",

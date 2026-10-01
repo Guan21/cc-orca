@@ -137,7 +137,7 @@ describe('emitBrowserCookieImportToast', () => {
 
     expect(successToastMock).toHaveBeenCalledWith('Imported 2 cookies.')
     expect(warningToastMock).toHaveBeenCalledWith(
-      'Google cookies were not imported. Open a browser in Orca with this profile, then sign into Google.',
+      'Google cookies were not imported. Open a browser in DevCrew with this profile, then sign into Google.',
       { duration: 12000 }
     )
   })
@@ -153,7 +153,7 @@ describe('emitBrowserCookieImportToast', () => {
 
     expect(successToastMock).toHaveBeenCalledWith('Imported 2 cookies.')
     expect(warningToastMock).toHaveBeenCalledWith(
-      '1 cookies were not imported because their site-partition could not be read. Sign in to those sites again in Orca.',
+      '1 cookies were not imported because their site-partition could not be read. Sign in to those sites again in DevCrew.',
       { duration: 12000 }
     )
   })

@@ -330,7 +330,7 @@ describe('SidebarNav', () => {
     })
 
     expect(queryButtonByText(container, '自动化')).not.toBeNull()
-    expect(queryButtonByText(container, 'Orca 手机端')).not.toBeNull()
+    expect(queryButtonByText(container, 'DevCrew 手机端')).not.toBeNull()
   })
 
   it('updates labels when pseudo-localization is enabled after mount', async () => {

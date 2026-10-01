@@ -36,7 +36,7 @@ function operationError(status: string): string {
       )
     : translate(
         'auto.components.skills.SkillShareDialog.unconfigured',
-        'Connect an DevCrew Cloud account before sharing.'
+        'Connect a DevCrew Cloud account before sharing.'
       )
 }
 

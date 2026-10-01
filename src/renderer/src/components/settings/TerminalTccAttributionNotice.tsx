@@ -81,7 +81,7 @@ export function TerminalTccAttributionNotice(props: {
           <p className="text-xs leading-snug">
             {translate(
               'auto.components.settings.TerminalTccAttributionNotice.body',
-              'The terminal daemon was started by an DevCrew install that no longer exists, so macOS can’t attribute its commands to DevCrew — Accessibility and Automation grants are silently ignored (osascript fails with error -25211). Restarting the daemon fixes this; running terminal sessions will close.'
+              'The terminal daemon was started by a DevCrew install that no longer exists, so macOS can’t attribute its commands to DevCrew — Accessibility and Automation grants are silently ignored (osascript fails with error -25211). Restarting the daemon fixes this; running terminal sessions will close.'
             )}
           </p>
         </div>
