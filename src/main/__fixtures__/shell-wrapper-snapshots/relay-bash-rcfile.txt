@@ -92,7 +92,7 @@ if [[ -n "${ORCA_HISTFILE:-}" ]]; then
   HISTFILE="$ORCA_HISTFILE"
   builtin unset ORCA_HISTFILE
 elif [[ "${HISTFILE:-}" == "$ZDOTDIR/.zsh_history" ]]; then
-  # Why also when Orca injected nothing: /etc/zshrc derived this from Orca's
+  # Why also when DevCrew injected nothing: /etc/zshrc derived this from DevCrew's
   # wrapper ZDOTDIR, so history would accumulate INSIDE the wrapper dir and the
   # user's real history would be invisible — the plain #11044 bug, with no
   # per-worktree scoping involved. Matching the exact clobbered value means a
