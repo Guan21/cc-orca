@@ -52,7 +52,7 @@ export function openRemoteRuntimeWebSocket(
   const onError = (): void => {
     callbacks.onError(
       ws,
-      remoteRuntimeUnavailableError('Could not connect to the remote Orca runtime.')
+      remoteRuntimeUnavailableError('Could not connect to the remote DevCrew runtime.')
     )
   }
   const onClose = (code: number, reason: Buffer): void => callbacks.onClose(ws, code, reason)

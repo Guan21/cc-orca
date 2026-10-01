@@ -102,7 +102,7 @@ export async function sendRemoteRuntimeRequestOnSocket<TResult>(
       finishError(
         new RemoteRuntimeClientError(
           'runtime_timeout',
-          'Timed out waiting for the remote Orca runtime to respond.',
+          'Timed out waiting for the remote DevCrew runtime to respond.',
           { pairingStage: router.pairingStage }
         )
       )
@@ -205,7 +205,7 @@ export async function sendRemoteRuntimeRequestOnSocket<TResult>(
       finishError(
         new RemoteRuntimeClientError(
           'remote_runtime_unavailable',
-          'Could not connect to the remote Orca runtime.',
+          'Could not connect to the remote DevCrew runtime.',
           { pairingStage: router.pairingStage }
         )
       )

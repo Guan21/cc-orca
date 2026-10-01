@@ -30,7 +30,7 @@ export function remoteRuntimeUnavailableError(
 export function remoteRuntimeTimeoutError(): RemoteRuntimeClientError {
   return new RemoteRuntimeClientError(
     'runtime_timeout',
-    'Timed out waiting for the remote Orca runtime to respond.'
+    'Timed out waiting for the remote DevCrew runtime to respond.'
   )
 }
 
