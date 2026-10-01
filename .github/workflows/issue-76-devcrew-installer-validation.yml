@@ -1,0 +1,381 @@
+name: Issue 76 DevCrew Installer Validation
+
+run-name: DevCrew issue 76 installers 05f1c4f
+
+on:
+  push:
+    branches:
+      - ci/issue-76-devcrew-installer-validation
+
+permissions:
+  contents: read
+
+env:
+  EXPECTED_PRODUCT_BRANCH: fix/issue-76-devcrew-branding-merge-clean
+  EXPECTED_PRODUCT_SHA: 05f1c4fe5ac124da9814aae1e579a3f3a3b7c669
+  NODE_OPTIONS: --max-old-space-size=4096
+  ORCA_BACKGROUND_LAUNCH: '1'
+
+jobs:
+  build-macos-installers:
+    name: Build DevCrew macOS installers
+    runs-on: macos-15
+    timeout-minutes: 180
+    steps:
+      - name: Checkout exact product source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_PRODUCT_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify product source isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          head_sha="$(git rev-parse HEAD)"
+          echo "HEAD: $head_sha"
+          if [[ "$head_sha" != "$EXPECTED_PRODUCT_SHA" ]]; then
+            echo "::error::HEAD is $head_sha, expected $EXPECTED_PRODUCT_SHA"
+            exit 1
+          fi
+          {
+            echo "PRODUCT_BRANCH=$EXPECTED_PRODUCT_BRANCH"
+            echo "PRODUCT_SHA=$head_sha"
+          } >>"$GITHUB_ENV"
+
+      - name: Report macOS runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-evidence
+          {
+            echo "source branch: $EXPECTED_PRODUCT_BRANCH"
+            echo "source sha: $PRODUCT_SHA"
+            echo "macOS runner image: ${ImageOS:-unknown} ${ImageVersion:-unknown}"
+            sw_vers
+            echo "architecture: $(uname -m)"
+            echo "runner name: ${RUNNER_NAME:-unknown}"
+            echo "runner os: ${RUNNER_OS:-unknown}"
+            echo "runner arch: ${RUNNER_ARCH:-unknown}"
+          } | tee build-evidence/runner.txt
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Setup pnpm 12.0.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@12.0.0 --activate
+
+      - name: Verify toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_version="$(node --version)"
+          pnpm_version="$(pnpm --version)"
+          echo "Node: $node_version"
+          echo "pnpm: $pnpm_version"
+          if [[ "$node_version" != v24.* ]]; then
+            echo "::error::Expected Node 24, got $node_version"
+            exit 1
+          fi
+          if [[ "$pnpm_version" != 12.0.0 ]]; then
+            echo "::error::Expected pnpm 12.0.0, got $pnpm_version"
+            exit 1
+          fi
+          {
+            echo "Node: $node_version"
+            echo "pnpm: $pnpm_version"
+          } | tee build-evidence/toolchain.txt
+
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Run corporate branding audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          node config/scripts/corporate-branding-audit.mjs | tee build-evidence/branding-audit.txt
+
+      - name: Build corporate macOS installers
+        shell: bash
+        run: pnpm run build:mac:corporate
+
+      - name: Collect macOS installer evidence
+        id: evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-artifacts build-evidence
+
+          mapfile -t installers < <(find dist -type f \( -name '*.dmg' -o -name '*.zip' -o -name '*.pkg' \) | sort)
+          if [[ "${#installers[@]}" -eq 0 ]]; then
+            echo "::error::No macOS installer artifacts were produced"
+            exit 1
+          fi
+
+          : > build-evidence/sha256.txt
+          for installer in "${installers[@]}"; do
+            cp "$installer" build-artifacts/
+            shasum -a 256 "$installer" | tee -a build-evidence/sha256.txt
+          done
+
+          {
+            echo "Product branch: $PRODUCT_BRANCH"
+            echo "Product SHA: $PRODUCT_SHA"
+            echo
+            echo "Collected installers:"
+            printf '%s\n' "${installers[@]}"
+          } | tee build-evidence/source-sha.txt
+
+          {
+            echo "Application bundles:"
+            find dist -type d -name '*.app' -print | sort || true
+            echo
+            echo "Bundle metadata:"
+            while IFS= read -r app_path; do
+              plist="$app_path/Contents/Info.plist"
+              [[ -f "$plist" ]] || continue
+              echo "[$app_path]"
+              for key in CFBundleName CFBundleDisplayName CFBundleExecutable CFBundleIdentifier CFBundleURLTypes; do
+                /usr/libexec/PlistBuddy -c "Print :$key" "$plist" 2>/dev/null || true
+              done
+            done < <(find dist -type d -name '*.app' | sort)
+          } | tee build-evidence/package-metadata.txt
+
+          if find build-artifacts -maxdepth 1 -type f | grep -Eiq '(secure[ _.-]*orca|company[ _.-]*orca|orca[ _.-]*mobile|cc-orca|(^|[ _.-])orca([ _.-]|$))'; then
+            echo "::error::Installer filename exposes legacy Orca branding"
+            find build-artifacts -maxdepth 1 -type f | sort
+            exit 1
+          fi
+
+          if find dist -type d -name '*.app' -print | grep -Eiq '(secure[ _.-]*orca|company[ _.-]*orca|orca[ _.-]*mobile|cc-orca|(^|[ _.-])orca([ _.-]|$))'; then
+            echo "::error::Application bundle path exposes legacy Orca branding"
+            find dist -type d -name '*.app' -print | sort
+            exit 1
+          fi
+
+          x64_dmg="$(find build-artifacts -maxdepth 1 -type f -iname '*x64*.dmg' | sort | head -n 1)"
+          arm64_dmg="$(find build-artifacts -maxdepth 1 -type f -iname '*arm64*.dmg' | sort | head -n 1)"
+          if [[ -z "$x64_dmg" || -z "$arm64_dmg" ]]; then
+            echo "::error::Expected both x64 and arm64 DMG artifacts"
+            find build-artifacts -maxdepth 1 -type f | sort
+            exit 1
+          fi
+
+          icon_count="$(find resources -type f \( -iname '*icon*' -o -iname '*.icns' -o -iname '*.ico' \) | wc -l | tr -d ' ')"
+          {
+            echo "Icon files observed: $icon_count"
+            find resources -type f \( -iname '*icon*' -o -iname '*.icns' -o -iname '*.ico' \) -print0 | sort -z | xargs -0 shasum -a 256
+          } | tee build-evidence/icon-source-hashes.txt
+
+          echo "x64_dmg=$x64_dmg" >>"$GITHUB_OUTPUT"
+          echo "arm64_dmg=$arm64_dmg" >>"$GITHUB_OUTPUT"
+
+      - name: Upload macOS installer artifact
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: devcrew-issue76-macos
+          path: |
+            build-artifacts/*
+            build-evidence/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Summarize macOS build
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## DevCrew macOS Installer Validation"
+            echo
+            echo "- product branch: $PRODUCT_BRANCH"
+            echo "- exact product SHA: $PRODUCT_SHA"
+            echo "- source isolation: PASS"
+            echo "- command: pnpm run build:mac:corporate"
+            echo "- x64 DMG: ${{ steps.evidence.outputs.x64_dmg }}"
+            echo "- arm64 DMG: ${{ steps.evidence.outputs.arm64_dmg }}"
+            echo "- artifact name: devcrew-issue76-macos"
+            echo "- artifact ID: ${{ steps.upload.outputs.artifact-id }}"
+            echo "- artifact URL: ${{ steps.upload.outputs.artifact-url }}"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+  build-windows-installer:
+    name: Build DevCrew Windows installer
+    runs-on: windows-2022
+    timeout-minutes: 180
+    steps:
+      - name: Checkout exact product source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_PRODUCT_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify product source isolation
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $headSha = git rev-parse HEAD
+          "HEAD: $headSha"
+          if ($headSha -ne $env:EXPECTED_PRODUCT_SHA) {
+            Write-Error "HEAD is $headSha, expected $env:EXPECTED_PRODUCT_SHA"
+          }
+          "PRODUCT_BRANCH=$env:EXPECTED_PRODUCT_BRANCH" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "PRODUCT_SHA=$headSha" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Report Windows runner
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force build-evidence | Out-Null
+          @(
+            "source branch: $env:EXPECTED_PRODUCT_BRANCH"
+            "source sha: $env:PRODUCT_SHA"
+            "runner image: $env:ImageOS $env:ImageVersion"
+            "runner name: $env:RUNNER_NAME"
+            "runner os: $env:RUNNER_OS"
+            "runner arch: $env:RUNNER_ARCH"
+            "os: $([System.Environment]::OSVersion.VersionString)"
+          ) | Tee-Object -FilePath build-evidence\runner.txt
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Setup pnpm 12.0.0
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          corepack enable
+          corepack prepare pnpm@12.0.0 --activate
+
+      - name: Verify toolchain
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $nodeVersion = node --version
+          $pnpmVersion = pnpm --version
+          "Node: $nodeVersion"
+          "pnpm: $pnpmVersion"
+          if (-not $nodeVersion.StartsWith('v24.')) {
+            Write-Error "Expected Node 24, got $nodeVersion"
+          }
+          if ($pnpmVersion -ne '12.0.0') {
+            Write-Error "Expected pnpm 12.0.0, got $pnpmVersion"
+          }
+          @("Node: $nodeVersion", "pnpm: $pnpmVersion") | Tee-Object -FilePath build-evidence\toolchain.txt
+
+      - name: Install dependencies
+        shell: pwsh
+        run: pnpm install --frozen-lockfile
+
+      - name: Run corporate branding audit
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          node config/scripts/corporate-branding-audit.mjs | Tee-Object -FilePath build-evidence\branding-audit.txt
+
+      - name: Build corporate Windows installer
+        shell: pwsh
+        run: pnpm run build:win:corporate
+
+      - name: Collect Windows installer evidence
+        id: evidence
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force build-artifacts, build-evidence | Out-Null
+
+          $installers = Get-ChildItem -Path dist -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -in '.exe', '.msi', '.zip' -and $_.FullName -notmatch '\\win-unpacked\\' } |
+            Sort-Object FullName
+          if (-not $installers) {
+            Write-Error 'No Windows installer artifacts were produced'
+          }
+
+          $shaLines = foreach ($installer in $installers) {
+            Copy-Item -LiteralPath $installer.FullName -Destination build-artifacts -Force
+            $hash = Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName
+            "$($hash.Hash)  $($installer.FullName)"
+          }
+          $shaLines | Tee-Object -FilePath build-evidence\sha256.txt
+
+          @(
+            "Product branch: $env:PRODUCT_BRANCH"
+            "Product SHA: $env:PRODUCT_SHA"
+            ""
+            "Collected installers:"
+          ) + ($installers | ForEach-Object { $_.FullName }) | Tee-Object -FilePath build-evidence\source-sha.txt
+
+          $rootExecutables = Get-ChildItem -Path dist -Recurse -File -Filter '*.exe' -ErrorAction SilentlyContinue |
+            Where-Object { $_.DirectoryName -match '\\win-unpacked$' } |
+            Sort-Object FullName
+          @(
+            "Root unpacked executables:"
+          ) + ($rootExecutables | ForEach-Object { $_.FullName }) | Tee-Object -FilePath build-evidence\package-metadata.txt
+
+          $bannedPattern = '(secure[ _.-]*orca|company[ _.-]*orca|orca[ _.-]*mobile|cc-orca|(^|[ _.-])orca([ _.-]|$))'
+          $badInstallerNames = Get-ChildItem -Path build-artifacts -File | Where-Object { $_.Name -match $bannedPattern }
+          if ($badInstallerNames) {
+            $badInstallerNames | ForEach-Object { Write-Host $_.FullName }
+            Write-Error 'Installer filename exposes legacy Orca branding'
+          }
+
+          $badRootExecutables = $rootExecutables | Where-Object { $_.Name -match $bannedPattern }
+          if ($badRootExecutables) {
+            $badRootExecutables | ForEach-Object { Write-Host $_.FullName }
+            Write-Error 'Root application executable exposes legacy Orca branding'
+          }
+
+          $installerExe = Get-ChildItem -Path build-artifacts -File -Filter '*.exe' | Sort-Object Name | Select-Object -First 1
+          if (-not $installerExe) {
+            Write-Error 'Expected a Windows EXE installer artifact'
+          }
+
+          $iconFiles = Get-ChildItem -Path resources -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match 'icon' -or $_.Extension -in '.ico', '.icns' } |
+            Sort-Object FullName
+          $iconHashLines = foreach ($icon in $iconFiles) {
+            $hash = Get-FileHash -Algorithm SHA256 -LiteralPath $icon.FullName
+            "$($hash.Hash)  $($icon.FullName)"
+          }
+          @("Icon files observed: $($iconFiles.Count)") + $iconHashLines | Tee-Object -FilePath build-evidence\icon-source-hashes.txt
+
+          "installer_exe=$($installerExe.Name)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Upload Windows installer artifact
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: devcrew-issue76-windows
+          path: |
+            build-artifacts/*
+            build-evidence/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Summarize Windows build
+        shell: pwsh
+        run: |
+          $summary = @(
+            '## DevCrew Windows Installer Validation'
+            ''
+            "- product branch: $env:PRODUCT_BRANCH"
+            "- exact product SHA: $env:PRODUCT_SHA"
+            '- source isolation: PASS'
+            '- command: pnpm run build:win:corporate'
+            "- installer: ${{ steps.evidence.outputs.installer_exe }}"
+            '- artifact name: devcrew-issue76-windows'
+            "- artifact ID: ${{ steps.upload.outputs.artifact-id }}"
+            "- artifact URL: ${{ steps.upload.outputs.artifact-url }}"
+          )
+          $summary | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
