@@ -32,7 +32,7 @@ async function openConfirmedExternalLink(url: string): Promise<void> {
         : 'auto.hooks.ipc.events.browserStateIpcBridge.docPreviewLinkFailed',
       getOrcaBuildProfile() === 'corporate'
         ? 'Could not open this link in the app browser.'
-        : 'Could not open this link in Orca Browser.'
+        : 'Could not open this link in DevCrew Browser.'
     )
   )
 }

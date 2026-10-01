@@ -2,7 +2,7 @@
  * Paired remote server: a revealed remote terminal must stay interactive
  * without a tab flip.
  *
- * Topology: headed Orca desktop host (remote server) + a separate paired Orca
+ * Topology: headed DevCrew desktop host (remote server) + a separate paired Orca
  * desktop client — the "connect to Windows 2, open an old workspace" shape.
  *
  * Oracle (the reported symptom verbatim): type into the revealed pane and see

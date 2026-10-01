@@ -1,7 +1,7 @@
 ---
 name: orca-emulator
 description: >-
-  iOS Simulator control from inside Orca, with the live device view in Orca's
+  iOS Simulator control from inside DevCrew, with the live device view in DevCrew's
   emulator pane. Use when driving a booted Apple Simulator on macOS: taps,
   gestures, typing, hardware buttons, rotation, and the accessibility tree, or
   when an iOS change needs simulator evidence. For an Android device or emulator
@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 ---
 
-# Orca Emulator (iOS)
+# DevCrew Emulator (iOS)
 
 `ORCA` is a placeholder for the executable you resolved in the stub; substitute it before running.
 
@@ -45,7 +45,7 @@ device.
 
 | Goal                     | Command                                                     | Constraint                                                                                                                                                            |
 | ------------------------ | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| List available / running | `ORCA emulator list --json`                                 | Orca-managed sessions plus raw serve-sim streams. Use its ids for `--device` / `--emulator`.                                                                          |
+| List available / running | `ORCA emulator list --json`                                 | DevCrew-managed sessions plus raw serve-sim streams. Use its ids for `--device` / `--emulator`.                                                                       |
 | List devices everywhere  | `ORCA emulator devices --json`                              | Every backend's devices with a platform column, booted and shutdown.                                                                                                  |
 | Attach / make active     | `ORCA emulator attach "iPhone 16 Pro" --json`               | Starts the helper if needed and makes the device active for the worktree. `--focus` switches the UI; it does not by default.                                          |
 | Single tap               | `ORCA emulator tap <x> <y> --json`                          | Normalized 0..1 coordinates.                                                                                                                                          |

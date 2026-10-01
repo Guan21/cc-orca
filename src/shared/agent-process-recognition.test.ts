@@ -340,7 +340,7 @@ describe('agent process recognition', () => {
     for (const mode of ['json', 'rpc', 'acp', 'daemon']) {
       expect(recognizeAgentProcessFromCommandLine(`prime-agent --mode ${mode}`)).toBeNull()
     }
-    // Why: `text` is the interactive TUI mode Orca hosts.
+    // Why: `text` is the interactive TUI mode DevCrew hosts.
     expect(recognizeAgentProcessFromCommandLine('prime-agent --mode text')).toEqual({
       agent: 'prime-agent',
       processName: 'prime-agent'
@@ -357,7 +357,7 @@ describe('agent process recognition', () => {
     })
   })
 
-  it('recognizes only the agent subcommand of the generic Orca CLI', () => {
+  it('recognizes only the agent subcommand of the generic DevCrew CLI', () => {
     expect(recognizeAgentProcessFromCommandLine('orca claude-teams')).toEqual({
       agent: 'claude-agent-teams',
       processName: 'orca'

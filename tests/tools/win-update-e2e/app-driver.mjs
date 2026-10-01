@@ -295,7 +295,7 @@ async function createWorkspaceFromSeededRepo(page, timeoutMs) {
 }
 
 const OVERLAY_DISMISS_LABELS = ['Got it', 'Dismiss setup scripts', 'Dismiss tip', 'Dismiss update']
-const CLI_FEATURE_TIP_TITLE = 'Let agents drive Orca with the Orca CLI'
+const CLI_FEATURE_TIP_TITLE = 'Let agents drive DevCrew with the DevCrew CLI'
 
 async function dismissKnownOverlays(page) {
   let acted = false

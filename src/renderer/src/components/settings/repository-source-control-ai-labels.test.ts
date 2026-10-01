@@ -15,16 +15,16 @@ describe('repository Source Control AI labels', () => {
         hasOverride: false,
         inheritedTemplate: '{basePrompt}'
       })
-    ).toBe('Secure Orca Lite default prompt')
+    ).toBe('DevCrew default prompt')
   })
 
-  it('keeps default Orca wording outside corporate builds', () => {
+  it('keeps default DevCrew wording outside corporate builds', () => {
     expect(
       commandTemplateStateLabel({
         actionId: 'commitMessage',
         hasOverride: false,
         inheritedTemplate: '{basePrompt}'
       })
-    ).toBe('Orca default prompt')
+    ).toBe('DevCrew default prompt')
   })
 })

@@ -1,5 +1,5 @@
 /**
- * TOPOLOGY (c): ONE real Orca desktop app, isolated profile, window ATTACHED,
+ * TOPOLOGY (c): ONE real DevCrew desktop app, isolated profile, window ATTACHED,
  * NO paired client — `orca terminal create` over the local runtime socket,
  * which is the transport the shipped CLI uses.
  *

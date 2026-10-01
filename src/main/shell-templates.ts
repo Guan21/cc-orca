@@ -27,7 +27,7 @@ builtin unset ${SHELL_STARTUP_FEATURE_ENV}
 # Why ORCA_HISTFILE is consumed HERE and not in the deferred hook: a user config
 # that replaces precmd_functions wholesale drops the hook, and an exported value
 # nothing will ever consume is then inherited by every child of this pane,
-# including a nested Orca (#11146). Captured non-exported, it cannot escape.
+# including a nested DevCrew (#11146). Captured non-exported, it cannot escape.
 builtin typeset -g _orca_histfile="\${ORCA_HISTFILE:-}"
 builtin unset ORCA_HISTFILE
 __orca_has_feature() { (( \${_orca_shell_features[(Ie)$1]} )) }`
@@ -65,7 +65,7 @@ export const SHELL_STARTUP_IDENTITY_MARKER_BLOCK = `__orca_has_feature identity 
  */
 export const ZSH_ZDOTDIR_HANDBACK_BLOCK = `__orca_usable_zdotdir() {
   [[ -n "\${1:-}" ]] || return 1
-  # Orca's own dir, by marker file or by the shape older builds wrote.
+  # DevCrew's own dir, by marker file or by the shape older builds wrote.
   [[ "$1" != */shell-ready/zsh ]] || return 1
   [[ ! -f "$1/${ZSH_WRAPPER_DIR_MARKER_FILE}" ]] || return 1
   # A directory holding no zsh startup file at all is not a config root,
@@ -131,7 +131,7 @@ export const BASH_HISTFILE_RESTORE_BLOCK = `if [[ -n "\${ORCA_HISTFILE:-}" ]]; t
   HISTFILE="$ORCA_HISTFILE"
   builtin unset ORCA_HISTFILE
 elif [[ "\${HISTFILE:-}" == "$ZDOTDIR/.zsh_history" ]]; then
-  # Why also when Orca injected nothing: /etc/zshrc derived this from Orca's
+  # Why also when DevCrew injected nothing: /etc/zshrc derived this from DevCrew's
   # wrapper ZDOTDIR, so history would accumulate INSIDE the wrapper dir and the
   # user's real history would be invisible — the plain #11044 bug, with no
   # per-worktree scoping involved. Matching the exact clobbered value means a

@@ -148,9 +148,9 @@ if (!ignoreModules.includes('cpu-features')) {
 
 try {
   // Why inside the try: the patch guard deletes a stale addon binary, and that
-  // delete fails EPERM when the addon is loaded -- exactly the running-Orca case
+  // delete fails EPERM when the addon is loaded -- exactly the running-DevCrew case
   // the catch below is written for. Outside, it aborted `pnpm install` with a
-  // raw stack instead of the "close running Orca/Electron processes" message.
+  // raw stack instead of the "close running DevCrew/Electron processes" message.
   if (
     rebuildPlatform === 'win32' &&
     modulesToRebuild.includes('@vscode/windows-process-tree') &&
@@ -182,7 +182,7 @@ try {
   if (isWindowsNativeLockError(err)) {
     console.error(
       '[rebuild] A Windows process appears to be using a native .node file. ' +
-        'Close running Orca/Electron/dev processes for this worktree, then rerun `pnpm install` ' +
+        'Close running DevCrew/Electron/dev processes for this worktree, then rerun `pnpm install` ' +
         'or `pnpm run rebuild:electron`.'
     )
     if (isPostinstall() && process.env.ORCA_STRICT_NATIVE_REBUILD !== '1') {

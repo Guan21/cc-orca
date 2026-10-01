@@ -24,7 +24,7 @@ describe('BrowserPane corporate search', () => {
       'Install Browser Use Skill'
     )
     expect(getBrowserPaneCombinedSearchEntries().map((entry) => entry.title)).not.toContain(
-      'Enable Orca CLI'
+      'Enable DevCrew CLI'
     )
   })
 
@@ -37,12 +37,12 @@ describe('BrowserPane corporate search', () => {
         })
       )
 
-    expect(renderDescription()).toContain('Orca localhost URLs')
+    expect(renderDescription()).toContain('DevCrew localhost URLs')
 
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
 
     const corporateMarkup = renderDescription()
-    expect(corporateMarkup).toContain('Secure Orca Lite localhost URLs')
+    expect(corporateMarkup).toContain('DevCrew localhost URLs')
     expect(corporateMarkup).not.toContain('Orca localhost URL')
   })
 })

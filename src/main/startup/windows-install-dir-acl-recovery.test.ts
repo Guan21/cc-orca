@@ -639,7 +639,7 @@ describe('a repair marker recording a completed repair', () => {
   })
 
   // The budget is what stops the retry above running forever; a spent one must still read
-  // as "Orca could not fix this", never as a repair it never made.
+  // as "DevCrew could not fix this", never as a repair it never made.
   it('does not let the gate report a spent budget as a repair', async () => {
     const userDataPath = mkdtempSync(join(tmpdir(), 'orca-acl-gate-budget-'))
     writeFileSync(

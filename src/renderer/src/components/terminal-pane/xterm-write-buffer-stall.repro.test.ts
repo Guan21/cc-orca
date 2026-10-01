@@ -7,7 +7,7 @@
  * runs, and later `write()` calls only re-schedule processing when the
  * buffer is EMPTY — which a stalled buffer never is again.
  *
- * In Orca, write-completion callbacks run settleForegroundRender → refresh →
+ * In DevCrew, write-completion callbacks run settleForegroundRender → refresh →
  * renderer/WebGL code (pane-terminal-foreground-render-settle.ts) and the
  * replay-guard decrement (replay-guard.ts). So one renderer exception during
  * write completion freezes that pane's output forever AND latches the replay

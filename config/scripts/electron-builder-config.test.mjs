@@ -8,10 +8,36 @@ const REPO_ROOT = join(import.meta.dirname, '..', '..')
 const SRC_MAIN_DIR = join(REPO_ROOT, 'src', 'main')
 
 const require = createRequire(import.meta.url)
-const electronBuilderConfig = require('../electron-builder.config.cjs')
+const electronBuilderConfigPath = require.resolve('../electron-builder.config.cjs')
+const electronBuilderConfig = require(electronBuilderConfigPath)
 const { FileMatcher } = require('app-builder-lib/out/fileMatcher')
 const FpmTarget = require('app-builder-lib/out/targets/FpmTarget').default
 const electronBuilderNativeRebuild = require('./electron-builder-native-rebuild.cjs')
+
+function withElectronBuilderEnv(env, callback) {
+  const original = new Map(Object.keys(env).map((key) => [key, process.env[key]]))
+  try {
+    for (const [key, value] of Object.entries(env)) {
+      if (value === undefined) {
+        delete process.env[key]
+      } else {
+        process.env[key] = value
+      }
+    }
+    delete require.cache[electronBuilderConfigPath]
+    return callback(require(electronBuilderConfigPath))
+  } finally {
+    for (const [key, value] of original) {
+      if (value === undefined) {
+        delete process.env[key]
+      } else {
+        process.env[key] = value
+      }
+    }
+    delete require.cache[electronBuilderConfigPath]
+    require(electronBuilderConfigPath)
+  }
+}
 
 describe('electron-builder config', () => {
   it('keeps the packaged app identity aligned with local-build validation', () => {
@@ -93,7 +119,7 @@ describe('electron-builder config', () => {
     const packs = (repoPath) => isPacked(join('/app', repoPath), { isDirectory: () => false })
 
     for (const devBundlePath of [
-      'out/electron-dev/1a2b3c4d5e6f/Orca: dev.app/Contents/MacOS/Electron',
+      'out/electron-dev/1a2b3c4d5e6f/DevCrew: dev.app/Contents/MacOS/Electron',
       'out/electron-dev/1a2b3c4d5e6f/orca-dev-electron-app.json'
     ]) {
       expect(packs(devBundlePath)).toBe(false)
@@ -145,6 +171,37 @@ describe('electron-builder config', () => {
         })
       ])
     )
+  })
+
+  it('uses DevCrew for product-facing corporate package identity', () => {
+    withElectronBuilderEnv({ ORCA_BUILD_PROFILE: 'corporate' }, (corporateConfig) => {
+      expect(corporateConfig.productName).toBe('DevCrew')
+      expect(corporateConfig.protocols).toEqual([{ name: 'DevCrew', schemes: ['orca'] }])
+      expect(corporateConfig.win.executableName).toBe('DevCrew')
+      expect(corporateConfig.nsis.artifactName).toBe('devcrew-windows-setup.${ext}')
+      expect(corporateConfig.dmg.artifactName).toBe('devcrew-macos-${arch}.${ext}')
+      expect(corporateConfig.appImage.artifactName).toBe('devcrew-linux.${ext}')
+    })
+  })
+
+  it('keeps legacy compatibility identifiers where renaming would break installs or state', () => {
+    expect(electronBuilderConfig.appId).toBe('com.stablyai.orca')
+    expect(electronBuilderConfig.protocols[0].schemes).toEqual(['orca'])
+    expect(electronBuilderConfig.win.extraResources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ from: 'resources/win32/bin/orca.cmd', to: 'bin/orca.cmd' }),
+        expect.objectContaining({
+          from: 'native/windows-cli-launcher/.build/orca.exe',
+          to: 'bin/orca.exe'
+        })
+      ])
+    )
+    expect(electronBuilderConfig.deb.packageName).toBe('orca-ide')
+    expect(electronBuilderConfig.rpm.packageName).toBe('orca-ide')
+    withElectronBuilderEnv({ ORCA_BUILD_PROFILE: 'corporate' }, (corporateConfig) => {
+      expect(corporateConfig.appId).toBe('dev.orca.secure-lite')
+      expect(corporateConfig.protocols[0].schemes).toEqual(['orca'])
+    })
   })
 
   it('ships one macOS serve-sim package through the runtime closure', () => {
@@ -271,10 +328,10 @@ describe('electron-builder config', () => {
     expect(electronBuilderConfig.linux.desktop.entry.StartupWMClass).toBe('orca')
   })
 
-  it('uses the release artifact set as local Linux targets without changing existing names', () => {
+  it('uses DevCrew AppImage names while retaining Linux package compatibility names', () => {
     expect(electronBuilderConfig.linux.target).toEqual(['AppImage', 'deb', 'rpm'])
     expect(electronBuilderConfig.toolsets).toEqual({ appimage: '1.0.3' })
-    expect(electronBuilderConfig.appImage.artifactName).toBe('orca-linux.${ext}')
+    expect(electronBuilderConfig.appImage.artifactName).toBe('devcrew-linux.${ext}')
     expect(electronBuilderConfig.deb.artifactName).toBe('orca-ide_${version}_${arch}.${ext}')
     expect(electronBuilderConfig.rpm).toMatchObject({
       packageName: 'orca-ide',
@@ -295,7 +352,7 @@ describe('electron-builder config', () => {
   it('validates each AppImage before electron-builder publishes it', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-electron-builder-appimage-'))
     try {
-      const appImage = join(root, 'orca-linux.AppImage')
+      const appImage = join(root, 'devcrew-linux.AppImage')
       await writeFile(appImage, 'not an ELF')
       await chmod(appImage, 0o755)
 
@@ -316,7 +373,7 @@ describe('electron-builder config', () => {
       delete require.cache[configPath]
       process.env.ORCA_LINUX_ARM64_RELEASE = '1'
       expect(require('../electron-builder.config.cjs').appImage.artifactName).toBe(
-        'orca-linux-arm64.${ext}'
+        'devcrew-linux-arm64.${ext}'
       )
     } finally {
       if (original === undefined) {
@@ -381,7 +438,7 @@ describe('electron-builder config', () => {
     }
   })
 
-  it('uses Orca native rebuild hook instead of electron-builder default rebuild', () => {
+  it('uses DevCrew native rebuild hook instead of electron-builder default rebuild', () => {
     expect(electronBuilderConfig.beforeBuild).toBe(electronBuilderNativeRebuild)
     expect(electronBuilderConfig.npmRebuild).toBe(true)
   })

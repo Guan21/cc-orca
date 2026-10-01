@@ -162,7 +162,7 @@ export function getGeneralCliSearchEntries(): SettingsSearchEntry[] {
   return [
     {
       title: defaultProduct
-        ? translate('auto.components.settings.general.search.327e3fa70d', 'Orca CLI')
+        ? translate('auto.components.settings.general.search.327e3fa70d', 'DevCrew CLI')
         : translate(
             'auto.components.settings.general.search.cli.corporateTitle',
             '{{productName}} CLI',
@@ -171,7 +171,7 @@ export function getGeneralCliSearchEntries(): SettingsSearchEntry[] {
       description: defaultProduct
         ? translate(
             'auto.components.settings.general.search.ca529079bf',
-            'Register or remove the Orca CLI command.'
+            'Register or remove the DevCrew CLI command.'
           )
         : translate(
             'auto.components.settings.general.search.cli.corporateDescription',
@@ -201,7 +201,7 @@ export function getGeneralCliSearchEntries(): SettingsSearchEntry[] {
       description: defaultProduct
         ? translate(
             'auto.components.settings.general.search.244e3fb4c8',
-            'Install the Orca skill so agents know to use the Orca CLI.'
+            'Install the DevCrew skill so agents know to use the DevCrew CLI.'
           )
         : translate(
             'auto.components.settings.general.search.agentSkill.corporateDescription',

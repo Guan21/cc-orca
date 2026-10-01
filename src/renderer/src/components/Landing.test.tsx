@@ -55,10 +55,10 @@ describe('Landing corporate branding', () => {
     delete globalThis.__ORCA_BUILD_PROFILE__
   })
 
-  it('keeps the upstream logo and GitHub support prompt in default Orca', async () => {
+  it('keeps the upstream logo and GitHub support prompt in default DevCrew', async () => {
     await act(async () => root.render(<Landing />))
 
-    expect(container.querySelector('img[alt="Orca logo"]')).not.toBeNull()
+    expect(container.querySelector('img[alt="DevCrew logo"]')).not.toBeNull()
     expect(container.textContent).toContain('ORCA')
     expect(container.textContent).toContain('Star on GitHub')
   })
@@ -67,8 +67,8 @@ describe('Landing corporate branding', () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
     await act(async () => root.render(<Landing />))
 
-    expect(container.querySelector('img[alt="Orca logo"]')).toBeNull()
-    expect(container.textContent).toContain('Secure Orca Lite')
+    expect(container.querySelector('img[alt="DevCrew logo"]')).toBeNull()
+    expect(container.textContent).toContain('DevCrew')
     expect(container.textContent).not.toContain('ORCA')
     expect(container.textContent).not.toContain('Star on GitHub')
     expect(container.textContent).not.toContain('Open GitHub')

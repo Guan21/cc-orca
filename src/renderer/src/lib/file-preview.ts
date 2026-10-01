@@ -22,7 +22,7 @@ import { getOrcaBuildProfile } from '../../../shared/corporate-build-profile'
 export type PreviewableLanguage = 'html'
 /** Still the answer for flows that need a real `file://` URL (e.g. dropping a file on a browser pane). */
 export const REMOTE_FILE_BROWSER_UNSUPPORTED_MESSAGE =
-  'Open in Orca Browser is only available for local files.'
+  'Open in DevCrew Browser is only available for local files.'
 
 function remoteFileBrowserUnsupportedMessage(): string {
   return getOrcaBuildProfile() === 'corporate'

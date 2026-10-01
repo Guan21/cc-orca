@@ -43,7 +43,7 @@ const processSource = patchedFile(patch, 'src/process.cc')
 describe('windows-process-tree command line patch', () => {
   it('reads the command line through ProcessCommandLineInformation', () => {
     // Class 60 is Windows 8.1+; Electron's floor is Windows 10, so every OS
-    // Orca supports has it.
+    // DevCrew supports has it.
     expect(commandLineSource).toContain('kProcessCommandLineInformation = 60')
     expect(commandLineSource).toContain('OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION')
   })

@@ -128,7 +128,7 @@ variable "relay_base_url" {
 
 variable "relay_cloud_run_service_name" {
   type        = string
-  description = "Cloud Run service name for Orca Relay."
+  description = "Cloud Run service name for DevCrew Relay."
 }
 
 variable "relay_staging_power_auth_service_name" {
@@ -358,7 +358,7 @@ variable "relay_cells" {
 
 variable "relay_alert_notification_channels" {
   type        = list(string)
-  description = "Cloud Monitoring notification-channel resource names for Orca Relay alerts. Empty keeps policies visible without paging."
+  description = "Cloud Monitoring notification-channel resource names for DevCrew Relay alerts. Empty keeps policies visible without paging."
   default     = []
 }
 

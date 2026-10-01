@@ -36,9 +36,9 @@ describe('AccountsPane', () => {
 
     const markup = renderPane(getDefaultSettings('/tmp'))
 
-    expect(markup).toContain('Secure Orca Lite can use your normal Claude Code login')
-    expect(markup).toContain('Secure Orca Lite can use your normal Codex login')
-    expect(markup).toContain('quick switching in Secure Orca Lite')
+    expect(markup).toContain('DevCrew can use your normal Claude Code login')
+    expect(markup).toContain('DevCrew can use your normal Codex login')
+    expect(markup).toContain('quick switching in DevCrew')
     expect(markup).not.toContain('Optional. Orca can use your normal Claude login')
     expect(markup).not.toContain('Optional. Orca can use your normal Codex login')
   })

@@ -22,7 +22,7 @@ export type SystemTrayOptions = {
   onOpenSettings: () => void
   /** Run the existing user-initiated update check. */
   onCheckForUpdates: () => void
-  /** Quit Orca for real (caller must set the quitting latch before quitting). */
+  /** Quit DevCrew for real (caller must set the quitting latch before quitting). */
   onQuit: () => void
 }
 
@@ -51,7 +51,10 @@ function baseTooltip(): string {
   if (!devIndicator) {
     return getProductDisplayName()
   }
-  return devIndicator.label ? `Orca DEV (${devIndicator.label})` : 'Orca DEV'
+  const productDisplayName = getProductDisplayName()
+  return devIndicator.label
+    ? `${productDisplayName} DEV (${devIndicator.label})`
+    : `${productDisplayName} DEV`
 }
 
 // Why: on Windows the notification area expects a 16px icon; the app icon PNG

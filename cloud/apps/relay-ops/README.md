@@ -1,6 +1,6 @@
-# Orca Relay Operations
+# DevCrew Relay Operations
 
-A private, aggregate dashboard for the Orca Relay control and data planes. It reads local `gcloud` and `gh` credentials on the server; credentials and per-user Relay state never enter the browser. One cached `gcloud auth print-access-token` refresh feeds concurrent read-only Google APIs so the collector does not stampede the local credential store.
+A private, aggregate dashboard for the DevCrew Relay control and data planes. It reads local `gcloud` and `gh` credentials on the server; credentials and per-user Relay state never enter the browser. One cached `gcloud auth print-access-token` refresh feeds concurrent read-only Google APIs so the collector does not stampede the local credential store.
 
 ## Run locally
 

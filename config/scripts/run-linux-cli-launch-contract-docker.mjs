@@ -54,7 +54,7 @@ const CASES = [
   {
     name: 'nofuse-userns-bundled-worktree',
     expectStatus: 1,
-    expectOutput: "Orca is not running. Run 'orca open' first.",
+    expectOutput: "DevCrew is not running. Run 'orca open' first.",
     why: 'A runtime-dependent command must report the missing runtime, not abort.'
   },
   {

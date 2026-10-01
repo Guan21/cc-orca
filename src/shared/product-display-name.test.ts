@@ -8,17 +8,17 @@ describe('product-display-name', () => {
     globalThis.__ORCA_BUILD_PROFILE__ = previousProfile
   })
 
-  it('uses Orca for the default build', () => {
-    expect(getProductDisplayName('default')).toBe('Orca')
+  it('uses DevCrew for the default build', () => {
+    expect(getProductDisplayName('default')).toBe('DevCrew')
   })
 
-  it('uses Secure Orca Lite for the corporate build', () => {
-    expect(getProductDisplayName('corporate')).toBe('Secure Orca Lite')
+  it('uses DevCrew for the corporate build', () => {
+    expect(getProductDisplayName('corporate')).toBe('DevCrew')
   })
 
-  it('does not leak corporate branding into an unset build profile', () => {
+  it('uses DevCrew for an unset build profile', () => {
     delete globalThis.__ORCA_BUILD_PROFILE__
 
-    expect(getProductDisplayName()).toBe('Orca')
+    expect(getProductDisplayName()).toBe('DevCrew')
   })
 })

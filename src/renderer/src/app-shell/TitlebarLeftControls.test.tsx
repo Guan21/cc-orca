@@ -81,18 +81,18 @@ describe('TitlebarLeftControls', () => {
     Object.assign(window, { api: { ui: { popupMenu: vi.fn() } } })
   })
 
-  it('keeps default custom chrome on Orca branding', () => {
+  it('keeps default custom chrome on DevCrew branding', () => {
     const html = renderToStaticMarkup(<TitlebarLeftControls layout={layout()} />)
 
-    expect(html).not.toContain('Secure Orca Lite')
+    expect(html).not.toContain('DevCrew')
     expect(html).toContain('Application menu')
   })
 
-  it('shows Secure Orca Lite in corporate custom chrome', () => {
+  it('shows DevCrew in corporate custom chrome', () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
 
     const html = renderToStaticMarkup(<TitlebarLeftControls layout={layout()} />)
 
-    expect(html).toContain('Secure Orca Lite')
+    expect(html).toContain('DevCrew')
   })
 })

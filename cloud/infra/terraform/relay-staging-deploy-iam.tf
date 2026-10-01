@@ -34,7 +34,7 @@ resource "google_service_account" "github_staging_relay_deploy" {
 
   project      = var.project_id
   account_id   = "${var.name_prefix}-gha-relay"
-  display_name = "Orca Relay staging deploy"
+  display_name = "DevCrew Relay staging deploy"
   description  = "Runs the exact reviewed Relay staging deploy, candidate, power, and admission workflows."
 }
 

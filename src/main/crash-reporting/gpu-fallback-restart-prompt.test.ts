@@ -30,10 +30,10 @@ describe('promptForGpuFallbackRestart', () => {
       buttons: ['Restart in Safe Graphics Mode', 'Keep Running'],
       defaultId: 0,
       cancelId: 1,
-      title: 'Restart Orca in Safe Graphics Mode?',
-      message: "Orca's graphics process has crashed repeatedly.",
+      title: 'Restart DevCrew in Safe Graphics Mode?',
+      message: "DevCrew's graphics process has crashed repeatedly.",
       detail:
-        'Safe graphics mode disables hardware acceleration and WebGL for this Orca version. Terminals and 3D content may render more slowly. Keep Running leaves graphics settings unchanged.'
+        'Safe graphics mode disables hardware acceleration and WebGL for this app version. Terminals and 3D content may render more slowly. Keep Running leaves graphics settings unchanged.'
     })
   })
 
@@ -52,8 +52,8 @@ describe('promptForGpuFallbackRestart', () => {
 
     expect(showMessageBoxMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Restart Secure Orca Lite in Safe Graphics Mode?',
-        message: "Secure Orca Lite's graphics process has crashed repeatedly."
+        title: 'Restart DevCrew in Safe Graphics Mode?',
+        message: "DevCrew's graphics process has crashed repeatedly."
       })
     )
   })

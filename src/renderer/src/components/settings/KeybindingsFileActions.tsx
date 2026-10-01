@@ -117,11 +117,11 @@ export function KeybindingsFileActions(): React.JSX.Element {
           : getOrcaBuildProfile() === 'corporate'
             ? translate(
                 'auto.components.settings.KeybindingsFileActions.openFailureCorporate',
-                'Failed to open keybindings in the application.'
+                'Failed to open keybindings in DevCrew.'
               )
             : translate(
                 'auto.components.settings.KeybindingsFileActions.dd532a01ce',
-                'Failed to open keybindings in Orca.'
+                'Failed to open keybindings in DevCrew.'
               )
       )
     }
@@ -176,7 +176,7 @@ export function KeybindingsFileActions(): React.JSX.Element {
             )
           : translate(
               'auto.components.settings.KeybindingsFileActions.1c2be2b2c6',
-              'Edit File in Orca'
+              'Edit File in DevCrew'
             )}
       </Button>
       <DropdownMenu>

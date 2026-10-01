@@ -351,7 +351,7 @@ resource "google_monitoring_alert_policy" "relay_custom" {
   for_each = local.relay_custom_alerts
 
   project      = var.project_id
-  display_name = "Orca Relay: ${replace(each.key, "_", " ")}"
+  display_name = "DevCrew Relay: ${replace(each.key, "_", " ")}"
   combiner     = "OR"
   enabled      = true
   # Why: only the reviewed critical alerts page; the rest stay in the console. Applying one
@@ -415,7 +415,7 @@ resource "google_monitoring_alert_policy" "relay_custom" {
 
 resource "google_monitoring_alert_policy" "relay_assignment_5xx" {
   project               = var.project_id
-  display_name          = "Orca Relay: assignment 5xx"
+  display_name          = "DevCrew Relay: assignment 5xx"
   combiner              = "OR"
   enabled               = true
   notification_channels = var.relay_alert_notification_channels
@@ -454,7 +454,7 @@ resource "google_monitoring_alert_policy" "relay_gce_connection_headroom" {
   for_each = local.relay_gce_connection_warning_groups
 
   project               = var.project_id
-  display_name          = "Orca Relay: connection headroom (GCE ${each.key})"
+  display_name          = "DevCrew Relay: connection headroom (GCE ${each.key})"
   combiner              = "OR"
   enabled               = true
   notification_channels = var.relay_alert_notification_channels
@@ -491,7 +491,7 @@ resource "google_monitoring_alert_policy" "relay_gce_connection_headroom" {
 
 resource "google_monitoring_alert_policy" "relay_assignment_edge_429" {
   project               = var.project_id
-  display_name          = "Orca Relay: assignment edge 429"
+  display_name          = "DevCrew Relay: assignment edge 429"
   combiner              = "OR"
   enabled               = true
   notification_channels = var.relay_alert_notification_channels
@@ -528,7 +528,7 @@ resource "google_monitoring_alert_policy" "relay_assignment_edge_429" {
 
 resource "google_monitoring_alert_policy" "relay_postgres_retry_exhausted" {
   project               = var.project_id
-  display_name          = "Orca Relay: PostgreSQL retry exhausted"
+  display_name          = "DevCrew Relay: PostgreSQL retry exhausted"
   combiner              = "OR"
   enabled               = true
   notification_channels = var.relay_alert_notification_channels
@@ -587,7 +587,7 @@ resource "google_monitoring_alert_policy" "relay_postgres_retry_exhausted" {
 
 resource "google_monitoring_alert_policy" "relay_cloud_sql_backends" {
   project      = var.project_id
-  display_name = "Orca Relay: Cloud SQL connection headroom"
+  display_name = "DevCrew Relay: Cloud SQL connection headroom"
   combiner     = "OR"
   enabled      = true
 
@@ -621,7 +621,7 @@ resource "google_monitoring_alert_policy" "relay_cloud_sql_backends" {
 
 resource "google_monitoring_alert_policy" "relay_cloud_sql_checkpoint_loop" {
   project               = var.project_id
-  display_name          = "Orca Relay: Cloud SQL checkpoint loop"
+  display_name          = "DevCrew Relay: Cloud SQL checkpoint loop"
   combiner              = "OR"
   enabled               = true
   notification_channels = var.relay_alert_notification_channels
@@ -657,7 +657,7 @@ resource "google_monitoring_alert_policy" "relay_cloud_sql_checkpoint_loop" {
 
 resource "google_monitoring_alert_policy" "relay_cloud_sql_disk" {
   project               = var.project_id
-  display_name          = "Orca Relay: Cloud SQL disk utilization"
+  display_name          = "DevCrew Relay: Cloud SQL disk utilization"
   combiner              = "OR"
   enabled               = true
   notification_channels = var.relay_alert_notification_channels
@@ -692,7 +692,7 @@ resource "google_monitoring_alert_policy" "relay_cloud_nat_port_drops" {
   count = local.relay_gce_configured ? 1 : 0
 
   project               = var.project_id
-  display_name          = "Orca Relay: Cloud NAT port exhaustion"
+  display_name          = "DevCrew Relay: Cloud NAT port exhaustion"
   combiner              = "OR"
   enabled               = true
   notification_channels = var.relay_alert_notification_channels
@@ -727,7 +727,7 @@ resource "google_monitoring_alert_policy" "relay_cloud_nat_port_drops" {
 
 resource "google_monitoring_alert_policy" "relay_cell_process_exit" {
   project               = var.project_id
-  display_name          = "Orca Relay: cell process exits"
+  display_name          = "DevCrew Relay: cell process exits"
   combiner              = "OR"
   enabled               = true
   notification_channels = var.relay_alert_notification_channels
@@ -774,7 +774,7 @@ resource "google_monitoring_alert_policy" "relay_cell_process_exit" {
 # confirmed the distribution sum, the join arity, the unit literals, and the condition clause.
 resource "google_monitoring_alert_policy" "relay_far_cell_accept_latency" {
   project               = var.project_id
-  display_name          = "Orca Relay: far-cell phone accept latency"
+  display_name          = "DevCrew Relay: far-cell phone accept latency"
   combiner              = "OR"
   enabled               = true
   notification_channels = var.relay_alert_notification_channels
@@ -816,7 +816,7 @@ resource "google_monitoring_alert_policy" "relay_far_cell_accept_latency" {
 
 resource "google_monitoring_alert_policy" "relay_cell_control_rtt" {
   project               = var.project_id
-  display_name          = "Orca Relay: cell control round trip"
+  display_name          = "DevCrew Relay: cell control round trip"
   combiner              = "OR"
   enabled               = true
   notification_channels = var.relay_alert_notification_channels
@@ -858,7 +858,7 @@ resource "google_monitoring_alert_policy" "relay_cell_control_rtt" {
 
 resource "google_monitoring_alert_policy" "relay_region_hint_skew" {
   project               = var.project_id
-  display_name          = "Orca Relay: region hint skew"
+  display_name          = "DevCrew Relay: region hint skew"
   combiner              = "OR"
   enabled               = true
   notification_channels = var.relay_alert_notification_channels
@@ -889,7 +889,7 @@ resource "google_monitoring_dashboard" "relay_incident" {
   project = var.project_id
 
   dashboard_json = jsonencode({
-    displayName = "Orca Relay: incident overview"
+    displayName = "DevCrew Relay: incident overview"
     mosaicLayout = {
       columns = 12
       tiles = [

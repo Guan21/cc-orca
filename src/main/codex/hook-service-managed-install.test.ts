@@ -49,7 +49,7 @@ function localManagedCodexEvents(): string[] {
 }
 
 describe('CodexHookService', () => {
-  // Why (#16441): install promotes in-Orca approvals into ~/.codex/config.toml
+  // Why (#16441): install promotes in-DevCrew approvals into ~/.codex/config.toml
   // and mirrors that file into the managed home, so holding only the runtime
   // lane still lets it land inside a real-home grant's capture->restore window.
   it('waits for an in-flight mutation of the system config.toml', async () => {

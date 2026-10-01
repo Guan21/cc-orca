@@ -243,9 +243,9 @@ describe('SidebarSettingsHelpMenu', () => {
     expect(html).toContain('Onboarding')
   })
 
-  it('renders Restart Orca by default', () => {
+  it('renders Restart DevCrew by default', () => {
     const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
-    expect(html).toContain('Restart Orca')
+    expect(html).toContain('Restart DevCrew')
   })
 
   it('renders Docs link', () => {
@@ -294,7 +294,7 @@ describe('SidebarSettingsHelpMenu', () => {
     expect(html).toContain('Restart application')
     expect(html).not.toContain('Check for Updates')
     expect(html).not.toContain('Docs')
-    expect(html).not.toContain('Restart Orca')
+    expect(html).not.toContain('Restart DevCrew')
     expect(html).not.toContain('Discord')
     expect(html).not.toContain('>X<')
     expect(html).not.toContain('GitHub')

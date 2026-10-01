@@ -454,13 +454,13 @@ describe('AppearancePane', () => {
     expect(container.textContent).not.toContain('App Icon')
   })
 
-  it('hides the Orca Mobile sidebar control in corporate builds', async () => {
+  it('hides the DevCrew Mobile sidebar control in corporate builds', async () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
     mocks.state.settingsSearchQuery = 'mobile'
     const container = await renderAppearancePane(getDefaultSettings('/tmp'))
 
-    expect(container.textContent).not.toContain('Orca Mobile')
-    expect(container.querySelector('button[aria-label="Show Orca Mobile Button"]')).toBeNull()
+    expect(container.textContent).not.toContain('DevCrew Mobile')
+    expect(container.querySelector('button[aria-label="Show DevCrew Mobile Button"]')).toBeNull()
   })
 
   it('reveals an advanced sidebar control when its search matches, even though it is hidden by default', async () => {

@@ -61,7 +61,7 @@ describe('promptForGpuFallbackRecoveredLaunch', () => {
       defaultId: 0,
       cancelId: 0,
       title: 'Safe Graphics Mode is Active',
-      message: 'Orca recovered in Safe Graphics Mode.',
+      message: 'DevCrew recovered in Safe Graphics Mode.',
       detail:
         'Safe Graphics Mode was enabled after repeated graphics crashes. Keep it for stability, or restart and try hardware acceleration again.'
     })
@@ -80,7 +80,7 @@ describe('promptForGpuFallbackRecoveredLaunch', () => {
 
     expect(showMessageBoxMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Secure Orca Lite recovered in Safe Graphics Mode.'
+        message: 'DevCrew recovered in Safe Graphics Mode.'
       })
     )
   })

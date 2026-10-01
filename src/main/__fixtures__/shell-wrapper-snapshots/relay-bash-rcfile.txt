@@ -17,7 +17,7 @@ elif [[ -f "$HOME/.bash_login" ]]; then
 elif [[ -f "$HOME/.profile" ]]; then
   source "$HOME/.profile"
 fi
-# Why: enable bracketed paste so Orca can deliver a multiline startup prompt as
+# Why: enable bracketed paste so DevCrew can deliver a multiline startup prompt as
 # a single literal paste (ESC[200~…ESC[201~); without it, older readline builds
 # treat each embedded newline as Enter and mangle the prompt into PS2
 # continuation. Modern readline defaults this on; force it for the rest.
@@ -26,7 +26,7 @@ fi
 [[ -n "${ORCA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="${ORCA_OPENCODE_CONFIG_DIR}"
 [[ -n "${ORCA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="${ORCA_MIMOCODE_HOME}"
 [[ -n "${ORCA_REMOTE_CLI_BIN_DIR:-}" ]] && case ":$PATH:" in *:"${ORCA_REMOTE_CLI_BIN_DIR}":*) ;; *) export PATH="${ORCA_REMOTE_CLI_BIN_DIR}:$PATH" ;; esac
-# Why: OMP does not auto-load Orca's managed status extension; wrap only
+# Why: OMP does not auto-load DevCrew's managed status extension; wrap only
 # interactive launch invocations so subcommands such as `omp config` keep
 # their normal argv shape.
 __orca_omp_should_skip_extension() {
@@ -69,11 +69,11 @@ __orca_omp() {
     # Why: a restored shell can retain the deleted directory inode after its path is recreated.
     (
       if [[ -z "$__orca_logical_cwd" ]]; then
-        printf 'Orca: OMP cannot start because no terminal working directory is available. Open a new terminal in an existing directory.\n' >&2
+        printf 'DevCrew: OMP cannot start because no terminal working directory is available. Open a new terminal in an existing directory.\n' >&2
         return 1
       fi
       if ! builtin cd -P -- "$__orca_logical_cwd" 2>/dev/null; then
-        printf 'Orca: OMP cannot access the terminal working directory "%s". Open a new terminal in an existing directory.\n' "$__orca_logical_cwd" >&2
+        printf 'DevCrew: OMP cannot access the terminal working directory "%s". Open a new terminal in an existing directory.\n' "$__orca_logical_cwd" >&2
         return 1
       fi
       __orca_omp_invoke "$__orca_use_extension" "$@"
@@ -92,7 +92,7 @@ if [[ -n "${ORCA_HISTFILE:-}" ]]; then
   HISTFILE="$ORCA_HISTFILE"
   builtin unset ORCA_HISTFILE
 elif [[ "${HISTFILE:-}" == "$ZDOTDIR/.zsh_history" ]]; then
-  # Why also when Orca injected nothing: /etc/zshrc derived this from Orca's
+  # Why also when DevCrew injected nothing: /etc/zshrc derived this from DevCrew's
   # wrapper ZDOTDIR, so history would accumulate INSIDE the wrapper dir and the
   # user's real history would be invisible — the plain #11044 bug, with no
   # per-worktree scoping involved. Matching the exact clobbered value means a
@@ -255,7 +255,7 @@ __orca_run_prompt_command_array() {
   done
   if (( __orca_user_count > 0 )); then
     __orca_prompt_part="${__orca_prompt_command_array[__orca_user_count - 1]}"
-    # Why: keep the final user hook and Orca suffixes in one status-preserving eval.
+    # Why: keep the final user hook and DevCrew suffixes in one status-preserving eval.
     __orca_final_prompt_command='eval "$__orca_prompt_part"'
     for __orca_suffix_part in "${__orca_prompt_command_suffix[@]+"${__orca_prompt_command_suffix[@]}"}"; do
       __orca_final_prompt_command+=$'\n'"$__orca_suffix_part"

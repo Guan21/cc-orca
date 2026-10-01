@@ -13,11 +13,11 @@ describe('GeneralSupportSection corporate profile gating', () => {
   it('keeps the upstream support prompt visible in the default build', () => {
     const html = renderToStaticMarkup(<GeneralSupportSection hasPrecedingSections={false} />)
 
-    expect(html).toContain('Support Orca')
+    expect(html).toContain('Support DevCrew')
     expect(getGeneralSupportSearchEntries()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          title: 'Star Orca on GitHub'
+          title: 'Star DevCrew on GitHub'
         })
       ])
     )

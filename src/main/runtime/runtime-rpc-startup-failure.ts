@@ -112,7 +112,7 @@ function createRuntimeRpcStartupFailureDialogOptions(error: unknown): MessageBox
       productName === 'Orca'
         ? 'runtimeRpc.startupFailure.title'
         : 'runtimeRpc.startupFailure.productTitle',
-      productName === 'Orca' ? 'Orca CLI unavailable' : `${productName} CLI unavailable`
+      productName === 'Orca' ? 'DevCrew CLI unavailable' : `${productName} CLI unavailable`
     ),
     message: translateMain(
       productName === 'Orca'

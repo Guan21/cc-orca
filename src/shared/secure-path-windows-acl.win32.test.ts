@@ -275,7 +275,7 @@ describeOnWindows('restrictWindowsPathSync against a real filesystem', () => {
     expect(after.every((entry) => entry.endsWith(':(OI)(CI)(F)'))).toBe(true)
 
     // The point of the (IO) case: before the repair the directory object grants nobody anything,
-    // so Orca cannot write into the directory it just cached as hardened.
+    // so DevCrew cannot write into the directory it just cached as hardened.
     const child = join(dir, 'child.json')
     expect(() => writeFileSync(child, '{}')).not.toThrow()
     expect(readAclEntries(child).every((entry) => entry.includes('(I)'))).toBe(true)

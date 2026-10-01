@@ -205,7 +205,7 @@ describe('resolveWindowsShellLaunchArgs', () => {
 
   it('preserves complex PowerShell startup command text through EncodedCommand', () => {
     const startupCommand =
-      '& "C:\\Program Files\\Orca CLI\\orca.exe" "--label" "quoted value"; $env:ORCA_VALUE = "nested"'
+      '& "C:\\Program Files\\DevCrew CLI\\orca.exe" "--label" "quoted value"; $env:ORCA_VALUE = "nested"'
     const result = resolveWindowsShellLaunchArgs(
       'powershell.exe',
       'C:\\Users\\alice',
