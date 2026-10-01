@@ -193,7 +193,7 @@ export function RemoteBrowserPageContextMenu({
                   : 'auto.components.browser.pane.BrowserPane.b5b87d6cbb',
                 getOrcaBuildProfile() === 'corporate'
                   ? 'Open Link In App Browser'
-                  : 'Open Link In Orca Browser'
+                  : 'Open Link In DevCrew Browser'
               )}
             </button>
             <button

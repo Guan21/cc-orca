@@ -58,7 +58,7 @@ export function classifyConnection(args: {
   // The desktop has repeatedly refused this device's relay credential — retrying
   // cannot fix it, so it outranks any "still connecting" reading (STA-4681).
   pairingRejected?: boolean
-  // The relay says the desktop's last control close named its own Orca Cloud
+  // The relay says the desktop's last control close named its own DevCrew Cloud
   // sign-out. Retrying is still correct and still happens on the same cadence,
   // but only the desktop's owner can end it, so the label has to say so.
   hostSignedOut?: boolean

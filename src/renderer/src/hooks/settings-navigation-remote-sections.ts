@@ -153,7 +153,7 @@ export function buildRemoteSettingsSections(
         ]
       : []),
     // Why: one nav row per project, not per repo row — a project set up on
-    // multiple hosts (local + a Remote Orca Server, or two clones) collapses to
+    // multiple hosts (local + a Remote DevCrew Server, or two clones) collapses to
     // a single entry. Derived from repos alone so this list matches the panes.
     ...buildSettingsProjectList(repos).map(({ project, representativeRepoId, setups }) => {
       const representativeRepo = reposById.get(representativeRepoId) ?? repos[0]

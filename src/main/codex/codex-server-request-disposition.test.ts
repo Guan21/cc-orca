@@ -91,7 +91,7 @@ describe('Codex blocking server request dispositions', () => {
     expect(connection.respondWithError).toHaveBeenCalledWith(
       4,
       -32001,
-      'Orca could not model item/commandExecution/requestApproval as a durable prompt'
+      'DevCrew could not model item/commandExecution/requestApproval as a durable prompt'
     )
   })
 

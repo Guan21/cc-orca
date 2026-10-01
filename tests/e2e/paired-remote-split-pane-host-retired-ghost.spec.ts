@@ -3,7 +3,7 @@
  * remote-server workspace must not leave the other pane mounted as a blank,
  * dead ghost.
  *
- * Topology: a headless paired Orca runtime host + a paired Orca desktop client.
+ * Topology: a headless paired DevCrew runtime host + a paired DevCrew desktop client.
  * The host owns the pane layout; the client mirrors it. The host splits a
  * terminal (two leaves, two remote PTYs, each a login shell), then the user
  * quits the second shell with `exit`. The host retires that leaf and

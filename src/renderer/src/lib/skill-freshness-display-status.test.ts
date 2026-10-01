@@ -222,7 +222,7 @@ describe('hasSkillCopyNeedingAttention', () => {
   })
 
   // The exact shape of the rc.4 report: a pristine global install alongside a drifted
-  // copy inside a work directory. Orca only updates global skills, so the project copy
+  // copy inside a work directory. DevCrew only updates global skills, so the project copy
   // must not turn the badge amber over drift it has no way to fix.
   it('reports up to date for a current global copy beside a drifted project copy', () => {
     const value = inventory([placement('current'), repoPlacement('unrecognized')])

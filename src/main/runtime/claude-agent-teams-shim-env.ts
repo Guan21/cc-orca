@@ -59,7 +59,7 @@ export async function buildClaudeAgentTeamsLaunchPlan(args: {
   }
 }
 
-/** Absolute path to the Orca CLI that backs the tmux shim, or null when none can be qualified. */
+/** Absolute path to the DevCrew CLI that backs the tmux shim, or null when none can be qualified. */
 export function resolveClaudeAgentTeamsShimBin(
   env: Record<string, string | undefined> = process.env
 ): string | null {

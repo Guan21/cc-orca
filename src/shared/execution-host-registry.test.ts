@@ -201,7 +201,7 @@ describe('execution host registry', () => {
                 reconnectAttempt: 1,
                 lastConnectedAt: 123,
                 lastClose: { code: 1006, reason: '' },
-                lastError: 'Remote Orca runtime closed the connection.'
+                lastError: 'Remote DevCrew runtime closed the connection.'
               }
             }
           }

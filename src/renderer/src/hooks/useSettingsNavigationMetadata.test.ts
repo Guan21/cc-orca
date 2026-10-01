@@ -128,7 +128,7 @@ describe('settings navigation metadata', () => {
     expect(workflowIds.slice(0, 3)).toEqual(['automations', 'artifacts', 'share-skills'])
   })
 
-  it('places the Orca account in Set Up on desktop only', () => {
+  it('places the DevCrew account in Set Up on desktop only', () => {
     const desktopSections = buildSettingsNavigationMetadata({
       isMac: false,
       isWindows: false,
@@ -138,7 +138,7 @@ describe('settings navigation metadata', () => {
     const account = desktopSections.find((section) => section.id === 'orca-account')
 
     expect(account?.group).toBe('setup')
-    expect(account?.searchEntries[0]?.title).toBe('Orca account')
+    expect(account?.searchEntries[0]?.title).toBe('DevCrew account')
     expect(ids({ isWebClient: true })).not.toContain('orca-account')
   })
 

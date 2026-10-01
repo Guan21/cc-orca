@@ -1,4 +1,4 @@
-// Nested Remote Orca Server -> SSH image paste (#17679). The REAL ssh-filesystem-dispatch registry
+// Nested Remote DevCrew Server -> SSH image paste (#17679). The REAL ssh-filesystem-dispatch registry
 // is used on purpose: the runtime's SSH target is never registered in the client process, so any
 // route that consults the local registry fails exactly the way the report did.
 import { beforeEach, describe, expect, it, vi } from 'vitest'

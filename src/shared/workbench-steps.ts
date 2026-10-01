@@ -25,7 +25,7 @@ export const WORKBENCH_STEPS: readonly WorkbenchStep[] = [
     id: 'editor',
     name: 'Editor',
     subtitle: 'Editor',
-    description: 'Use our Notion-style markdown editor to write notes without leaving Orca.'
+    description: 'Use our Notion-style markdown editor to write notes without leaving DevCrew.'
   },
   {
     id: 'browser',

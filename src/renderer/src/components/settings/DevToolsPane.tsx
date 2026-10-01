@@ -127,7 +127,7 @@ function showDeleteFailureToast(): void {
   })
 }
 
-// Dev-only preview of the first-party Orca Cloud sign-in. The sidebar/titlebar
+// Dev-only preview of the first-party DevCrew Cloud sign-in. The sidebar/titlebar
 // account switcher is hidden in packaged builds while the feature is in
 // progress; this surfaces it (and its status) in dev when the env vars are set.
 function OrcaCloudDevSubsection(): React.JSX.Element {

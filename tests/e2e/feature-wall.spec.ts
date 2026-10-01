@@ -6,10 +6,10 @@ async function openFeatureTourFromMenu(electronApp: ElectronApplication): Promis
   await electronApp.evaluate(({ BrowserWindow, Menu }) => {
     const featureTourItem = Menu.getApplicationMenu()
       ?.items.find((item) => item.label === 'Help')
-      ?.submenu?.items.find((item) => item.label === 'Explore Orca')
+      ?.submenu?.items.find((item) => item.label === 'Explore DevCrew')
 
     if (!featureTourItem) {
-      throw new Error('Explore Orca menu item was not registered')
+      throw new Error('Explore DevCrew menu item was not registered')
     }
 
     const window = BrowserWindow.getAllWindows()[0]
@@ -37,7 +37,7 @@ test.describe('Feature tour modal', () => {
     await expect(orcaPage.getByRole('dialog', { name: 'Get to know Orca' })).toBeVisible({
       timeout: 10_000
     })
-    await expect(orcaPage.getByText('Reopen any time from Help > Explore Orca.')).toBeVisible()
+    await expect(orcaPage.getByText('Reopen any time from Help > Explore DevCrew.')).toBeVisible()
 
     // Five workflow rows in the rail.
     const rail = orcaPage.getByRole('navigation', { name: 'Workflows' })
@@ -71,7 +71,7 @@ test.describe('Feature tour modal', () => {
       orcaPage.getByText("Enables agents to navigate and verify pages in Orca's browser.")
     ).toBeVisible()
     await expect(orcaPage.getByRole('heading', { name: 'CLI skill' })).toHaveCount(0)
-    await expect(orcaPage.getByText('With the Orca CLI skill', { exact: false })).toHaveCount(0)
+    await expect(orcaPage.getByText('With the DevCrew CLI skill', { exact: false })).toHaveCount(0)
   })
 
   test('shows unified task copy without leaving the walkthrough', async ({ orcaPage }) => {

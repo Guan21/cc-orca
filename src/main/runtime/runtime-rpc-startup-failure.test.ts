@@ -153,8 +153,8 @@ describe('runtime RPC startup failure reporting', () => {
       parentWindow,
       expect.objectContaining({
         type: 'error',
-        title: 'Orca CLI unavailable',
-        message: "Orca couldn't start its local command transport.",
+        title: 'DevCrew CLI unavailable',
+        message: "DevCrew couldn't start its local command transport.",
         detail: expect.stringMatching(
           /orca status.*orca terminal.*orchestration.*Cause: metadata write failed/s
         )
@@ -187,7 +187,7 @@ describe('runtime RPC startup failure reporting', () => {
     await showRuntimeRpcStartupFailureDialog(createParentWindow(), new Error('mystery'))
 
     const detail = showMessageBoxMock.mock.calls[0]?.[1]?.detail as string
-    expect(detail).toContain('Restart Orca to try again.')
+    expect(detail).toContain('Restart DevCrew to try again.')
     expect(detail).not.toContain("Check permissions on Orca's data folder")
   })
 

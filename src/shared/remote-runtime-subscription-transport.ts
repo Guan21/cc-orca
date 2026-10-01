@@ -303,7 +303,7 @@ export async function subscribeRemoteRuntimeTransport<TResult>(
         fail(
           new RemoteRuntimeClientError(
             'remote_runtime_unavailable',
-            'Remote Orca runtime stopped responding; the stream connection was reset.'
+            'Remote DevCrew runtime stopped responding; the stream connection was reset.'
           )
         )
         try {

@@ -89,7 +89,7 @@ describe('NotificationStep', () => {
     expect(blockedHtml).toContain('macOS is not delivering DevCrew notifications')
     expect(blockedHtml).toContain('Turn on Allow notifications for DevCrew in System Settings.')
     expect(permissionHtml).not.toContain('for Orca')
-    expect(blockedHtml).not.toContain('delivering Orca notifications')
+    expect(blockedHtml).not.toContain('delivering DevCrew notifications')
   })
 
   it('does not render an onboarding volume slider for non-system sounds', () => {

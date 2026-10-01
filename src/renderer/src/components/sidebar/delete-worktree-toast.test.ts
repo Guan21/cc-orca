@@ -29,7 +29,7 @@ describe('getDeleteWorktreeToastCopy', () => {
     ).toEqual({
       title: 'Failed to delete workspace feature/foo',
       description:
-        'Orca could not confirm every terminal in this workspace has exited, so it stopped before deleting any files. Use Force Delete to remove it anyway.',
+        'DevCrew could not confirm every terminal in this workspace has exited, so it stopped before deleting any files. Use Force Delete to remove it anyway.',
       isDestructive: false
     })
   })
@@ -45,7 +45,7 @@ describe('getDeleteWorktreeToastCopy', () => {
     ).toEqual({
       title: 'Failed to delete workspace feature/foo',
       description:
-        'This workspace still has running terminals, so Orca stopped before deleting any files. Force Delete will kill them and discard any uncommitted work they hold.',
+        'This workspace still has running terminals, so DevCrew stopped before deleting any files. Force Delete will kill them and discard any uncommitted work they hold.',
       isDestructive: false
     })
   })
@@ -61,7 +61,7 @@ describe('getDeleteWorktreeToastCopy', () => {
     ).toEqual({
       title: 'Failed to delete workspace feature/foo',
       description:
-        'Orca could not confirm every terminal in this workspace has exited, so it stopped before deleting any files. Use Force Delete to remove it anyway.',
+        'DevCrew could not confirm every terminal in this workspace has exited, so it stopped before deleting any files. Use Force Delete to remove it anyway.',
       isDestructive: false
     })
   })
@@ -77,7 +77,7 @@ describe('getDeleteWorktreeToastCopy', () => {
     ).toEqual({
       title: 'Failed to delete workspace feature/foo',
       description:
-        'Orca could not confirm every terminal in this workspace has exited, so it stopped before deleting any files. Use Force Delete to remove it anyway.',
+        'DevCrew could not confirm every terminal in this workspace has exited, so it stopped before deleting any files. Use Force Delete to remove it anyway.',
       isDestructive: false
     })
   })

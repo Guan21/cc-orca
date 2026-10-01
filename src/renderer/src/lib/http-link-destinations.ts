@@ -52,7 +52,7 @@ export function httpLinkDestinationLabel(destination: HttpLinkDestination): stri
         )
       : translate(
           'auto.components.terminal.pane.TerminalLinkActionPopover.orcaBrowser',
-          'Orca Browser'
+          'DevCrew Browser'
         )
   }
   return translate(

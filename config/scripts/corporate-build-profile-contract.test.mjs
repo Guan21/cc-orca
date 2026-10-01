@@ -137,9 +137,9 @@ describe('corporate build profile package contract', () => {
         )
       }
       expect(config.mac.extendInfo.NSAppleEventsUsageDescription).toContain('DevCrew')
-      expect(config.mac.extendInfo.NSAppleEventsUsageDescription).not.toContain('Orca allows')
       for (const description of tccDescriptions(config.mac.extendInfo)) {
         expect(description).toContain('DevCrew')
+        expect(description).not.toMatch(/\b(?:Orca|Secure Orca Lite|Company Orca)\b/)
       }
       expect(config.nsis.artifactName).toBe('devcrew-windows-setup.${ext}')
       expect(config.dmg.artifactName).toBe('devcrew-macos-${arch}.${ext}')

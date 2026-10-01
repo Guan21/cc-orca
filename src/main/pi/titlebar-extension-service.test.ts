@@ -547,7 +547,7 @@ describe('PiTitlebarExtensionService', () => {
   it.skipIf(process.platform === 'win32')(
     'safely handles a pre-existing stale overlay with dangling symlinks',
     () => {
-      // Why: simulate an overlay that was left behind by a prior Orca session,
+      // Why: simulate an overlay that was left behind by a prior DevCrew session,
       // where the original Pi home it mirrored has since moved. The teardown
       // should unlink the dangling symlinks in place without trying to follow them.
       const legacyOverlayDir = legacyOverlayPath('pi', 'pty-4')

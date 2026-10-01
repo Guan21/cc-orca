@@ -86,7 +86,7 @@ describe('emitBrowserCookieImportToast', () => {
 
     const message = warningToastMock.mock.calls[0]?.[0]
     expect(message).toBe(
-      "Orca cannot decrypt 3 of this browser's cookies because they use app-bound encryption. You can import cookies from a file using “From File…”."
+      "DevCrew cannot decrypt 3 of this browser's cookies because they use app-bound encryption. You can import cookies from a file using “From File…”."
     )
     expect(message).not.toContain('export')
   })

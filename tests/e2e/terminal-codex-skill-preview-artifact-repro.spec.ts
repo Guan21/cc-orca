@@ -140,7 +140,7 @@ async function addRealOrcaRepo(page: Page, repoPath: string): Promise<string> {
       (candidate) => candidate.path === repoPath
     )
     if (!worktree) {
-      throw new Error(`Real Orca worktree did not load: ${repoPath}`)
+      throw new Error(`Real DevCrew worktree did not load: ${repoPath}`)
     }
 
     nextState.updateSettings({
@@ -220,7 +220,7 @@ async function createWorkspaceThroughComposer(page: Page, workspaceName: string)
   await expect
     .poll(() => getActiveWorktreeId(page), {
       timeout: 30_000,
-      message: 'Created real Orca workspace did not become active'
+      message: 'Created real DevCrew workspace did not become active'
     })
     .toBe(createdId)
   expect(createdId).not.toBe(previousWorktreeId)

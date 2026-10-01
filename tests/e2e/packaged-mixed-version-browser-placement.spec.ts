@@ -388,7 +388,7 @@ const packagedExecutable = process.env[PACKAGED_EXECUTABLE_ENV]
 test.describe('packaged mixed-version browser placement', () => {
   test.skip(
     !packagedExecutable || !existsSync(packagedExecutable),
-    `${PACKAGED_EXECUTABLE_ENV} must point at an older packaged Orca executable`
+    `${PACKAGED_EXECUTABLE_ENV} must point at an older packaged DevCrew executable`
   )
 
   test('keeps an old packaged client on the current server-hosted path', async ({

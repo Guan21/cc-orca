@@ -210,7 +210,7 @@ describe('LocalPtyProvider', () => {
     it.each([
       // fish EXPORTS fish_history, so an Orca launched from a fish pane hands every
       // pane the LAUNCHING worktree's session — even with isolation off (STA-4682).
-      ['an inherited Orca session', 'orca_abc123', undefined],
+      ['an inherited DevCrew session', 'orca_abc123', undefined],
       ['a user value', 'mine', 'mine']
     ])('history isolation off: %s', async (_kind, inherited, expected) => {
       const previous = process.env.fish_history

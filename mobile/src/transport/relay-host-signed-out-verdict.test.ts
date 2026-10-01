@@ -22,7 +22,7 @@ import { MobileRelayE2eeLink, RelayOuterError } from './mobile-relay-e2ee-link'
 import { LogicalClientConnectionPath } from './logical-client-connection-path'
 import { RelayReconnectController } from './mobile-relay-reconnect-controller'
 
-const SIGNED_OUT_LABEL = 'Desktop signed out — sign in to Orca on your desktop to reconnect'
+const SIGNED_OUT_LABEL = 'Desktop signed out — sign in to DevCrew on your desktop to reconnect'
 
 class FakeSocket {
   static readonly OPEN = 1

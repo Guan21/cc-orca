@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { CliInstallStatus } from '../../../../shared/cli-install-types'
 import { readCliInstallFailure, readCliInstallRejection } from './cli-install-failure'
 
-const FALLBACK = 'Orca could not finish CLI registration and reported no reason.'
+const FALLBACK = 'DevCrew could not finish CLI registration and reported no reason.'
 
 function cliStatus(overrides: Partial<CliInstallStatus> = {}): CliInstallStatus {
   return {
@@ -79,7 +79,7 @@ describe('readCliInstallRejection', () => {
       )
     ).toEqual({
       reason:
-        'Refusing to replace non-Orca command at /usr/local/bin/orca. ' +
+        'Refusing to replace non-DevCrew command at /usr/local/bin/orca. ' +
         'Remove it and register again if it is no longer needed.',
       conflictCommandPath: null
     })

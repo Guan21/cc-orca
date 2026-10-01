@@ -139,7 +139,7 @@ describe('GeneralPane search entries', () => {
 
     expect(cliEntry?.title).toContain('DevCrew')
     expect(cliEntry?.description).toContain('orca')
-    expect(cliEntry?.description).not.toContain('Orca CLI')
+    expect(cliEntry?.description).not.toContain('DevCrew CLI')
     expect(skillEntry?.description).toContain('DevCrew')
     expect(skillEntry?.description).toContain('orca')
   })

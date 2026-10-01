@@ -30,7 +30,7 @@ function decodePowerShellCommand(command: string): string {
   return Buffer.from(encoded, 'base64').toString('utf16le')
 }
 
-describe('SSH remote Orca CLI launcher', () => {
+describe('SSH remote DevCrew CLI launcher', () => {
   function windowsInstallPlan(): ReturnType<typeof createRemoteCliInstallPlan> {
     return createRemoteCliInstallPlan({
       binDir: 'C:/Users/me user/.orca-relay/bin',

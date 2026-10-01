@@ -22,7 +22,7 @@ export function renderOrcaAccountSettingsSection(
       title={translate('auto.components.settings.orcaAccount.title', 'Orca Account')}
       description={translate(
         'auto.components.settings.orcaAccount.description',
-        'Share work instantly and reach your desktop from Orca Mobile wherever you are.'
+        'Share work instantly and reach your desktop from DevCrew Mobile wherever you are.'
       )}
       searchEntries={navigation.getSectionSearchEntries('orca-account')}
     >

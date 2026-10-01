@@ -126,7 +126,7 @@ describe('openHttpLink', () => {
     expect(openUrlMock).not.toHaveBeenCalled()
   })
 
-  it('does not force a remote link into the Orca browser', () => {
+  it('does not force a remote link into the DevCrew browser', () => {
     storeState.settings = { openLinksInApp: false }
 
     openHttpLink('https://example.com/', {
@@ -575,7 +575,7 @@ describe('openHttpLink', () => {
 })
 
 describe('openHttpLink modifier routing', () => {
-  it('forces the system browser when inverting is off and links open in Orca', () => {
+  it('forces the system browser when inverting is off and links open in DevCrew', () => {
     storeState.settings = { openLinksInApp: true, openLinksInAppModifierInverts: false }
 
     openHttpLink('https://example.com/', { worktreeId: 'wt-1', modifierHeld: true })
@@ -595,7 +595,7 @@ describe('openHttpLink modifier routing', () => {
     expect(createBrowserTabMock).not.toHaveBeenCalled()
   })
 
-  it('opens in Orca when inverting is on and links open externally', () => {
+  it('opens in DevCrew when inverting is on and links open externally', () => {
     storeState.settings = { openLinksInApp: false, openLinksInAppModifierInverts: true }
 
     openHttpLink('https://example.com/', { worktreeId: 'wt-1', modifierHeld: true })
@@ -607,7 +607,7 @@ describe('openHttpLink modifier routing', () => {
     expect(openUrlMock).not.toHaveBeenCalled()
   })
 
-  it('opens in the system browser when inverting is on and links open in Orca', () => {
+  it('opens in the system browser when inverting is on and links open in DevCrew', () => {
     storeState.settings = { openLinksInApp: true, openLinksInAppModifierInverts: true }
 
     openHttpLink('https://example.com/', { worktreeId: 'wt-1', modifierHeld: true })

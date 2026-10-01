@@ -583,7 +583,7 @@ module.exports = {
     // default. .mdx is deliberately absent: Ubuntu 24.04's mime database maps it to
     // application/x-genesis-32x-rom, so claiming it here would need a glob override.
     mimeTypes: ['text/markdown'],
-    // Why: Ubuntu desktop ships GNOME DevCrew as the `orca` package and /usr/bin/orca.
+    // Why: Ubuntu desktop ships GNOME Orca as the `orca` package and /usr/bin/orca.
     // The Linux installer should not claim those system package/file names.
     executableName: 'orca-ide',
     // Why: the icns source lets electron-builder emit standard hicolor PNG

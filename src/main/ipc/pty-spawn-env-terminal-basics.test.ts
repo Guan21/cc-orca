@@ -58,7 +58,7 @@ describe('registerPtyHandlers', () => {
   const { handlers, mainWindow, spawnAndGetEnv, withBundledCli } = setupPtyIpcSuite()
 
   describe('spawn environment', () => {
-    it('routes headless browser launches through the owning Orca workspace', () => {
+    it('routes headless browser launches through the owning DevCrew workspace', () => {
       const inheritedBrowser = process.env.BROWSER
       delete process.env.BROWSER
       try {

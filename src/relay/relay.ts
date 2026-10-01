@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Orca Relay — remote-host daemon and reconnect bridge entry point.
+// DevCrew Relay — remote-host daemon and reconnect bridge entry point.
 
 import { parseRelayLaunchOptions, readRelayEndpointCredential } from './relay-launch-options'
 import { runRelayConnectChannel } from './relay-connect-channel'
