@@ -1,4 +1,4 @@
-// Per-step copy for the workbench tile in the Explore Orca modal. Mirrors
+// Per-step copy for the workbench tile in the Explore DevCrew modal. Mirrors
 // agents-orchestration-steps.ts so the rail / body code can render both the
 // same way.
 
@@ -32,7 +32,7 @@ export const WORKBENCH_STEPS: readonly WorkbenchStep[] = [
     name: 'Browser',
     subtitle: 'Browser',
     description:
-      "Run your app in Orca's browser, send selected UI elements to agents, and let your agents interact with your webpage."
+      "Run your app in DevCrew's browser, send selected UI elements to agents, and let your agents interact with your webpage."
   }
 ] as const
 

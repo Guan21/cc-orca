@@ -26,6 +26,21 @@ describe('corporate branding audit', () => {
     ])
   })
 
+  it('rejects possessive browser branding in product-facing text', () => {
+    expect(
+      auditCorporateBrandingText({
+        relativePath: 'src/shared/workbench-steps.ts',
+        text: `"Run your app in Orca's browser."`
+      })
+    ).toEqual([
+      {
+        line: 1,
+        match: "Orca's browser",
+        relativePath: 'src/shared/workbench-steps.ts'
+      }
+    ])
+  })
+
   it('rejects stale translated app-shell branding keys', () => {
     expect(
       auditCorporateBrandingLocaleText({

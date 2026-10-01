@@ -63,12 +63,12 @@ test.describe('Feature tour modal', () => {
     await rail.getByRole('button', { name: /Browser/i }).click()
     await expect(
       orcaPage.getByText(
-        "Run your app in Orca's browser, send selected UI elements to agents, and let your agents interact with your webpage."
+        "Run your app in DevCrew's browser, send selected UI elements to agents, and let your agents interact with your webpage."
       )
     ).toBeVisible()
     await expect(orcaPage.getByRole('heading', { name: 'Browser Use skill' })).toBeVisible()
     await expect(
-      orcaPage.getByText("Enables agents to navigate and verify pages in Orca's browser.")
+      orcaPage.getByText("Enables agents to navigate and verify pages in DevCrew's browser.")
     ).toBeVisible()
     await expect(orcaPage.getByRole('heading', { name: 'CLI skill' })).toHaveCount(0)
     await expect(orcaPage.getByText('With the DevCrew CLI skill', { exact: false })).toHaveCount(0)

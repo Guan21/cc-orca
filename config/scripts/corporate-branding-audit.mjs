@@ -12,7 +12,8 @@ export const CORPORATE_BRANDING_AUDIT_TARGETS = [
   'src/main/ipc/notification-permission-probe.ts',
   'src/main/ipc/startup-notification-registration.ts',
   'src/main/startup/gpu-lifecycle.ts',
-  'src/renderer/src/app-shell/TitlebarLeftControls.tsx'
+  'src/renderer/src/app-shell/TitlebarLeftControls.tsx',
+  'src/shared/workbench-steps.ts'
 ]
 
 export const CORPORATE_BRANDING_LOCALE_TARGETS = CORPORATE_BRANDING_CATALOG_TARGETS
@@ -24,6 +25,7 @@ const FORBIDDEN_BRANDING_PATTERNS = [
   /\bOrca Mobile\b/g,
   /\b(?:Open|Explore|Quit|About|Welcome to|Getting Started with|Show|Sign in to|Update|Install|Retry|Relaunch|Restart|Close|Connect to|Control|Allow notifications so|This is a test notification from)\s+Orca\b/g,
   /\bOrca\s+(?:notifications|is ready|is still running|allows|will alert|browser|Browser|CLI|server|Relay|Account|surface|app|desktop|window)\b/g,
+  /\bOrca's\s+(?:browser|Browser)\b/g,
   /\bOrca\b/g
 ]
 
