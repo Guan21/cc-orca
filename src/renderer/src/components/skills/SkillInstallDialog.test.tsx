@@ -590,7 +590,7 @@ describe('SkillInstallDialog', () => {
   it('surfaces capability loss after preview selection without attempting installation', async () => {
     const previewInstall = vi.fn().mockResolvedValue({
       status: 'unsupported',
-      message: 'Update the selected Orca host to install shared skills.'
+      message: 'Update the selected DevCrew host to install shared skills.'
     })
     const skills = installApi(previewInstall)
     Object.defineProperty(window, 'api', { configurable: true, value: { skills } })
@@ -600,7 +600,7 @@ describe('SkillInstallDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Install skill' }))
 
     expect((await screen.findByRole('alert')).textContent).toContain(
-      'Update the selected Orca host'
+      'Update the selected DevCrew host'
     )
     expect(skills.installShare).not.toHaveBeenCalled()
   })

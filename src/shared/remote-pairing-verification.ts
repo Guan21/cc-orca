@@ -100,7 +100,7 @@ export function verifyRemotePairingRuntimeStatus(
       message:
         compatibility.reason === 'client-too-old'
           ? 'Update this Orca client before adding the remote host.'
-          : 'Update Orca on the remote host before adding it.'
+          : 'Update DevCrew on the remote host before adding it.'
     }
   }
   if (!hasValidRuntimeStatusShape(status)) {

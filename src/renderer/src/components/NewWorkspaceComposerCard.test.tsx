@@ -793,7 +793,7 @@ describe('NewWorkspaceComposerCard folder task source mode', () => {
     expect(findRunTargetItem('Add Remote Orca Server')).toBeTruthy()
   })
 
-  it('opens the remote Orca server add dialog over the composer without leaving for Settings', () => {
+  it('opens the remote DevCrew server add dialog over the composer without leaving for Settings', () => {
     current = renderCard({
       projectHostSetupOptions: [localReadyHostOption, devboxNeedsSetupHostOption],
       selectedProjectHostSetupId: 'setup-local'

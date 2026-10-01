@@ -77,7 +77,7 @@ describe('getStatusBarToggles', () => {
     const sshToggle = getStatusBarToggles().find((entry) => entry.id === 'ssh')
 
     expect(sshToggle?.toggleDescription).toBe(
-      'Show configured SSH and remote Orca hosts when any are available.'
+      'Show configured SSH and remote DevCrew hosts when any are available.'
     )
   })
 })

@@ -326,7 +326,7 @@ describe('execution host registry', () => {
       settings: { activeRuntimeEnvironmentId: null }
     })
 
-    // No live status means no evidence the Orca server is reachable, so it must
+    // No live status means no evidence the DevCrew server is reachable, so it must
     // read 'disconnected' rather than defaulting to 'available'/"Connected".
     expect(hosts).toMatchObject([
       { id: 'local', health: 'local' },
