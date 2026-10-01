@@ -114,24 +114,26 @@ jobs:
           set -euo pipefail
           mkdir -p build-artifacts build-evidence
 
-          mapfile -t installers < <(find dist -type f \( -name '*.dmg' -o -name '*.zip' -o -name '*.pkg' \) | sort)
-          if [[ "${#installers[@]}" -eq 0 ]]; then
+          installers_file="build-evidence/macos-installers.txt"
+          find dist -type f \( -name '*.dmg' -o -name '*.zip' -o -name '*.pkg' \) | sort > "$installers_file"
+          if [[ ! -s "$installers_file" ]]; then
             echo "::error::No macOS installer artifacts were produced"
             exit 1
           fi
 
           : > build-evidence/sha256.txt
-          for installer in "${installers[@]}"; do
+          while IFS= read -r installer; do
+            [[ -n "$installer" ]] || continue
             cp "$installer" build-artifacts/
             shasum -a 256 "$installer" | tee -a build-evidence/sha256.txt
-          done
+          done < "$installers_file"
 
           {
             echo "Product branch: $PRODUCT_BRANCH"
             echo "Product SHA: $PRODUCT_SHA"
             echo
             echo "Collected installers:"
-            printf '%s\n' "${installers[@]}"
+            cat "$installers_file"
           } | tee build-evidence/source-sha.txt
 
           {
@@ -172,7 +174,9 @@ jobs:
           icon_count="$(find resources -type f \( -iname '*icon*' -o -iname '*.icns' -o -iname '*.ico' \) | wc -l | tr -d ' ')"
           {
             echo "Icon files observed: $icon_count"
-            find resources -type f \( -iname '*icon*' -o -iname '*.icns' -o -iname '*.ico' \) -print0 | sort -z | xargs -0 shasum -a 256
+            find resources -type f \( -iname '*icon*' -o -iname '*.icns' -o -iname '*.ico' \) | sort | while IFS= read -r icon_file; do
+              shasum -a 256 "$icon_file"
+            done
           } | tee build-evidence/icon-source-hashes.txt
 
           echo "x64_dmg=$x64_dmg" >>"$GITHUB_OUTPUT"
