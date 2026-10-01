@@ -126,7 +126,7 @@ describe('Codex blocking server request dispositions', () => {
     expect(connection.respondWithError).toHaveBeenCalledWith(
       5,
       -32000,
-      'Orca rejected unrecognized blocking request future/blockingRequest'
+      'DevCrew rejected unrecognized blocking request future/blockingRequest'
     )
   })
 })

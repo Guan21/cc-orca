@@ -21,6 +21,14 @@ const execFileAsync = promisify(execFile)
 const itRunsUnixShell = process.platform === 'win32' ? it.skip : it
 const itRunsBash = spawnSync('bash', ['--version'], { stdio: 'ignore' }).status === 0 ? it : it.skip
 const unixTerminationSignals = ['SIGINT', 'SIGTERM'] as const
+
+function toBashPath(path: string): string {
+  if (process.platform !== 'win32') {
+    return path
+  }
+  const result = spawnSync('bash', ['-lc', 'cygpath -u "$1"', 'bash', path], { encoding: 'utf8' })
+  return result.status === 0 ? result.stdout.trim() : path
+}
 const builderConfig = require('../../../config/electron-builder.config.cjs') as {
   files?: string[]
   asarUnpack?: string[]
@@ -314,8 +322,8 @@ printf 'arg=%s\\n' "$@"
           { encoding: 'utf8', mode: 0o755 }
         )
 
-        const expectedElectronPath = await realpath(electronPath)
-        const expectedCliPath = await realpath(cliPath)
+        const expectedElectronPath = toBashPath(await realpath(electronPath))
+        const expectedCliPath = toBashPath(await realpath(cliPath))
 
         const result = await execFileAsync('bash', [launcherPath, '--version'])
         expect(result.stdout).toContain(`electron=${expectedElectronPath}`)

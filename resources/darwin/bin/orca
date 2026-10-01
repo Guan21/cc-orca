@@ -23,7 +23,7 @@ CONTENTS="$APP_PATH/Contents"
 function read_bundle_executable() {
 	PLIST="$CONTENTS/Info.plist"
 	if [ ! -r "$PLIST" ]; then
-		echo "Unable to determine Orca executable: missing bundle metadata at $PLIST" >&2
+		echo "Unable to determine DevCrew executable: missing bundle metadata at $PLIST" >&2
 		return 1
 	fi
 
@@ -58,7 +58,7 @@ function read_bundle_executable() {
 	fi
 
 	if [ -z "$EXECUTABLE_NAME" ]; then
-		echo "Unable to determine Orca executable: CFBundleExecutable is missing from $PLIST" >&2
+		echo "Unable to determine DevCrew executable: CFBundleExecutable is missing from $PLIST" >&2
 		return 1
 	fi
 	printf '%s\n' "$EXECUTABLE_NAME"
@@ -69,7 +69,7 @@ if ! EXECUTABLE_NAME="$(read_bundle_executable)"; then
 fi
 ELECTRON="$CONTENTS/MacOS/$EXECUTABLE_NAME"
 if [ ! -x "$ELECTRON" ]; then
-	echo "Unable to launch Orca CLI: expected Electron executable from CFBundleExecutable at $ELECTRON" >&2
+	echo "Unable to launch DevCrew CLI: expected Electron executable from CFBundleExecutable at $ELECTRON" >&2
 	exit 1
 fi
 # Why: Orca packages the CLI entrypoint outside app.asar so the public shell

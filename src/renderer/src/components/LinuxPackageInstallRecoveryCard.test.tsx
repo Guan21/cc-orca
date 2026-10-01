@@ -17,7 +17,7 @@ const SUMMARY =
   'DevCrew downloaded the system package. Quit DevCrew before finishing the update from a terminal.'
 const COPIED_NOTE =
   `Command copied. Quit DevCrew, run it in a system terminal to install ${PACKAGE_FILE_NAME}, ` +
-  'then reopen Orca.'
+  'then reopen DevCrew.'
 const INSTRUCTIONS = {
   ok: true as const,
   command: INSTALL_COMMAND,
@@ -149,7 +149,7 @@ describe('LinuxPackageInstallRecoveryCard copy', () => {
     expect(screen.getByText('Manual Install Required')).toBeTruthy()
     expect(screen.getByText(SUMMARY)).toBeTruthy()
     expect(
-      screen.getByText(/a system terminal on the computer where Orca is installed/)
+      screen.getByText(/a system terminal on the computer where DevCrew is installed/)
     ).toBeTruthy()
     expect(screen.getByText(/Copy the command, quit DevCrew/)).toBeTruthy()
 

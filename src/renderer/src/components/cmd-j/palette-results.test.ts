@@ -95,8 +95,8 @@ const sections: SettingsNavSection[] = [
       {
         title: 'DevCrew CLI',
         description: 'Register or remove the orca shell command.',
-        keywords: ['cli', 'path', 'terminal', 'command', 'shell command'],
-        cmdJKeywords: ['cli', 'path', 'command', 'shell command'],
+        keywords: ['cli', 'path', 'terminal', 'command', 'shell command', 'orca', 'orca cli'],
+        cmdJKeywords: ['cli', 'path', 'command', 'shell command', 'orca', 'orca cli'],
         targetSectionId: 'cli'
       }
     ],
@@ -276,7 +276,7 @@ describe('Cmd+J palette middle-band ranking', () => {
       {
         id: 'linear',
         title: 'Linear',
-        description: 'How Linear works in Orca.',
+        description: 'How Linear works in DevCrew.',
         icon: Settings,
         searchEntries: [],
         group: 'capabilities'
