@@ -238,8 +238,8 @@ describe('OnboardingFlow', () => {
     })
 
     expect(html).toContain('DevCrew')
+    expect(html).toContain('Welcome to DevCrew')
     expect(html).toContain('Claude Code and Codex')
-    expect(html).not.toContain('Welcome to DevCrew')
     expect(html).not.toContain('Orca works with every CLI agent')
   })
 

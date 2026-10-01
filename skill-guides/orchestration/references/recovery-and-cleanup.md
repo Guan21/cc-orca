@@ -75,7 +75,7 @@ remote terminal handle.
 
 When a mutation's response was lost and named no Dispatch, do not replay blind.
 Every orchestration mutation accepts `--retry-request <id>`, which reuses one
-operation identity so Orca can replay, join, or recover it instead of starting a
+operation identity so DevCrew can replay, join, or recover it instead of starting a
 duplicate. Ask what happened first:
 
 ```text
