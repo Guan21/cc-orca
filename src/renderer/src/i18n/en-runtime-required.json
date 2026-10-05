@@ -69,7 +69,6 @@
       },
       "Landing": {
         "16e9e3df89": "starred",
-        "520304a067": "DevCrew logo",
         "ce44fad849": "Missing dependencies",
         "f05d237049": "Add a project first"
       },
@@ -209,6 +208,9 @@
         },
         "ActivityScopeFilterControls": {
           "hiddenCount": "{{value0}} hidden"
+        },
+        "ActivityTitlebarControls": {
+          "f915168c8e": "unread"
         }
       },
       "artifacts": {
@@ -626,7 +628,6 @@
                 "button": "Open in app",
                 "note": "The app browser can use imported cookies for logged-in sites."
               },
-              "description": "Use DevCrew's browser for terminal links, or keep your system browser.",
               "keep": {
                 "app": {
                   "button": "Keep in app"
@@ -732,6 +733,38 @@
               }
             }
           }
+        }
+      },
+      "projectPulse": {
+        "item": {
+          "agentCompleted": "{{value0}} completed",
+          "agentCompletedSummary": "Agent {{value0}} completed work.",
+          "agentFailed": "{{value0}} failed",
+          "agentFailedSummary": "Agent {{value0}} failed.",
+          "agentStarted": "{{value0}} started",
+          "agentStartedSummary": "Agent {{value0}} started work.",
+          "commitCreated": "Commit {{value0}} created",
+          "commitCreatedSummary": "Commit created.",
+          "completedTask": "Completed task",
+          "completedTaskWithId": "Completed {{value0}}",
+          "fileChangeSummary": "{{value0}} file.",
+          "fileChanged": "{{value0}} changed",
+          "fileRenamedFrom": "Renamed from {{value0}}.",
+          "prCreated": "{{value0}} created",
+          "prCreatedSummary": "{{value0}} pull request created.",
+          "reviewCompleted": "Review completed for {{value0}}",
+          "reviewCompletedSummary": "{{value0}} review completed.",
+          "reviewRequested": "Review requested for {{value0}}",
+          "reviewRequestedSummary": "{{value0}} review requested.",
+          "startedTask": "Started task",
+          "startedTaskWithId": "Started {{value0}}",
+          "taskCompleted": "Task completed.",
+          "taskWorkStarted": "Task work started.",
+          "testCountSummary": "{{value0}} passed, {{value1}} failed",
+          "testRunCompletedSummary": "Test run completed.",
+          "testsFailed": "Tests failed",
+          "testsPassed": "Tests passed",
+          "testsSkipped": "Tests skipped"
         }
       },
       "right": {
@@ -1156,13 +1189,11 @@
           "42554f615f": "Choose the font used by the DevCrew interface.",
           "4de76f6902": "Control what appears in the application titlebar.",
           "5db6ba961f": "Show the DevCrew Mobile button at the top of the left sidebar.",
-          "61d842eca0": "Show the DevCrew Mobile shortcut in the sidebar. It remains available from Toolbox.",
           "622e1c3465": "Scale the entire application interface.",
           "661942ab7f": "Show the Tasks button at the top of the left sidebar.",
           "6a272ca553": "Titlebar",
           "75f07ab60c": "Show files matched by .gitignore in the file explorer.",
           "872af9556e": "System Tray",
-          "9da1020447": "Show DevCrew Mobile Button",
           "e9f2ca5582": "Turn off to hide files matched by .gitignore from the file explorer.",
           "ea943d0db0": "Choose which indicators appear at the bottom of the window. You can also right-click the status bar for the same toggles.",
           "f687711a9b": "Scale the entire application interface. Use",
@@ -1206,7 +1237,6 @@
           "8a9b784c60": "stale",
           "8d96213669": "remove",
           "a030816e3e": "This removes the shell command symlink. DevCrew itself remains installed.",
-          "c5c0f2641d": "DevCrew CLI",
           "cliSkillCorporateDescription": "Enables agents to use {{productName}} workspace, terminal, and progress commands.",
           "cliSkillTerminalAria": "CLI skill install terminal",
           "cliSkillTerminalTitle": "CLI skill setup",
@@ -1664,9 +1694,7 @@
         "appearance": {
           "search": {
             "0709c794f7": "Choose how DevCrew looks in the app window.",
-            "07c7c38fac": "Choose the font used by the DevCrew interface.",
-            "1de96ec8a6": "Show DevCrew Mobile Button",
-            "682293cadf": "Show the DevCrew Mobile button at the top of the left sidebar."
+            "07c7c38fac": "Choose the font used by the DevCrew interface."
           }
         },
         "artifacts": {
@@ -1730,9 +1758,7 @@
         },
         "general": {
           "search": {
-            "244e3fb4c8": "Install the DevCrew skill so agents know to use the DevCrew CLI.",
             "27d9b996ba": "codex",
-            "327e3fa70d": "DevCrew CLI",
             "3c30fe2d51": "gemini",
             "41c2f9a025": "default",
             "5baf51c4d9": "open claude",
@@ -1747,7 +1773,6 @@
             "aea7d2cccb": "openclaude",
             "c29f23ab57": "HTTP Proxy",
             "c61b14be7c": "grok",
-            "ca529079bf": "Register or remove the DevCrew CLI command.",
             "db11502270": "Default Agent",
             "e2da948f59": "Pre-select an AI coding agent in the new-workspace composer.",
             "e3b1d42f95": "Proxy URL for DevCrew network requests and local terminal children.",
@@ -1800,7 +1825,6 @@
           }
         },
         "orcaAccount": {
-          "description": "Share work instantly and reach your desktop from DevCrew Mobile wherever you are.",
           "title": "DevCrew Account"
         },
         "providerAccountScope": {
@@ -2562,9 +2586,6 @@
           "MobileDriverOverlay": {
             "3eed73394f": "Your keyboard is paused"
           },
-          "TerminalLinkActionPopover": {
-            "orcaBrowser": "DevCrew Browser"
-          },
           "TerminalRemoteRuntimeReconnectBanner": {
             "retryingBody": "DevCrew will retry for up to one minute. This terminal will resume if the connection returns."
           },
@@ -2686,12 +2707,6 @@
         "skill": {
           "cli": {
             "prerequisite": {
-              "0f116999f1": "Restart your shell or add the DevCrew CLI directory to PATH before setup.",
-              "15cbedc3e3": "Install the DevCrew CLI before running agent skill setup.",
-              "2db0bd7515": "DevCrew CLI registration is unavailable",
-              "79371593b0": "DevCrew CLI is not visible on PATH yet",
-              "8d6eedf97e": "Failed to register the DevCrew CLI in PATH.",
-              "e99d7dc36f": "DevCrew CLI registration needs attention",
               "windowsPathUnknown": "DevCrew could not check your Windows user PATH"
             }
           }
@@ -2705,9 +2720,6 @@
             }
           }
         }
-      },
-      "remotePairingCopy": {
-        "invalidInput": "Enter a DevCrew access link or bare pairing code."
       },
       "terminal": {
         "shortcut": {
@@ -2750,11 +2762,6 @@
           "f4503ca505": "Open Settings > Git and try again.",
           "fa9299a66f": "Your new worktree is current, but local {{value0}} is {{value1}} {{value2}} behind. AI diffs may miss recent commits."
         }
-      }
-    },
-    "web": {
-      "WebConnect": {
-        "3affe7de3a": "Paste a pairing URL from a DevCrew server that this browser can reach."
       }
     }
   },
