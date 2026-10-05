@@ -1,5 +1,19 @@
 [
   {
+    "filePath": "src/renderer/src/components/project-pulse/project-pulse-demo-events.ts",
+    "kind": "object-property:title",
+    "text": "Build Project Pulse timeline MVP",
+    "dynamic": false,
+    "count": 3
+  },
+  {
+    "filePath": "src/renderer/src/components/project-pulse/project-pulse-demo-events.ts",
+    "kind": "object-property:message",
+    "text": "Add Project Pulse timeline MVP",
+    "dynamic": false,
+    "count": 1
+  },
+  {
     "filePath": "src/renderer/src/components/automations/automations-page-fixtures.ts",
     "kind": "object-property:title",
     "text": "Nightly #1",

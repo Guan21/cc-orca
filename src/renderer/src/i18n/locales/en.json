@@ -5325,7 +5325,8 @@
           "fee535205b": "Tasks",
           "d599269755": "Hide from sidebar",
           "artifacts": "Artifacts",
-          "skills": "Skills"
+          "skills": "Skills",
+          "projectPulse": "Project Pulse"
         },
         "SidebarRepositoryFilterSection": {
           "d3a9c4cea1": "Clear",
@@ -16336,8 +16337,8 @@
         },
         "ActivityTitlebarControls": {
           "f915168c8e": "unread",
-          "d6a8de3934": "agents",
-          "dc708f3eff": "Close agents"
+          "d6a8de3934": "DevCrew Pulse",
+          "dc708f3eff": "Close DevCrew Pulse"
         },
         "ActivityScopeFilterControls": {
           "hiddenCount": "{{value0}} hidden",
@@ -16957,6 +16958,69 @@
       "HostedReviewUnlinkMenuItem": {
         "label": "Unlink {{value0}} from workspace",
         "description": "DevCrew will hide {{value0}} {{value1}} details for this workspace. The {{value0}} and branch on {{value2}} won’t be changed."
+      },
+      "projectPulse": {
+        "item": {
+          "startedTaskWithId": "Started {{value0}}",
+          "startedTask": "Started task",
+          "taskWorkStarted": "Task work started.",
+          "completedTaskWithId": "Completed {{value0}}",
+          "completedTask": "Completed task",
+          "taskCompleted": "Task completed.",
+          "agentStarted": "{{value0}} started",
+          "agentStartedSummary": "Agent {{value0}} started work.",
+          "agentCompleted": "{{value0}} completed",
+          "agentCompletedSummary": "Agent {{value0}} completed work.",
+          "agentFailed": "{{value0}} failed",
+          "agentFailedSummary": "Agent {{value0}} failed.",
+          "fileChanged": "{{value0}} changed",
+          "fileRenamedFrom": "Renamed from {{value0}}.",
+          "fileChangeSummary": "{{value0}} file.",
+          "commitCreated": "Commit {{value0}} created",
+          "commitCreatedSummary": "Commit created.",
+          "prCreated": "{{value0}} created",
+          "prCreatedSummary": "{{value0}} pull request created.",
+          "reviewRequested": "Review requested for {{value0}}",
+          "reviewRequestedSummary": "{{value0}} review requested.",
+          "reviewCompleted": "Review completed for {{value0}}",
+          "reviewCompletedSummary": "{{value0}} review completed.",
+          "testCountSummary": "{{value0}} passed, {{value1}} failed",
+          "testRunCompletedSummary": "Test run completed.",
+          "testsFailed": "Tests failed",
+          "testsSkipped": "Tests skipped",
+          "testsPassed": "Tests passed"
+        },
+        "page": {
+          "allActivity": "All activity",
+          "tasks": "Tasks",
+          "agents": "Agents",
+          "files": "Files",
+          "commits": "Commits",
+          "pullRequests": "Pull requests",
+          "reviews": "Reviews",
+          "tests": "Tests",
+          "allTime": "All time",
+          "last24h": "Last 24h",
+          "last7d": "Last 7d",
+          "activeTasks": "Active tasks",
+          "activeAgents": "Active agents",
+          "pendingReviews": "Pending reviews",
+          "recentFailures": "Recent failures",
+          "completedTasks": "Completed tasks",
+          "filterByCategory": "Filter by category",
+          "filterByActor": "Filter by actor",
+          "allActors": "All actors",
+          "filterByTask": "Filter by task",
+          "allTasks": "All tasks",
+          "filterByTime": "Filter by time",
+          "noRecentActivity": "No recent DevCrew activity",
+          "emptyTimelineHint": "Change the filters or connect producer integrations in a follow-up.",
+          "loadingActivity": "Loading DevCrew activity",
+          "activityUnavailable": "DevCrew activity is unavailable",
+          "fixtureLoadError": "The activity fixture collection could not be loaded.",
+          "title": "DevCrew Project Pulse",
+          "subtitle": "Recent project activity projected from DevelopmentEvent v1."
+        }
       }
     },
     "i18n": {
