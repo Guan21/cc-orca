@@ -87,12 +87,12 @@ describe('CliSection project runtime defaults', () => {
       <CliSection currentPlatform="darwin" settings={getDefaultSettings('/tmp')} />
     )
 
-    expect(markup).toContain('Secure Orca Lite CLI')
+    expect(markup).toContain('DevCrew CLI')
     expect(markup).toContain('Use the `orca` command')
-    expect(markup).toContain('Secure Orca Lite-aware')
-    expect(markup).not.toContain('Use Orca from your terminal')
+    expect(markup).toContain('DevCrew-aware')
+    expect(markup).not.toContain('Use DevCrew from your terminal')
     expect(capturedPanel.props?.preInstallNotice).toBe(
-      'Before opening setup, Secure Orca Lite may show a system prompt to register the `orca` CLI command on PATH.'
+      'Before opening setup, DevCrew may show a system prompt to register the `orca` CLI command on PATH.'
     )
   })
 
@@ -101,10 +101,10 @@ describe('CliSection project runtime defaults', () => {
       <CliSection currentPlatform="darwin" settings={getDefaultSettings('/tmp')} />
     )
 
-    expect(markup).toContain('Orca CLI')
-    expect(markup).toContain('Use Orca from your terminal')
+    expect(markup).toContain('DevCrew CLI')
+    expect(markup).toContain('Use the `orca` command from your terminal')
     expect(capturedPanel.props?.preInstallNotice).toBe(
-      'Before opening setup, Orca may show a system prompt to register the Orca CLI command on PATH.'
+      'Before opening setup, DevCrew may show a system prompt to register the `orca` CLI command on PATH.'
     )
   })
 
@@ -186,16 +186,16 @@ describe('CliSection project runtime defaults', () => {
     const getInstallStatus = vi.fn().mockResolvedValue({
       platform: 'win32',
       commandName: 'orca',
-      commandPath: 'C:\\Program Files\\Orca\\resources\\bin\\orca.exe',
-      pathDirectory: 'C:\\Program Files\\Orca\\resources\\bin',
+      commandPath: 'C:\\Program Files\\DevCrew\\resources\\bin\\orca.exe',
+      pathDirectory: 'C:\\Program Files\\DevCrew\\resources\\bin',
       pathConfigured: null,
-      launcherPath: 'C:\\Program Files\\Orca\\resources\\bin\\orca.exe',
+      launcherPath: 'C:\\Program Files\\DevCrew\\resources\\bin\\orca.exe',
       installMethod: 'wrapper',
       supported: true,
       state: 'installed',
-      currentTarget: 'C:\\Program Files\\Orca\\resources\\bin\\orca.exe',
+      currentTarget: 'C:\\Program Files\\DevCrew\\resources\\bin\\orca.exe',
       unsupportedReason: null,
-      detail: 'Orca could not read the Windows user PATH registry value.'
+      detail: 'DevCrew could not read the Windows user PATH registry value.'
     })
     Object.assign(window, {
       api: {

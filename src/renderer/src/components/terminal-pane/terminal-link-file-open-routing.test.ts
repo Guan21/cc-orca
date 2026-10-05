@@ -49,7 +49,7 @@ vi.mock('@/lib/runtime-workspace-file-route', () => ({
 installTerminalLinkTestEnvironment(doubles)
 
 describe('handleOscLink', () => {
-  it('opens local .html file paths in Orca browser tabs with the platform modifier', async () => {
+  it('opens local .html file paths in DevCrew browser tabs with the platform modifier', async () => {
     setPlatform('Macintosh')
 
     openDetectedFilePath('/tmp/report.html', null, null, deps)
@@ -72,7 +72,7 @@ describe('handleOscLink', () => {
     })
   })
 
-  it('also opens local .htm paths in Orca browser tabs with the platform modifier', async () => {
+  it('also opens local .htm paths in DevCrew browser tabs with the platform modifier', async () => {
     setPlatform('Macintosh')
 
     openDetectedFilePath('/tmp/legacy.HTM', null, null, deps)

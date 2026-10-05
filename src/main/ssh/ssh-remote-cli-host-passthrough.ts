@@ -187,7 +187,7 @@ export async function runHostOrcaCliPassthrough(
   }
 
   if (!entryExists(cliEntryPath)) {
-    throw new HostCliUnavailableError(`Orca CLI entry not found at ${cliEntryPath}`)
+    throw new HostCliUnavailableError(`DevCrew CLI entry not found at ${cliEntryPath}`)
   }
 
   const env = buildHostCliEnv({
@@ -222,7 +222,7 @@ export async function runHostOrcaCliPassthrough(
       }
       resolve({
         stdout: stdout.toString(),
-        stderr: `${stderr.toString()}Orca CLI bridge timed out after ${killTimeoutMs}ms on the host.\n`,
+        stderr: `${stderr.toString()}DevCrew CLI bridge timed out after ${killTimeoutMs}ms on the host.\n`,
         exitCode: 1
       })
     }, killTimeoutMs)
@@ -238,7 +238,7 @@ export async function runHostOrcaCliPassthrough(
       // runnable at all — signal the caller to use the legacy fallback rather
       // than reporting a confusing per-command failure.
       reject(
-        new HostCliUnavailableError(`Failed to launch the Orca CLI on the host: ${err.message}`)
+        new HostCliUnavailableError(`Failed to launch the DevCrew CLI on the host: ${err.message}`)
       )
     })
 

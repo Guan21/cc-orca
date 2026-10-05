@@ -357,7 +357,9 @@ describe('ArtifactsPage', () => {
     resolveRefresh()
 
     await waitFor(() =>
-      expect(screen.queryByText('Sign in to Orca again to load artifacts.')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Sign in to DevCrew again to load artifacts.')
+      ).not.toBeInTheDocument()
     )
   })
 
@@ -397,7 +399,9 @@ describe('ArtifactsPage', () => {
     resolveRefresh()
 
     await waitFor(() =>
-      expect(screen.queryByText('Sign in to Orca again to load artifacts.')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Sign in to DevCrew again to load artifacts.')
+      ).not.toBeInTheDocument()
     )
   })
 

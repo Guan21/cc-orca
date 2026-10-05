@@ -21,6 +21,8 @@ describe('packaged Windows CLI launcher asset', () => {
     expect(source).toContain(
       'Environment.SetEnvironmentVariable("ORCA_WINDOWS_PACKAGED_CLI_LAUNCHER", "1");'
     )
+    expect(source).toContain('Path.Combine(appDirectory, "DevCrew.exe");')
+    expect(source).toContain('Path.Combine(appDirectory, "Orca.exe");')
     expect(source).toContain(
       'string requestedCliCommand = Environment.GetEnvironmentVariable("ORCA_CLI_COMMAND");'
     )

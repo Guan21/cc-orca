@@ -67,14 +67,18 @@ describe('headless serve shutdown PR gate', () => {
     expect(packageStep.run).toContain('--linux AppImage deb rpm --x64 --publish never')
     expect(markerStep.run).toContain('dpkg-deb --fsys-tarfile')
     expect(markerStep.run).toContain('rpm2cpio')
+    expect(markerStep.run).toContain('./opt/DevCrew/resources/package-type')
+    expect(markerStep.run).not.toContain('./opt/Orca/resources/package-type')
     expect(steps.indexOf(markerStep)).toBeGreaterThan(steps.indexOf(packageStep))
     expect(shutdownStep.run).toBe(
-      'node config/scripts/run-headless-serve-shutdown-docker.mjs --appimage dist/orca-linux.AppImage'
+      'node config/scripts/run-headless-serve-shutdown-docker.mjs --appimage dist/devcrew-linux.AppImage'
     )
     expect(launcherShutdownStep.run).toContain(
       'node config/scripts/run-headless-serve-shutdown-docker.mjs'
     )
+    expect(launcherShutdownStep.run).toContain('--appimage dist/devcrew-linux.AppImage')
     expect(launcherShutdownStep.run).toContain('--entrypoint launcher')
+    expect(appImageShutdownStep.run).toContain('--appimage dist/devcrew-linux.AppImage')
     expect(appImageShutdownStep.run).toContain('--entrypoint appimage')
     expect(appImageShutdownStep.run).toContain('--signal-target serving-electron')
     expect(appImageShutdownStep.run).toContain('--int-delivery pid')

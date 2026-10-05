@@ -74,7 +74,7 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
     draftPromptFlag: '--prefill'
   },
   'claude-agent-teams': {
-    // Why: an Orca-provided launch mode, not a separate binary; detection follows the Orca CLI.
+    // Why: an Orca-provided launch mode, not a separate binary; detection follows the DevCrew CLI.
     detectCmd: 'orca',
     detectCmdAliases: ['orca-dev', 'orca-ide'],
     // Why: require Claude too so fresh installs (Orca shim always present) don't report Agent Teams without an agent CLI.

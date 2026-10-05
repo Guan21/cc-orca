@@ -32,8 +32,8 @@ ORCA artifacts delete <id> --json
 ## Skill sharing
 
 Agents can publish one or more installed skills behind one unlisted link through the
-signed-in Orca account. The user must first grant the separate, default-off permission in
-Settings → Share Skills ("Allow agents and the Orca CLI to publish skill links"). There is
+signed-in DevCrew account. The user must first grant the separate, default-off permission in
+Settings → Share Skills ("Allow agents and the DevCrew CLI to publish skill links"). There is
 no CLI or RPC way to grant it. Manual publishing from the reviewed desktop flow remains
 available without this agent permission.
 
@@ -55,7 +55,7 @@ ORCA skills share --skill <selector> [--skill <selector> ...] --bundle-name <nam
   enable the switch in the desktop app if they want this action.
 - Orca stages one agent-published bundle at a time per host. If another publish is active,
   wait for it to finish before retrying `agent_skill_sharing_busy`.
-- Run the command in an Orca terminal on the machine that stores the skills. Forwarded WSL,
+- Run the command in a DevCrew terminal on the machine that stores the skills. Forwarded WSL,
   SSH, and paired-runtime invocations fail before discovery so Orca cannot read from the
   wrong filesystem.
 - The JSON result contains the unlisted URL and public share/package/version IDs. It never

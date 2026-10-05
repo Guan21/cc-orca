@@ -2,7 +2,7 @@
  * STA-2854 live validation: a HOST pane that cold-parks while a paired client
  * is actively viewing it must keep serving that client.
  *
- * Topology: headed Orca desktop host (remote server) + a separate paired Orca
+ * Topology: headed DevCrew desktop host (remote server) + a separate paired Orca
  * desktop client. The reported shape is the inverse of every existing paired
  * parking spec: those park on the CLIENT, this parks on the HOST while the
  * client watches. The host user never touches the tab again after parking it.

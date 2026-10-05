@@ -146,9 +146,9 @@ describe('GitPane', () => {
     const freshnessMarkup = renderGitPane('behind main')
     const renameMarkup = renderGitPane('')
 
-    expect(freshnessMarkup).toContain('Secure Orca Lite refreshes the remote base')
-    expect(freshnessMarkup).toContain('Secure Orca Lite skips the update')
-    expect(renameMarkup).toContain('Secure Orca Lite renames its auto-generated branch')
+    expect(freshnessMarkup).toContain('DevCrew refreshes the remote base')
+    expect(freshnessMarkup).toContain('DevCrew skips the update')
+    expect(renameMarkup).toContain('DevCrew renames its auto-generated branch')
     expect(renameMarkup).not.toContain('Orca renames its auto-generated branch')
   })
 

@@ -731,7 +731,7 @@ describe('browserManager', () => {
     expect(shellOpenExternalMock).toHaveBeenCalledWith('https://example.com/login')
   })
 
-  it('offers opening a link in another Orca browser tab from the guest context menu', () => {
+  it('offers opening a link in another DevCrew browser tab from the guest context menu', () => {
     const rendererSendMock = vi.fn()
     const guest = {
       id: 104,

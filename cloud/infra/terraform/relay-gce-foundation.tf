@@ -174,7 +174,7 @@ resource "google_certificate_manager_dns_authorization" "relay_gce" {
   domain      = var.relay_gce_domain
   location    = "global"
   type        = "PER_PROJECT_RECORD"
-  description = "DNS authorization for Orca Relay wildcard cell certificates."
+  description = "DNS authorization for DevCrew Relay wildcard cell certificates."
   labels      = local.relay_shared_labels
 }
 
@@ -184,7 +184,7 @@ resource "google_certificate_manager_certificate" "relay_gce" {
   project     = var.project_id
   name        = local.relay_gce_name
   location    = "global"
-  description = "Wildcard certificate for exact-routed Orca Relay GCE cells."
+  description = "Wildcard certificate for exact-routed DevCrew Relay GCE cells."
   labels      = local.relay_shared_labels
 
   managed {
@@ -198,7 +198,7 @@ resource "google_certificate_manager_certificate_map" "relay_gce" {
 
   project     = var.project_id
   name        = local.relay_gce_name
-  description = "Certificate map for the shared Orca Relay HTTPS load balancer."
+  description = "Certificate map for the shared DevCrew Relay HTTPS load balancer."
 }
 
 resource "google_certificate_manager_certificate_map_entry" "relay_gce" {

@@ -96,7 +96,7 @@ describe('source-control-create-review-blocked-action', () => {
 
   it('reports unavailable review lookup authority when no local blocker is known', () => {
     expect(resolveUnavailableCreateReviewLookupNoticeMessage('gitlab')).toBe(
-      'Create MR failed: Orca could not confirm whether this branch already has a merge request. Retry once the GitLab lookup succeeds.'
+      'Create MR failed: DevCrew could not confirm whether this branch already has a merge request. Retry once the GitLab lookup succeeds.'
     )
     expect(
       resolveBlockedCreateReviewNoticeMessage(
@@ -108,7 +108,7 @@ describe('source-control-create-review-blocked-action', () => {
         })
       )
     ).toBe(
-      'Create MR failed: Orca could not confirm whether this branch already has a merge request. Retry once the GitLab lookup succeeds.'
+      'Create MR failed: DevCrew could not confirm whether this branch already has a merge request. Retry once the GitLab lookup succeeds.'
     )
   })
 
@@ -116,7 +116,7 @@ describe('source-control-create-review-blocked-action', () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
 
     expect(resolveUnavailableCreateReviewLookupNoticeMessage('gitlab')).toBe(
-      'Create MR failed: Secure Orca Lite could not confirm whether this branch already has a merge request. Retry once the GitLab lookup succeeds.'
+      'Create MR failed: DevCrew could not confirm whether this branch already has a merge request. Retry once the GitLab lookup succeeds.'
     )
   })
 

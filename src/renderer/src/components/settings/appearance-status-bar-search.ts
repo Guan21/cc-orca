@@ -225,7 +225,7 @@ export function getStatusBarToggles(): readonly StatusBarToggleSearchEntry[] {
           : 'settings.appearance.statusBar.sshToggleDescription',
         getOrcaBuildProfile() === 'corporate'
           ? 'Show configured SSH and remote hosts when any are available.'
-          : 'Show configured SSH and remote Orca hosts when any are available.'
+          : 'Show configured SSH and remote DevCrew hosts when any are available.'
       )
     },
     {

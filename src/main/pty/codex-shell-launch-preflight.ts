@@ -18,7 +18,7 @@ export type CodexShellLaunchPreflightCommandOptions = {
   platform?: NodeJS.Platform
 }
 
-/** Absolute path of the Orca CLI the preflight must execute, or null to skip it.
+/** Absolute path of the DevCrew CLI the preflight must execute, or null to skip it.
  *
  *  Why absolute: the value rides in ORCA_CODEX_LAUNCH_PREFLIGHT and is invoked
  *  from the codex() wrapper, which shell-ready emits *after* the user's profile

@@ -155,7 +155,7 @@ describe('codex hook trust write-back promotion', () => {
     )
   })
 
-  it('keeps an in-Orca approval of a user hook across launches and promotes it to ~/.codex', async () => {
+  it('keeps an in-DevCrew approval of a user hook across launches and promotes it to ~/.codex', async () => {
     writeSystemUserHook()
     const service = new CodexHookService()
     await service.install()

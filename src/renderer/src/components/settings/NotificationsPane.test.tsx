@@ -69,17 +69,19 @@ describe('NotificationsPane', () => {
     )
   })
 
-  it('keeps default notification settings product copy on Orca', () => {
+  it('keeps default notification settings product copy on DevCrew', () => {
     const html = renderToStaticMarkup(
       <NotificationsPane settings={createSettings()} updateSettings={vi.fn()} />
     )
 
-    expect(html).toContain('Choose the alert Orca plays when a desktop notification is delivered.')
+    expect(html).toContain(
+      'Choose the alert DevCrew plays when a desktop notification is delivered.'
+    )
     expect(getSystemNotificationSettingsCopy('darwin')?.failureDescription).toBe(
-      'Enable Allow notifications for Orca in System Settings.'
+      'Enable Allow notifications for DevCrew in System Settings.'
     )
     expect(getSystemNotificationSettingsCopy('win32')?.failureDescription).toBe(
-      'Enable notifications for Orca in Windows Settings.'
+      'Enable notifications for DevCrew in Windows Settings.'
     )
   })
 
@@ -91,13 +93,13 @@ describe('NotificationsPane', () => {
     )
 
     expect(html).toContain(
-      'Choose the alert Secure Orca Lite plays when a desktop notification is delivered.'
+      'Choose the alert DevCrew plays when a desktop notification is delivered.'
     )
     expect(getSystemNotificationSettingsCopy('darwin')?.failureDescription).toBe(
-      'Enable Allow notifications for Secure Orca Lite in System Settings.'
+      'Enable Allow notifications for DevCrew in System Settings.'
     )
     expect(getSystemNotificationSettingsCopy('win32')?.failureDescription).toBe(
-      'Enable notifications for Secure Orca Lite in Windows Settings.'
+      'Enable notifications for DevCrew in Windows Settings.'
     )
   })
 
@@ -145,7 +147,7 @@ describe('NotificationsPane', () => {
     expect(toastMessage).toHaveBeenCalledWith(
       'Test notification requested',
       expect.objectContaining({
-        description: 'If no macOS banner appeared, enable Allow notifications for Orca.',
+        description: 'If no macOS banner appeared, enable Allow notifications for DevCrew.',
         action: expect.objectContaining({ label: 'Open Settings' })
       })
     )
@@ -183,8 +185,7 @@ describe('NotificationsPane', () => {
     expect(toastMessage).toHaveBeenCalledWith(
       'Test notification requested',
       expect.objectContaining({
-        description:
-          'If no macOS banner appeared, enable Allow notifications for Secure Orca Lite.',
+        description: 'If no macOS banner appeared, enable Allow notifications for DevCrew.',
         action: expect.objectContaining({ label: 'Open Settings' })
       })
     )
@@ -286,7 +287,7 @@ describe('NotificationsPane', () => {
     expect(toastError).toHaveBeenCalledWith(
       'Windows did not show the notification',
       expect.objectContaining({
-        description: 'Enable notifications for Orca in Windows Settings.',
+        description: 'Enable notifications for DevCrew in Windows Settings.',
         action: expect.objectContaining({ label: 'Open Settings' })
       })
     )

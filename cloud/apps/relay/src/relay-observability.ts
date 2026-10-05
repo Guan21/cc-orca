@@ -270,7 +270,7 @@ export class RelayObservability implements RelayRuntimeObserver {
   recordReadiness(observation: RelayReadinessObservation): void {
     this.write({
       severity: observation.ready ? 'INFO' : 'WARNING',
-      message: 'Orca Relay readiness check',
+      message: 'DevCrew Relay readiness check',
       event: 'orca_relay_readiness_check',
       metricVersion: 1,
       ...this.identity,
@@ -358,7 +358,7 @@ export class RelayObservability implements RelayRuntimeObserver {
     this.eventLoop.reset()
     this.write({
       severity: 'INFO',
-      message: 'Orca Relay runtime metrics',
+      message: 'DevCrew Relay runtime metrics',
       event: 'orca_relay_runtime_metrics',
       metricVersion: 2,
       role: this.identity.role,

@@ -43,14 +43,8 @@ describe.each(['default', 'corporate'] as const)('final visible branding: %s', (
     const markup = renderToStaticMarkup(
       <WorktreeVisibilitySourceAddForm disabled={false} onAdd={async () => 'added'} />
     )
-    expect(markup).toContain(
-      profile === 'corporate'
-        ? 'Worktrees beneath this folder will be recognized automatically.'
-        : 'Orca will recognize worktrees beneath this folder.'
-    )
-    if (profile === 'corporate') {
-      expect(markup).not.toContain('Orca')
-    }
+    expect(markup).toContain('DevCrew will recognize worktrees beneath this folder.')
+    expect(markup).not.toContain('Orca will recognize worktrees')
   })
 
   it('renders editor descriptions and indexes the same auto-save wording', () => {
@@ -61,47 +55,29 @@ describe.each(['default', 'corporate'] as const)('final visible branding: %s', (
         fontSuggestions={[]}
       />
     )
-    expect(markup).toContain(
-      profile === 'corporate'
-        ? 'Configure how file edits are persisted.'
-        : 'Configure how Orca persists file edits.'
-    )
-    const description =
-      profile === 'corporate'
-        ? 'How long to wait after your last edit before saving automatically.'
-        : 'How long Orca waits after your last edit before saving automatically.'
+    expect(markup).toContain('Configure how DevCrew persists file edits.')
+    const description = 'How long DevCrew waits after your last edit before saving automatically.'
     expect(markup).toContain(`${description} First launch defaults to`)
     expect(
       getGeneralEditorSearchEntries().find((entry) => entry.title === 'Auto Save Delay')
         ?.description
     ).toBe(description)
-    if (profile === 'corporate') {
-      expect(markup).not.toContain('Orca')
-    }
+    expect(markup).not.toContain('How long to wait after your last edit')
   })
 
   it('renders the action that opens the built-in editor', () => {
     const markup = renderToStaticMarkup(<KeybindingsFileActions />)
-    expect(markup).toContain(
-      profile === 'corporate' ? 'Edit File in Secure Orca Lite' : 'Edit File in Orca'
-    )
-    if (profile === 'corporate') {
-      expect(markup.replaceAll('Secure Orca Lite', '')).not.toContain('Orca')
-    }
+    expect(markup).toContain('Edit File in DevCrew')
+    expect(markup).not.toContain('Edit File in Orca')
   })
 
   it('describes application priority without changing the policy identifier', () => {
     const markup = renderToStaticMarkup(
       <ShortcutTerminalPolicyControl terminalShortcutPolicy="orca-first" updateSettings={vi.fn()} />
     )
-    expect(markup).toContain(profile === 'corporate' ? 'Application first' : 'Orca first')
-    if (profile === 'corporate') {
-      expect(markup).not.toContain('Orca')
-    }
+    expect(markup).toContain('DevCrew first')
     const definition = KEYBINDING_DEFINITIONS.find(
-      (item) =>
-        getShortcutTerminalStatus(item, 'orca-first', true)?.label ===
-        (profile === 'corporate' ? 'Application first' : 'Orca first')
+      (item) => getShortcutTerminalStatus(item, 'orca-first', true)?.label === 'DevCrew first'
     )
     expect(definition).toBeDefined()
     expect(getShortcutTerminalStatus(definition!, 'terminal-first', true)?.label).toBe(
@@ -110,12 +86,9 @@ describe.each(['default', 'corporate'] as const)('final visible branding: %s', (
     const entry = getTerminalShortcutPolicySearchEntry()
     expect(entry.description).toBe(
       profile === 'corporate'
-        ? 'Choose whether the application or the focused terminal wins when shortcuts overlap.'
-        : 'Choose whether Orca or the focused terminal wins when shortcuts overlap.'
+        ? 'Choose whether DevCrew or the focused terminal wins when shortcuts overlap.'
+        : 'Choose whether DevCrew or the focused terminal wins when shortcuts overlap.'
     )
-    expect(entry.keywords).toContain(profile === 'corporate' ? 'application first' : 'orca first')
-    if (profile === 'corporate') {
-      expect(JSON.stringify(entry)).not.toMatch(/orca/i)
-    }
+    expect(entry.keywords).toContain('devcrew first')
   })
 })

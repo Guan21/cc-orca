@@ -213,7 +213,7 @@ function showPackageRecovery(recovery = PACKAGE_RECOVERY): void {
   act(() =>
     useAppStore.getState().setUpdateStatus({
       state: 'error',
-      message: 'Quit Orca before running the system package install command.',
+      message: 'Quit DevCrew before running the system package install command.',
       recovery
     })
   )
@@ -237,7 +237,7 @@ describe('UpdateCard Linux package-install recovery', () => {
   it('renders an initial recovery snapshot with its versioned release fallback', () => {
     renderWithInitialStatus({
       state: 'error',
-      message: 'Quit Orca before running the system package install command.',
+      message: 'Quit DevCrew before running the system package install command.',
       recovery: PACKAGE_RECOVERY
     })
 
@@ -320,7 +320,7 @@ describe('UpdateCard Linux package-install recovery', () => {
 
   it('links unusable package metadata to the release without offering a futile retry', () => {
     const message =
-      'The downloaded package metadata could not be verified. Quit Orca before downloading and installing the update from the official release page.'
+      'The downloaded package metadata could not be verified. Quit DevCrew before downloading and installing the update from the official release page.'
     renderWithInitialStatus({
       state: 'error',
       message,

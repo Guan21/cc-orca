@@ -16,11 +16,11 @@ export const getTerminalShortcutPolicySearchEntry = createLocalizedCatalog(
       getOrcaBuildProfile() === 'corporate'
         ? translate(
             'auto.components.settings.ShortcutTerminalPolicyControl.conflictCorporate',
-            'Choose whether the application or the focused terminal wins when shortcuts overlap.'
+            'Choose whether DevCrew or the focused terminal wins when shortcuts overlap.'
           )
         : translate(
             'auto.components.settings.shortcuts.search.ebd7d81e1d',
-            'Choose whether Orca or the focused terminal wins when shortcuts overlap.'
+            'Choose whether DevCrew or the focused terminal wins when shortcuts overlap.'
           ),
     keywords: [
       ...translateSearchKeyword('auto.components.settings.shortcuts.search.ca6a0c2df7', 'shortcut'),
@@ -33,11 +33,11 @@ export const getTerminalShortcutPolicySearchEntry = createLocalizedCatalog(
       ...(getOrcaBuildProfile() === 'corporate'
         ? translateSearchKeyword(
             'auto.components.settings.shortcuts.search.applicationFirst',
-            'application first'
+            'devcrew first'
           )
         : translateSearchKeyword(
             'auto.components.settings.shortcuts.search.afda131738',
-            'orca first'
+            'devcrew first'
           )),
       ...translateSearchKeyword(
         'auto.components.settings.shortcuts.search.4811a8264a',
@@ -48,20 +48,20 @@ export const getTerminalShortcutPolicySearchEntry = createLocalizedCatalog(
 )
 
 const getShortcutDefinitionSearchEntries = createLocalizedCatalog(() =>
-  KEYBINDING_DEFINITIONS.filter((item) =>
-    isShortcutDefinitionVisibleForBuildProfile(item)
-  ).map((item) => ({
-    actionId: item.id,
-    searchEntry: {
-      title: item.title,
-      description: translate(
-        'auto.components.settings.shortcuts.search.groupShortcut',
-        '{{value0}} shortcut',
-        { value0: item.group }
-      ),
-      keywords: [...item.searchKeywords]
-    }
-  }))
+  KEYBINDING_DEFINITIONS.filter((item) => isShortcutDefinitionVisibleForBuildProfile(item)).map(
+    (item) => ({
+      actionId: item.id,
+      searchEntry: {
+        title: item.title,
+        description: translate(
+          'auto.components.settings.shortcuts.search.groupShortcut',
+          '{{value0}} shortcut',
+          { value0: item.group }
+        ),
+        keywords: [...item.searchKeywords]
+      }
+    })
+  )
 )
 
 export function getShortcutsPaneSearchEntries(options?: {

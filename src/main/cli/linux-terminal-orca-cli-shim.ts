@@ -41,7 +41,7 @@ export type LinuxTerminalOrcaCliShimOptions = {
 // dispatch preambles, CLI hints) all invoke bare `orca`, so on stock Ubuntu an
 // agent inside an Orca terminal would launch the screen reader instead
 // (stablyai/orca#7904). Prepending this userData-scoped shim dir to managed-PTY
-// PATH makes bare `orca` resolve to the Orca CLI inside Orca terminals only,
+// PATH makes bare `orca` resolve to the DevCrew CLI inside Orca terminals only,
 // leaving the user's own shells (and their screen reader) untouched.
 export function ensureLinuxTerminalOrcaCliShimDir(
   options: LinuxTerminalOrcaCliShimOptions
@@ -189,7 +189,7 @@ launcher=${quotedLauncherPath}
 expected_runtime_identity=${expectedRuntimeIdentity}
 expected_launcher_identity=${expectedLauncherIdentity}
 fail() {
-  printf 'Orca CLI is unavailable; reopen Orca or register the CLI again.\\n' >&2
+  printf 'DevCrew CLI is unavailable; reopen DevCrew or register the CLI again.\\n' >&2
   exit 1
 }
 proc_stat_path="/proc/$runtime_pid/stat"

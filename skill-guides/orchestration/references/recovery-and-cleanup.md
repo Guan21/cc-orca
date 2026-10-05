@@ -75,7 +75,7 @@ remote terminal handle.
 
 When a mutation's response was lost and named no Dispatch, do not replay blind.
 Every orchestration mutation accepts `--retry-request <id>`, which reuses one
-operation identity so Orca can replay, join, or recover it instead of starting a
+operation identity so DevCrew can replay, join, or recover it instead of starting a
 duplicate. Ask what happened first:
 
 ```text
@@ -84,7 +84,7 @@ ORCA orchestration request-show --request <request_id> --json
 
 `completed` means the mutation already took effect; read its recorded receipt
 instead of rerunning. `pending` means the original mutation is still running or
-Orca restarted before recording its outcome; replay the original command with
+DevCrew restarted before recording its outcome; replay the original command with
 `--retry-request <request_id>`. `absent` means this runtime holds no receipt
 under your caller identity — that is not proof nothing happened, so inspect the
 affected Task, Dispatch, and terminal before deciding whether to retry.

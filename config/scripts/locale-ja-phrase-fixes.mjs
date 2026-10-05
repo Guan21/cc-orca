@@ -60,7 +60,7 @@ export const JA_PHRASE_FIXES = [
   { pattern: /殺害/g, replacement: '終了中', whenEnIncludes: 'Killing' },
   { pattern: /殺す/g, replacement: '強制終了', whenEnIncludes: 'Kill' },
   { pattern: /皆殺し/g, replacement: 'すべて終了', whenEnIncludes: 'kill all' },
-  { pattern: /崩壊させる/g, replacement: '折りたたむ', whenEnIncludes: 'Collapse Orca' },
+  { pattern: /崩壊させる/g, replacement: '折りたたむ', whenEnIncludes: 'Collapse DevCrew' },
   { pattern: /崩壊/g, replacement: '折りたたむ', whenEnIncludes: 'Collapse' },
   { pattern: /一般的な/g, replacement: '一般', whenEnIncludes: 'General' },
   { pattern: /高度な/g, replacement: '詳細設定', whenEnIncludes: 'Advanced' },
@@ -98,7 +98,7 @@ export const JA_PHRASE_FIXES = [
     replacement: 'マージされています',
     whenEnIncludes: 'already merged'
   },
-  { pattern: /再起動します/g, replacement: '再起動', whenEnIncludes: 'Restart Orca' },
+  { pattern: /再起動します/g, replacement: '再起動', whenEnIncludes: 'Restart DevCrew' },
   { pattern: /オウムガイ/g, replacement: 'Nautilus', whenEnIncludes: 'Nautilus' },
   {
     pattern: /Kim サブスクリプション/g,
@@ -278,7 +278,7 @@ export const JA_PHRASE_FIXES = [
     whenEnIncludes: 'More PR actions'
   },
   { pattern: /アクション/g, replacement: '操作', whenEnIncludes: 'action' },
-  // Orca's host covers SSH hosts and this computer; skipped where the English also says server.
+  // DevCrew's host covers SSH hosts and this computer; skipped where the English also says server.
   {
     pattern: /(ランタイム)?サーバー/g,
     replacement: 'ホスト',

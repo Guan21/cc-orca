@@ -23,7 +23,7 @@ const { signWindowsUninstallerViaSignPath } = require('./scripts/windows-uninsta
 
 // Why: dev-channel builds must carry the *release* identity — same bundle id,
 // Developer ID signature, and notarization ticket — or Squirrel.Mac refuses to
-// swap them over an installed Orca and macOS treats each build as a new app.
+// swap them over an installed DevCrew and macOS treats each build as a new app.
 const isMacHourly = process.env.ORCA_MAC_HOURLY === '1'
 const isMacDaily = process.env.ORCA_MAC_DAILY === '1'
 const isMacAdhoc = process.env.ORCA_MAC_ADHOC === '1'
@@ -41,17 +41,17 @@ const isLinuxArm64Release = process.env.ORCA_LINUX_ARM64_RELEASE === '1'
 const orcaBuildProfile = process.env.ORCA_BUILD_PROFILE === 'corporate' ? 'corporate' : 'default'
 const isCorporateBuild = orcaBuildProfile === 'corporate'
 const productName = isCorporateBuild
-  ? readNonEmptyEnv('ORCA_CORPORATE_PRODUCT_NAME', 'Secure Orca Lite')
-  : 'Orca'
+  ? readNonEmptyEnv('ORCA_CORPORATE_PRODUCT_NAME', 'DevCrew')
+  : 'DevCrew'
 const appId = isCorporateBuild
   ? readNonEmptyEnv('ORCA_CORPORATE_APP_ID', 'dev.orca.secure-lite')
   : 'com.stablyai.orca'
 const windowsArtifactName = isCorporateBuild
-  ? 'secure-orca-lite-windows-setup.${ext}'
-  : 'orca-windows-setup.${ext}'
+  ? 'devcrew-windows-setup.${ext}'
+  : 'devcrew-windows-setup.${ext}'
 const macDmgArtifactName = isCorporateBuild
-  ? 'secure-orca-lite-macos-${arch}.${ext}'
-  : 'orca-macos-${arch}.${ext}'
+  ? 'devcrew-macos-${arch}.${ext}'
+  : 'devcrew-macos-${arch}.${ext}'
 const packagedIcon = isCorporateBuild
   ? 'resources/build/corporate/icon.icns'
   : 'resources/build/icon.icns'
@@ -152,7 +152,7 @@ const winSpeechNativeResource = {
   to: 'node_modules/sherpa-onnx-win-x64'
 }
 // electron-builder replaces these defaults when `depends` is configured; retain
-// Electron's loader requirements alongside Orca's headless-host dependencies.
+// Electron's loader requirements alongside DevCrew's headless-host dependencies.
 const debElectronRuntimeDependencies = [
   'libgtk-3-0',
   'libnotify4',
@@ -184,7 +184,7 @@ const MARKDOWN_FILE_EXTENSIONS = ['md', 'markdown', 'mdx']
 module.exports = {
   appId,
   productName,
-  protocols: [{ name: 'Orca', schemes: ['orca'] }],
+  protocols: [{ name: productName, schemes: ['orca'] }],
   toolsets: { appimage: '1.0.3' },
   ...(devChannelBuildVersion
     ? { extraMetadata: { version: devChannelBuildVersion } }
@@ -427,7 +427,7 @@ module.exports = {
     }
   },
   win: {
-    executableName: 'Orca',
+    executableName: productName,
     ...(isCorporateBuild ? { icon: corporateWindowsIcon } : {}),
     // Why: Windows installers are signed after electron-builder packaging by
     // SignPath, so the packager cannot infer the updater publisherName.
@@ -488,7 +488,7 @@ module.exports = {
     include: resolve(__dirname, 'nsis', 'orca-installer-hooks.nsh')
   },
   mac: {
-    // Why rank Alternate: Orca joins Finder's "Open With" list for Markdown without claiming
+    // Why rank Alternate: DevCrew joins Finder's "Open With" list for Markdown without claiming
     // LSHandlerRank ownership, so whichever editor the user already prefers stays the default.
     // Why one entry per extension: app-builder-lib globs `*.${ext}`, which an array would break.
     fileAssociations: MARKDOWN_FILE_EXTENSIONS.map((ext) => ({
@@ -578,7 +578,7 @@ module.exports = {
   },
   linux: {
     // Why mimeTypes and not fileAssociations: shared-mime-info already maps *.md/*.markdown to
-    // text/markdown, so reusing that type puts Orca in the Open With list without shipping a glob
+    // text/markdown, so reusing that type puts DevCrew in the Open With list without shipping a glob
     // override. A desktop entry's MimeType only adds a handler - mimeapps.list still owns the
     // default. .mdx is deliberately absent: Ubuntu 24.04's mime database maps it to
     // application/x-genesis-32x-rom, so claiming it here would need a glob override.
@@ -621,7 +621,7 @@ module.exports = {
     category: 'Utility'
   },
   appImage: {
-    artifactName: isLinuxArm64Release ? 'orca-linux-arm64.${ext}' : 'orca-linux.${ext}'
+    artifactName: isLinuxArm64Release ? 'devcrew-linux-arm64.${ext}' : 'devcrew-linux.${ext}'
   },
   deb: {
     packageName: 'orca-ide',
@@ -668,7 +668,7 @@ module.exports = {
   // (node-pty) for each target architecture when producing dual-arch macOS
   // builds (x64 + arm64). With npmRebuild disabled, CI on an arm64 runner
   // packages arm64 binaries into the x64 DMG, causing "posix_spawnp failed"
-  // on Intel Macs. The beforeBuild hook performs Orca's targeted rebuild and
+  // on Intel Macs. The beforeBuild hook performs DevCrew's targeted rebuild and
   // returns false so electron-builder does not rebuild optional cpu-features.
   npmRebuild: true,
   publish: isCorporateBuild
@@ -734,7 +734,7 @@ function chmodMacServeSimHelpers(resourcesDir, electronPlatformName) {
 async function signMacComputerUseHelper(helperAppPath, packager) {
   if (!existsSync(helperAppPath)) {
     if (isMacRelease) {
-      throw new Error(`Missing Orca Computer Use helper app at ${helperAppPath}`)
+      throw new Error(`Missing DevCrew Computer Use helper app at ${helperAppPath}`)
     }
     return
   }
@@ -748,7 +748,7 @@ async function signMacComputerUseHelper(helperAppPath, packager) {
     findInstalledMacSigningIdentity(codeSigningInfo?.keychainFile) ??
     (isMacRelease ? null : '-')
   if (!identity) {
-    throw new Error('Missing signing identity for Orca Computer Use helper app')
+    throw new Error('Missing signing identity for DevCrew Computer Use helper app')
   }
   // Why: TCC grants attach to this nested app's code identity. Sign it before
   // the outer Orca.app is sealed so production builds preserve that identity.

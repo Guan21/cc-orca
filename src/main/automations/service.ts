@@ -256,7 +256,7 @@ export class AutomationService {
         runId: missed.id,
         status: 'skipped_missed',
         workspaceId: automation.workspaceId,
-        error: 'Orca was unavailable during the missed-run grace window.'
+        error: 'DevCrew was unavailable during the missed-run grace window.'
       })
       this.store.advanceAutomationNextRun(automation.id, now)
       return

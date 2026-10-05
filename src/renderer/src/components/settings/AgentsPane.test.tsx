@@ -179,8 +179,8 @@ describe('AgentsPane', () => {
   it('uses corporate product identity in visible agent settings copy', () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
 
-    expect(getAgentStatusHooksDescription()).toContain('Secure Orca Lite-managed hooks')
-    expect(getAgentAwakeDescription()).toContain('Secure Orca Lite also asks this device')
+    expect(getAgentStatusHooksDescription()).toContain('DevCrew-managed hooks')
+    expect(getAgentAwakeDescription()).toContain('DevCrew also asks this device')
     expect(getAgentStatusHooksDescription()).not.toContain('Orca-managed hooks')
   })
 
@@ -258,7 +258,7 @@ describe('AgentsPane', () => {
     expect(markup).not.toContain('aria-label="Agent runtime"')
     expect(markup).toContain('Keep computer awake')
     expect(markup).toContain(
-      'Choose On, Agent, or Off. Agent mode stays awake while agents are working. Orca also asks this device to stay awake when the lid is closed, subject to its power policy.'
+      'Choose On, Agent, or Off. Agent mode stays awake while agents are working. DevCrew also asks this device to stay awake when the lid is closed, subject to its power policy.'
     )
     expect(markup).toContain('role="radiogroup"')
     expect(markup).toContain('>Agent<')

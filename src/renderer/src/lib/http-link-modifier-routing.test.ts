@@ -31,7 +31,7 @@ describe('resolveModifierRouting', () => {
     })
   })
 
-  it('still reaches the system browser when inverting and links open in Orca', () => {
+  it('still reaches the system browser when inverting and links open in DevCrew', () => {
     expect(resolveModifierRouting(true, true, true)).toEqual({
       wantsOrca: false,
       wantsSystemBrowser: true
@@ -96,7 +96,7 @@ describe('modifier routing across link source owners', () => {
     })
   })
 
-  it('lets an inverting modifier reach Orca on the owning runtime', () => {
+  it('lets an inverting modifier reach DevCrew on the owning runtime', () => {
     storeState.settings = {
       openLinksInApp: false,
       openLinksInAppModifierInverts: true,

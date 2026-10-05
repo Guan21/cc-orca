@@ -226,7 +226,7 @@ export function FileExplorerRowContextMenu({
               : 'auto.components.right.sidebar.FileExplorerRow.dd112c81d2',
             getOrcaBuildProfile() === 'corporate'
               ? 'Open in app browser'
-              : 'Open in Orca Browser'
+              : 'Open in DevCrew Browser'
           )}
         </ContextMenuItem>
       )}

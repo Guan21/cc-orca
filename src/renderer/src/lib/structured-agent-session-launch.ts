@@ -193,7 +193,7 @@ function trackLaunchFailureToast(state: StructuredLaunchState): void {
         {
           description: translate(
             'components.native-chat.structuredSessionFellBackToTerminalDescription',
-            'Orca tried to open a {{value0}} terminal instead.',
+            'DevCrew tried to open a {{value0}} terminal instead.',
             { value0: agentLabel }
           )
         }
@@ -213,7 +213,7 @@ function trackLaunchFailureToast(state: StructuredLaunchState): void {
       {
         description: translate(
           'components.native-chat.structuredSessionLaunchFailedDescription',
-          'Orca could not open a structured {{value0}} chat. See the logs for details.',
+          'DevCrew could not open a structured {{value0}} chat. See the logs for details.',
           { value0: agentLabel }
         )
       }

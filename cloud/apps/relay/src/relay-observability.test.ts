@@ -74,7 +74,7 @@ describe('relay observability', () => {
     expect(entries).toEqual([
       {
         severity: 'WARNING',
-        message: 'Orca Relay readiness check',
+        message: 'DevCrew Relay readiness check',
         event: 'orca_relay_readiness_check',
         metricVersion: 1,
         role: 'cell',

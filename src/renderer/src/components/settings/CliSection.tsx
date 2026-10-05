@@ -185,7 +185,7 @@ export function CliSection({
       <div className="space-y-1">
         <h2 className="text-sm font-semibold">
           {isDefaultProductName
-            ? translate('auto.components.settings.CliSection.c5c0f2641d', 'Orca CLI')
+            ? translate('auto.components.settings.CliSection.c5c0f2641d', 'DevCrew CLI')
             : translate(
                 'auto.components.settings.CliSection.corporateTitle',
                 '{{productName}} CLI',

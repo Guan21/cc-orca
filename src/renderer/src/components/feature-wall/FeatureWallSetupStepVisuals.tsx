@@ -45,7 +45,7 @@ function WorktreeGlyphPanel(props: { className?: string }): JSX.Element {
   )
 }
 
-// Use Orca's browser: a browser pane with a cursor grabbing one highlighted
+// Use DevCrew's browser: a browser pane with a cursor grabbing one highlighted
 // element — the point-and-send-to-agent idea compressed into a single mark.
 export function SetupBrowserVisual(): JSX.Element {
   return (

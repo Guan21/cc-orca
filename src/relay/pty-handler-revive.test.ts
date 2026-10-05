@@ -113,7 +113,7 @@ describe('PtyHandler', () => {
     expect(callArgs.env.ORCA_AGENT_HOOK_PORT).toBe('12345')
     expect(callArgs.env.ORCA_AGENT_HOOK_TOKEN).toBe('abc-uuid')
     expect(callArgs.env.TERM).toBe('xterm-256color')
-    expect(callArgs.env.TERM_PROGRAM).toBe('Orca')
+    expect(callArgs.env.TERM_PROGRAM).toBe('DevCrew')
     expect(callArgs.env.ORCA_SHELL_FEATURES).not.toContain('ready')
     expect(callArgs.env.ORCA_SHELL_FEATURES).not.toContain('identity')
   })

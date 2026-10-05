@@ -90,7 +90,7 @@ afterEach(() => {
 })
 
 describe('SidebarFeedbackDialog environment prefill', () => {
-  it('pre-inserts Orca version and OS info when the dialog opens', async () => {
+  it('pre-inserts DevCrew version and OS info when the dialog opens', async () => {
     render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
     const textarea = screen.getByPlaceholderText('What could we improve?') as HTMLTextAreaElement
 

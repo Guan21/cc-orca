@@ -479,7 +479,7 @@ terminals. The fake worker records whether orchestration dispatch delivered a
 long prompt in a safe agent-input contract.
 
 Options:
-  --cli <path>         Orca CLI command (default: ORCA_REPRO_CLI or orca)
+  --cli <path>         DevCrew CLI command (default: ORCA_REPRO_CLI or orca)
   --worktree <path>   Worktree path for temporary terminals (default: cwd)
   --timeout-ms <n>    Wait budget for terminal/report operations
   --keep-terminals    Leave temporary terminals open for inspection

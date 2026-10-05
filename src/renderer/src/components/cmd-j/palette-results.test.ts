@@ -93,10 +93,10 @@ const sections: SettingsNavSection[] = [
     icon: Settings,
     searchEntries: [
       {
-        title: 'Orca CLI',
+        title: 'DevCrew CLI',
         description: 'Register or remove the orca shell command.',
-        keywords: ['cli', 'path', 'terminal', 'command', 'shell command'],
-        cmdJKeywords: ['cli', 'path', 'command', 'shell command'],
+        keywords: ['cli', 'path', 'terminal', 'command', 'shell command', 'orca', 'orca cli'],
+        cmdJKeywords: ['cli', 'path', 'command', 'shell command', 'orca', 'orca cli'],
         targetSectionId: 'cli'
       }
     ],
@@ -120,10 +120,10 @@ const sections: SettingsNavSection[] = [
   },
   {
     id: 'servers',
-    title: 'Remote Orca Servers',
-    description: 'Pair remote Orca runtimes.',
+    title: 'Remote DevCrew Servers',
+    description: 'Pair remote DevCrew runtimes.',
     icon: Settings,
-    searchEntries: [{ title: 'Remote Orca Servers' }],
+    searchEntries: [{ title: 'Remote DevCrew Servers' }],
     group: 'remote'
   },
   {
@@ -262,7 +262,7 @@ describe('Cmd+J palette middle-band ranking', () => {
     )
 
     expect(cliResult).toMatchObject({
-      title: 'Orca CLI',
+      title: 'DevCrew CLI',
       description: 'Register or remove the orca shell command.',
       sectionId: 'general',
       targetSectionId: 'cli'
@@ -276,7 +276,7 @@ describe('Cmd+J palette middle-band ranking', () => {
       {
         id: 'linear',
         title: 'Linear',
-        description: 'How Linear works in Orca.',
+        description: 'How Linear works in DevCrew.',
         icon: Settings,
         searchEntries: [],
         group: 'capabilities'

@@ -19,7 +19,7 @@ describe('worktree selector recovery', () => {
       worktreeSelector: 'id:github:stablyai/orca'
     })
 
-    expect(output).toContain('No Orca workspace matched the worktree selector')
+    expect(output).toContain('No DevCrew workspace matched the worktree selector')
     expect(output).toContain('id:github:stablyai/orca')
     expect(output).toContain('Did you mean: id:github:stablyai/orca::<absolute-path>')
     expect(output).toContain('Valid selector forms:')

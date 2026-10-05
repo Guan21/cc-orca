@@ -1,11 +1,11 @@
 # Terraform
 
-This root manages the Orca Cloud relay and nothing else. It requires Terraform >= 1.7
+This root manages the DevCrew Cloud relay and nothing else. It requires Terraform >= 1.7
 (`removed` blocks); OpenTofu at that floor works too.
 
 ## Three roots
 
-Orca Cloud is three Terraform roots sharing one project and one state bucket per environment,
+DevCrew Cloud is three Terraform roots sharing one project and one state bucket per environment,
 with a different prefix each. They are separate so the relay can be extracted into a public
 repository without carrying the app plane, its database passwords, or its Cloudflare credential
 with it.

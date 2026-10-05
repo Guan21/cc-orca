@@ -113,7 +113,7 @@ describe('worktree ownership classification', () => {
     ).toBe('orca-managed')
   })
 
-  it('treats nested Orca workspace paths without metadata as external', () => {
+  it('treats nested DevCrew workspace paths without metadata as external', () => {
     const repo = makeRepo()
     const settings = makeSettings()
     const layouts = buildKnownOrcaWorkspaceLayouts(settings, repo)

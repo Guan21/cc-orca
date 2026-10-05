@@ -41,13 +41,13 @@ describe('CliInstaller', () => {
 
   it('creates a windows wrapper and updates the user PATH', async () => {
     const fixture = await makeFixture()
-    const installPath = join(fixture.root, 'Programs', 'Orca', 'bin', 'orca.cmd')
+    const installPath = join(fixture.root, 'Programs', 'DevCrew', 'bin', 'orca.cmd')
     let userPath = 'C:\\Windows\\System32'
     const installer = new CliInstaller({
       platform: 'win32',
       isPackaged: false,
       userDataPath: fixture.userDataPath,
-      execPath: 'C:\\Users\\me\\AppData\\Local\\Orca\\Orca.exe',
+      execPath: 'C:\\Users\\me\\AppData\\Local\\DevCrew\\DevCrew.exe',
       appPath: fixture.appPath,
       commandPathOverride: installPath,
       userPathReader: async () => userPathRead(userPath),
@@ -59,7 +59,7 @@ describe('CliInstaller', () => {
     const installed = await installer.install()
     expect(installed.state).toBe('installed')
     expect(installed.pathConfigured).toBe(true)
-    expect(userPath).toContain(join(fixture.root, 'Programs', 'Orca', 'bin'))
+    expect(userPath).toContain(join(fixture.root, 'Programs', 'DevCrew', 'bin'))
 
     const wrapperContent = await readFile(installPath, 'utf8')
     expect(wrapperContent).toContain('ORCA_LAUNCHER=')
@@ -70,19 +70,19 @@ describe('CliInstaller', () => {
 
     const removed = await installer.remove()
     expect(removed.state).toBe('not_installed')
-    expect(userPath).not.toContain(join(fixture.root, 'Programs', 'Orca', 'bin'))
+    expect(userPath).not.toContain(join(fixture.root, 'Programs', 'DevCrew', 'bin'))
   })
 
   it.each(['UnauthorizedAccessException', 'SecurityException'])(
     'rejects with a friendly message for Windows PATH denial: %s',
     async (permissionMarker) => {
       const fixture = await makeFixture()
-      const installPath = join(fixture.root, 'Programs', 'Orca', 'bin', 'orca.cmd')
+      const installPath = join(fixture.root, 'Programs', 'DevCrew', 'bin', 'orca.cmd')
       const installer = new CliInstaller({
         platform: 'win32',
         isPackaged: false,
         userDataPath: fixture.userDataPath,
-        execPath: 'C:\\Users\\me\\AppData\\Local\\Orca\\Orca.exe',
+        execPath: 'C:\\Users\\me\\AppData\\Local\\DevCrew\\DevCrew.exe',
         appPath: fixture.appPath,
         commandPathOverride: installPath,
         userPathReader: async () => userPathRead('C:\\Windows\\System32'),
@@ -114,9 +114,9 @@ describe('CliInstaller', () => {
       platform: 'win32',
       isPackaged: false,
       userDataPath: fixture.userDataPath,
-      execPath: 'C:\\Users\\me\\AppData\\Local\\Orca\\Orca.exe',
+      execPath: 'C:\\Users\\me\\AppData\\Local\\DevCrew\\DevCrew.exe',
       appPath: fixture.appPath,
-      commandPathOverride: join(fixture.root, 'Programs', 'Orca', 'bin', 'orca.cmd'),
+      commandPathOverride: join(fixture.root, 'Programs', 'DevCrew', 'bin', 'orca.cmd'),
       userPathReader: async () => userPathRead('C:\\Windows\\System32'),
       userPathWriter
     })
@@ -135,12 +135,12 @@ describe('CliInstaller', () => {
     'propagates a non-permission Windows PATH write error unchanged: %s',
     async (_name, message) => {
       const fixture = await makeFixture()
-      const installPath = join(fixture.root, 'Programs', 'Orca', 'bin', 'orca.cmd')
+      const installPath = join(fixture.root, 'Programs', 'DevCrew', 'bin', 'orca.cmd')
       const installer = new CliInstaller({
         platform: 'win32',
         isPackaged: false,
         userDataPath: fixture.userDataPath,
-        execPath: 'C:\\Users\\me\\AppData\\Local\\Orca\\Orca.exe',
+        execPath: 'C:\\Users\\me\\AppData\\Local\\DevCrew\\DevCrew.exe',
         appPath: fixture.appPath,
         commandPathOverride: installPath,
         userPathReader: async () => userPathRead('C:\\Windows\\System32'),
@@ -157,17 +157,17 @@ describe('CliInstaller', () => {
 
   it('reports an unknown Windows PATH without spawning PowerShell', async () => {
     const fixture = await makeFixture()
-    const installPath = join(fixture.root, 'Programs', 'Orca', 'bin', 'orca.cmd')
+    const installPath = join(fixture.root, 'Programs', 'DevCrew', 'bin', 'orca.cmd')
     const installer = new CliInstaller({
       platform: 'win32',
       isPackaged: false,
       userDataPath: fixture.userDataPath,
-      execPath: 'C:\\Users\\me\\AppData\\Local\\Orca\\Orca.exe',
+      execPath: 'C:\\Users\\me\\AppData\\Local\\DevCrew\\DevCrew.exe',
       appPath: fixture.appPath,
       commandPathOverride: installPath,
       userPathReader: async () => ({
         state: 'unknown',
-        detail: 'Orca could not read the Windows user PATH registry value.'
+        detail: 'DevCrew could not read the Windows user PATH registry value.'
       })
     })
 
@@ -186,12 +186,12 @@ describe('CliInstaller', () => {
       platform: 'win32',
       isPackaged: false,
       userDataPath: fixture.userDataPath,
-      execPath: 'C:\\Users\\me\\AppData\\Local\\Orca\\Orca.exe',
+      execPath: 'C:\\Users\\me\\AppData\\Local\\DevCrew\\DevCrew.exe',
       appPath: fixture.appPath,
-      commandPathOverride: join(fixture.root, 'Programs', 'Orca', 'bin', 'orca.cmd'),
+      commandPathOverride: join(fixture.root, 'Programs', 'DevCrew', 'bin', 'orca.cmd'),
       userPathReader: async () => ({
         state: 'unknown',
-        detail: 'Orca could not read the Windows user PATH registry value.'
+        detail: 'DevCrew could not read the Windows user PATH registry value.'
       }),
       userPathWriter
     })
@@ -202,7 +202,7 @@ describe('CliInstaller', () => {
 
   it('bypasses cached status data before a Windows PATH mutation', async () => {
     const fixture = await makeFixture()
-    const installPath = join(fixture.root, 'Programs', 'Orca', 'bin', 'orca.cmd')
+    const installPath = join(fixture.root, 'Programs', 'DevCrew', 'bin', 'orca.cmd')
     const pathDirectory = dirname(installPath)
     let registryPath = 'C:\\Tools'
     const registryReader = new WindowsUserPathRegistryReader({
@@ -221,7 +221,7 @@ describe('CliInstaller', () => {
       platform: 'win32',
       isPackaged: false,
       userDataPath: fixture.userDataPath,
-      execPath: 'C:\\Users\\me\\AppData\\Local\\Orca\\Orca.exe',
+      execPath: 'C:\\Users\\me\\AppData\\Local\\DevCrew\\DevCrew.exe',
       appPath: fixture.appPath,
       commandPathOverride: installPath,
       userPathReader: () => registryReader.read(),
@@ -241,17 +241,17 @@ describe('CliInstaller', () => {
 
   it('matches expandable Windows PATH entries case-insensitively without rewriting them', async () => {
     const fixture = await makeFixture()
-    const installPath = join(fixture.root, 'Local App Data', 'Orca', 'bin', 'orca.cmd')
+    const installPath = join(fixture.root, 'Local App Data', 'DevCrew', 'bin', 'orca.cmd')
     const userPathWriter = vi.fn()
     const installer = new CliInstaller({
       platform: 'win32',
       isPackaged: false,
       userDataPath: fixture.userDataPath,
-      execPath: 'C:\\Users\\me\\AppData\\Local\\Orca\\Orca.exe',
+      execPath: 'C:\\Users\\me\\AppData\\Local\\DevCrew\\DevCrew.exe',
       appPath: fixture.appPath,
       commandPathOverride: installPath,
       windowsEnvironment: { LOCALAPPDATA: join(fixture.root, 'Local App Data') },
-      userPathReader: async () => userPathRead('%localappdata%\\Orca\\bin\\', true),
+      userPathReader: async () => userPathRead('%localappdata%\\DevCrew\\bin\\', true),
       userPathWriter
     })
 
@@ -264,30 +264,30 @@ describe('CliInstaller', () => {
 
   it('does not expand environment variables stored in a REG_SZ Windows PATH', async () => {
     const fixture = await makeFixture()
-    const installPath = join(fixture.root, 'Local App Data', 'Orca', 'bin', 'orca.cmd')
+    const installPath = join(fixture.root, 'Local App Data', 'DevCrew', 'bin', 'orca.cmd')
     const pathDirectory = dirname(installPath)
     const userPathWriter = vi.fn()
     const installer = new CliInstaller({
       platform: 'win32',
       isPackaged: false,
       userDataPath: fixture.userDataPath,
-      execPath: 'C:\\Users\\me\\AppData\\Local\\Orca\\Orca.exe',
+      execPath: 'C:\\Users\\me\\AppData\\Local\\DevCrew\\DevCrew.exe',
       appPath: fixture.appPath,
       commandPathOverride: installPath,
       windowsEnvironment: { LOCALAPPDATA: join(fixture.root, 'Local App Data') },
-      userPathReader: async () => userPathRead('%LOCALAPPDATA%\\Orca\\bin'),
+      userPathReader: async () => userPathRead('%LOCALAPPDATA%\\DevCrew\\bin'),
       userPathWriter
     })
 
     await installer.install()
 
-    expect(userPathWriter).toHaveBeenCalledWith(`%LOCALAPPDATA%\\Orca\\bin;${pathDirectory}`)
+    expect(userPathWriter).toHaveBeenCalledWith(`%LOCALAPPDATA%\\DevCrew\\bin;${pathDirectory}`)
   })
 
   it('resolves custom-install packaged Windows command path from resourcesPath', async () => {
     const fixture = await makeFixture()
     const localAppDataPath = join(fixture.root, 'AppData', 'Local')
-    const resourcesPath = join(fixture.root, 'D Custom Orca', 'resources')
+    const resourcesPath = join(fixture.root, 'D Custom DevCrew', 'resources')
     await mkdir(join(resourcesPath, 'bin'), { recursive: true })
     await writeFile(join(resourcesPath, 'bin', 'orca.exe'), 'native launcher', 'utf8')
 
@@ -297,7 +297,7 @@ describe('CliInstaller', () => {
       resourcesPath,
       localAppDataPath,
       userDataPath: fixture.userDataPath,
-      execPath: join(fixture.root, 'D Custom Orca', 'Orca.exe'),
+      execPath: join(fixture.root, 'D Custom DevCrew', 'DevCrew.exe'),
       appPath: fixture.appPath,
       userPathReader: async () => userPathRead(null),
       userPathWriter: async () => {}
@@ -319,11 +319,11 @@ describe('CliInstaller', () => {
       isPackaged: true,
       resourcesPath,
       userDataPath: fixture.userDataPath,
-      execPath: join(fixture.root, 'Orca.exe'),
+      execPath: join(fixture.root, 'DevCrew.exe'),
       appPath: fixture.appPath,
       userPathReader: async () => ({
         state: 'unknown',
-        detail: 'Orca could not read the Windows user PATH registry value.'
+        detail: 'DevCrew could not read the Windows user PATH registry value.'
       })
     })
 
@@ -337,7 +337,7 @@ describe('CliInstaller', () => {
   it('does not overwrite the packaged Windows launcher while registering PATH', async () => {
     const fixture = await makeFixture()
     const localAppDataPath = join(fixture.root, 'AppData', 'Local')
-    const resourcesPath = join(fixture.root, 'D Custom Orca', 'resources')
+    const resourcesPath = join(fixture.root, 'D Custom DevCrew', 'resources')
     const bundledLauncher = join(resourcesPath, 'bin', 'orca.exe')
     const bundledContent = 'native launcher'
     await mkdir(dirname(bundledLauncher), { recursive: true })
@@ -350,7 +350,7 @@ describe('CliInstaller', () => {
       resourcesPath,
       localAppDataPath,
       userDataPath: fixture.userDataPath,
-      execPath: join(fixture.root, 'D Custom Orca', 'Orca.exe'),
+      execPath: join(fixture.root, 'D Custom DevCrew', 'DevCrew.exe'),
       appPath: fixture.appPath,
       userPathReader: async () => userPathRead(userPath),
       userPathWriter: async (value) => {
@@ -377,7 +377,7 @@ describe('CliInstaller', () => {
   it('uses corporate product wording for packaged Windows PATH registration detail', async () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
     const fixture = await makeFixture()
-    const resourcesPath = join(fixture.root, 'Secure Orca Lite', 'resources')
+    const resourcesPath = join(fixture.root, 'DevCrew', 'resources')
     const bundledLauncher = join(resourcesPath, 'bin', 'orca.exe')
     await mkdir(dirname(bundledLauncher), { recursive: true })
     await writeFile(bundledLauncher, 'native launcher', 'utf8')
@@ -387,7 +387,7 @@ describe('CliInstaller', () => {
       isPackaged: true,
       resourcesPath,
       userDataPath: fixture.userDataPath,
-      execPath: join(fixture.root, 'Secure Orca Lite', 'Orca.exe'),
+      execPath: join(fixture.root, 'DevCrew', 'DevCrew.exe'),
       appPath: fixture.appPath,
       userPathReader: async () => userPathRead('C:\\Windows\\System32')
     })

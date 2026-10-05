@@ -4,7 +4,7 @@
  * Trigger: reopening many remote sessions on Remote Server / SSH with agents.
  *
  * Topology under test:
- *   R1: headless Remote Orca host + paired desktop web client (paired-remote-server)
+ *   R1: headless Remote DevCrew host + paired desktop web client (paired-remote-server)
  *
  * Measurement:
  *   renderer timer drift during hidden flood + bulk worktree/tab open.

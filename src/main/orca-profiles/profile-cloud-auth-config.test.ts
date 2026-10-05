@@ -15,7 +15,7 @@ describe('Orca cloud auth config', () => {
   it('reports unconfigured without both API URL and client ID', () => {
     expect(getOrcaCloudAuthConfig({})).toEqual({
       configured: false,
-      setupMessage: 'Orca Cloud sign-in is not configured for this build.'
+      setupMessage: 'DevCrew Cloud sign-in is not configured for this build.'
     })
   })
 

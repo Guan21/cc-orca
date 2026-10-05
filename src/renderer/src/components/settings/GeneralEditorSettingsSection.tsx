@@ -96,11 +96,11 @@ export function GeneralEditorSettingsSection({
           getOrcaBuildProfile() === 'corporate'
             ? translate(
                 'auto.components.settings.GeneralEditorSettingsSection.persistenceCorporate',
-                'Configure how file edits are persisted.'
+                'Configure how DevCrew persists file edits.'
               )
             : translate(
                 'auto.components.settings.GeneralEditorSettingsSection.d21136d9ef',
-                'Configure how Orca persists file edits.'
+                'Configure how DevCrew persists file edits.'
               )
         }
       />
@@ -139,11 +139,11 @@ export function GeneralEditorSettingsSection({
           getOrcaBuildProfile() === 'corporate'
             ? translate(
                 'auto.components.settings.GeneralEditorSettingsSection.autoSaveDelayCorporate',
-                'How long to wait after your last edit before saving automatically.'
+                'How long DevCrew waits after your last edit before saving automatically.'
               )
             : translate(
                 'auto.components.settings.GeneralEditorSettingsSection.1bec6d8318',
-                'How long Orca waits after your last edit before saving automatically.'
+                'How long DevCrew waits after your last edit before saving automatically.'
               )
         }
         keywords={['autosave', 'delay', 'milliseconds']}
@@ -160,11 +160,11 @@ export function GeneralEditorSettingsSection({
             {getOrcaBuildProfile() === 'corporate'
               ? translate(
                   'auto.components.settings.GeneralEditorSettingsSection.autoSaveDelayDefaultCorporate',
-                  'How long to wait after your last edit before saving automatically. First launch defaults to'
+                  'How long DevCrew waits after your last edit before saving automatically. First launch defaults to'
                 )
               : translate(
                   'auto.components.settings.GeneralEditorSettingsSection.8112cd6dcf',
-                  'How long Orca waits after your last edit before saving automatically. First launch defaults to'
+                  'How long DevCrew waits after your last edit before saving automatically. First launch defaults to'
                 )}{' '}
             {DEFAULT_EDITOR_AUTO_SAVE_DELAY_MS}{' '}
             {translate('auto.components.settings.GeneralEditorSettingsSection.fc5c5306ff', 'ms.')}

@@ -398,7 +398,7 @@ describe('terminal-history', () => {
 
     it.each([
       ['an ordinary path', ['', 'home', 'me', '.zsh_history'].join(sep)],
-      // Orca only ever mints absolute paths, so the same shape relative to the
+      // DevCrew only ever mints absolute paths, so the same shape relative to the
       // user's cwd is theirs.
       [
         'a relative path of Orca’s shape',

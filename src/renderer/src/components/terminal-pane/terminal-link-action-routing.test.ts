@@ -137,7 +137,7 @@ describe('terminal link action routing', () => {
     )
     expect(request.mock.calls[0][0].primary.label).toBe('System Browser')
     expect(request.mock.calls[0][0].primary.external).toBe(true)
-    expect(request.mock.calls[0][0].alternate.label).toBe('Orca Browser')
+    expect(request.mock.calls[0][0].alternate.label).toBe('DevCrew Browser')
     expect(request.mock.calls[0][0].alternate.external).toBe(false)
 
     request.mock.calls[0][0].primary.run()
@@ -158,7 +158,7 @@ describe('terminal link action routing', () => {
       actionDestinations: { primary: 'orca', alternate: 'system' }
     })
 
-    expect(request.mock.calls[0][0].primary.label).toBe('Orca Browser')
+    expect(request.mock.calls[0][0].primary.label).toBe('DevCrew Browser')
     expect(request.mock.calls[0][0].primary.external).toBe(false)
     expect(request.mock.calls[0][0].alternate.label).toBe('System Browser')
     expect(request.mock.calls[0][0].alternate.external).toBe(true)
@@ -187,7 +187,7 @@ describe('terminal link action routing', () => {
     expect(request.mock.calls[0][0].alternate).toBeUndefined()
   })
 
-  it('routes an explicit Orca Browser action to the owning runtime', () => {
+  it('routes an explicit DevCrew Browser action to the owning runtime', () => {
     const request = vi.fn()
 
     handleTerminalHttpLink('https://example.com/path', plainEvent(), {
@@ -209,7 +209,7 @@ describe('terminal link action routing', () => {
     expect(createBrowserTab).not.toHaveBeenCalled()
   })
 
-  it('routes an explicit Orca Browser action through the owning SSH workspace', () => {
+  it('routes an explicit DevCrew Browser action through the owning SSH workspace', () => {
     const request = vi.fn()
     const url = 'http://0.0.0.0:8000/'
 

@@ -80,14 +80,14 @@ describe('browser settings search copy', () => {
   // it, so the default output has to stay byte-identical to the pre-feature copy.
   it('keeps the pre-feature wording while inverting is off', () => {
     expect(getBrowserLinkRoutingDescription({ isMac: true })).toBe(
-      "Open http(s) links in Orca's built-in browser — from the terminal, markdown, and the editor. ⇧⌘-click always uses your system browser."
+      "Open http(s) links in DevCrew's built-in browser — from the terminal, markdown, and the editor. ⇧⌘-click always uses your system browser."
     )
     expect(getBrowserLinkRoutingDescription({ isMac: false })).toContain(
       'Shift+Ctrl+click always uses your system browser.'
     )
   })
 
-  // Why: "always" would be a lie once the chord can land in Orca, so the nested row
+  // Why: "always" would be a lie once the chord can land in DevCrew, so the nested row
   // takes over the claim.
   it('drops the modifier claim once inverting is on', () => {
     const description = getBrowserLinkRoutingDescription({ isMac: true }, true)
@@ -105,7 +105,7 @@ describe('browser link routing modifier copy', () => {
       'Default Search Engine',
       'Default Zoom',
       'Link Routing',
-      'Hold Shift to open in Orca',
+      'Hold Shift to open in DevCrew',
       'Show link actions',
       'Localhost Worktree Labels',
       'Session & Cookies',
@@ -115,7 +115,7 @@ describe('browser link routing modifier copy', () => {
   })
 
   it('names the destination the modifier actually reaches', () => {
-    expect(getLinkRoutingModifierTitle(false)).toBe('Hold Shift to open in Orca')
+    expect(getLinkRoutingModifierTitle(false)).toBe('Hold Shift to open in DevCrew')
     expect(getLinkRoutingModifierTitle(true)).toBe('Hold Shift to open in your web browser')
   })
 
@@ -128,9 +128,9 @@ describe('browser link routing modifier copy', () => {
     )
   })
 
-  it('points the description at Orca only when links currently open externally', () => {
+  it('points the description at DevCrew only when links currently open externally', () => {
     expect(getLinkRoutingModifierDescription({ openLinksInApp: false, isMac: true })).toContain(
-      "Orca's built-in browser"
+      "DevCrew's built-in browser"
     )
     expect(getLinkRoutingModifierDescription({ openLinksInApp: true, isMac: true })).toContain(
       'system browser'
@@ -141,23 +141,23 @@ describe('browser link routing modifier copy', () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
 
     expect(getBrowserLinkRoutingDescription({ isMac: true })).toContain(
-      "Secure Orca Lite's built-in browser"
+      "DevCrew's built-in browser"
     )
     expect(getBrowserLinkRoutingDescription({ isMac: true })).not.toContain(
       "Orca's built-in browser"
     )
-    expect(getLinkRoutingModifierTitle(false)).toBe('Hold Shift to open in Secure Orca Lite')
+    expect(getLinkRoutingModifierTitle(false)).toBe('Hold Shift to open in DevCrew')
     expect(getLinkRoutingModifierDescription({ openLinksInApp: true, isMac: true })).toContain(
-      'Links open in Secure Orca Lite'
+      'Links open in DevCrew'
     )
     expect(getLinkRoutingModifierDescription({ openLinksInApp: false, isMac: true })).toContain(
-      "Secure Orca Lite's built-in browser"
+      "DevCrew's built-in browser"
     )
 
     const localhostEntry = getBrowserPaneSearchEntries({ isMac: true }).find(
       (entry) => entry.title === 'Localhost Worktree Labels'
     )
-    expect(localhostEntry?.description).toContain('Secure Orca Lite localhost URLs')
+    expect(localhostEntry?.description).toContain('DevCrew localhost URLs')
     expect(localhostEntry?.description).not.toContain('Orca localhost URL')
   })
 
@@ -166,12 +166,12 @@ describe('browser link routing modifier copy', () => {
       (entry) => entry.title === 'Localhost Worktree Labels'
     )
 
-    expect(localhostEntry?.description).toContain('Orca localhost URLs')
+    expect(localhostEntry?.description).toContain('DevCrew localhost URLs')
   })
 
-  // Why: the toggle is off by default, so present-tense "opens one in Orca" would
+  // Why: the toggle is off by default, so present-tense "opens one in DevCrew" would
   // describe behavior the user does not have yet.
-  it('phrases the Orca branch as enabled-state copy', () => {
+  it('phrases the DevCrew branch as enabled-state copy', () => {
     expect(getLinkRoutingModifierDescription({ openLinksInApp: false, isMac: true })).toContain(
       'When enabled'
     )
@@ -208,11 +208,11 @@ describe('Link Routing description localization', () => {
 
     const description = getBrowserLinkRoutingDescription({ isMac: true })
     expect(description).toBe(
-      koCopy.replace('{{shortcut}}', '⇧⌘-click').replace('{{value0}}', 'Orca')
+      koCopy.replace('{{shortcut}}', '⇧⌘-click').replace('{{value0}}', 'DevCrew')
     )
     expect(description).not.toMatch(/\{\{.+?\}\}/)
     // Fails when the copy is a hardcoded English literal.
-    expect(description).not.toContain("Orca's built-in browser")
+    expect(description).not.toContain("DevCrew's built-in browser")
 
     // The entry title is localized too, so match on the description instead.
     const entry = getBrowserPaneSearchEntries({ isMac: true }).find(
@@ -221,7 +221,9 @@ describe('Link Routing description localization', () => {
     expect(entry).toBeDefined()
 
     await i18n.changeLanguage('en')
-    expect(getBrowserLinkRoutingDescription({ isMac: true })).toContain("Orca's built-in browser")
+    expect(getBrowserLinkRoutingDescription({ isMac: true })).toContain(
+      "DevCrew's built-in browser"
+    )
   })
 
   it('renders the Korean copy for the invert-on variant', async () => {
@@ -234,9 +236,9 @@ describe('Link Routing description localization', () => {
     await i18n.changeLanguage('ko')
 
     const description = getBrowserLinkRoutingDescription({ isMac: true }, true)
-    expect(description).toBe(koBase.replace('{{value0}}', 'Orca'))
+    expect(description).toBe(koBase.replace('{{value0}}', 'DevCrew'))
     // Fails when the invert-on branch regresses to a hardcoded English literal.
-    expect(description).not.toContain("Orca's built-in browser")
+    expect(description).not.toContain("DevCrew's built-in browser")
   })
 
   it('uses the catalog key rather than an inline literal', () => {

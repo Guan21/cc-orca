@@ -91,9 +91,9 @@ describe('corporate build profile package contract', () => {
     expect(builderConfig).toContain('[verify-skills-cli-runtime] skipped corporate build profile')
   })
 
-  it('keeps default packaging identity and artifact names unchanged', () => {
+  it('uses DevCrew package identity while keeping default compatibility ids', () => {
     withPackagingEnv({}, (config) => {
-      expect(config.productName).toBe('Orca')
+      expect(config.productName).toBe('DevCrew')
       expect(config.appId).toBe('com.stablyai.orca')
       expect(config.win.icon).toBeUndefined()
       expect(config.mac.icon).toBe('resources/build/icon.icns')
@@ -104,9 +104,9 @@ describe('corporate build profile package contract', () => {
       expect(extraResourceSources(config.mac.extraResources)).not.toContain(
         'resources/tray/corporate-menu-barTemplate.png'
       )
-      expect(config.mac.extendInfo.NSAppleEventsUsageDescription).toContain('Orca')
-      expect(config.nsis.artifactName).toBe('orca-windows-setup.${ext}')
-      expect(config.dmg.artifactName).toBe('orca-macos-${arch}.${ext}')
+      expect(config.mac.extendInfo.NSAppleEventsUsageDescription).toContain('DevCrew')
+      expect(config.nsis.artifactName).toBe('devcrew-windows-setup.${ext}')
+      expect(config.dmg.artifactName).toBe('devcrew-macos-${arch}.${ext}')
       expect(config.publish).toEqual({
         provider: 'github',
         owner: 'stablyai',
@@ -118,7 +118,7 @@ describe('corporate build profile package contract', () => {
 
   it('uses generic distinct corporate identity and artifact names', () => {
     withPackagingEnv({ ORCA_BUILD_PROFILE: 'corporate' }, (config) => {
-      expect(config.productName).toBe('Secure Orca Lite')
+      expect(config.productName).toBe('DevCrew')
       expect(config.appId).toBe('dev.orca.secure-lite')
       expect(config.win.icon).toBe('resources/build/corporate/icon.ico')
       expect(config.mac.icon).toBe('resources/build/corporate/icon.icns')
@@ -136,13 +136,13 @@ describe('corporate build profile package contract', () => {
           ])
         )
       }
-      expect(config.mac.extendInfo.NSAppleEventsUsageDescription).toContain('Secure Orca Lite')
-      expect(config.mac.extendInfo.NSAppleEventsUsageDescription).not.toContain('Orca allows')
+      expect(config.mac.extendInfo.NSAppleEventsUsageDescription).toContain('DevCrew')
       for (const description of tccDescriptions(config.mac.extendInfo)) {
-        expect(description).toContain('Secure Orca Lite')
+        expect(description).toContain('DevCrew')
+        expect(description).not.toMatch(/\b(?:Orca|Secure Orca Lite|Company Orca)\b/)
       }
-      expect(config.nsis.artifactName).toBe('secure-orca-lite-windows-setup.${ext}')
-      expect(config.dmg.artifactName).toBe('secure-orca-lite-macos-${arch}.${ext}')
+      expect(config.nsis.artifactName).toBe('devcrew-windows-setup.${ext}')
+      expect(config.dmg.artifactName).toBe('devcrew-macos-${arch}.${ext}')
       expect(config.publish).toBeNull()
     })
   })
@@ -151,14 +151,14 @@ describe('corporate build profile package contract', () => {
     withPackagingEnv(
       {
         ORCA_BUILD_PROFILE: 'corporate',
-        ORCA_CORPORATE_PRODUCT_NAME: 'Secure Orca Lite Preview',
-        ORCA_CORPORATE_APP_ID: 'dev.example.secure-orca-lite-preview'
+        ORCA_CORPORATE_PRODUCT_NAME: 'DevCrew Preview',
+        ORCA_CORPORATE_APP_ID: 'dev.example.devcrew-preview'
       },
       (config) => {
-        expect(config.productName).toBe('Secure Orca Lite Preview')
-        expect(config.appId).toBe('dev.example.secure-orca-lite-preview')
-        expect(config.nsis.artifactName).toBe('secure-orca-lite-windows-setup.${ext}')
-        expect(config.dmg.artifactName).toBe('secure-orca-lite-macos-${arch}.${ext}')
+        expect(config.productName).toBe('DevCrew Preview')
+        expect(config.appId).toBe('dev.example.devcrew-preview')
+        expect(config.nsis.artifactName).toBe('devcrew-windows-setup.${ext}')
+        expect(config.dmg.artifactName).toBe('devcrew-macos-${arch}.${ext}')
       }
     )
   })

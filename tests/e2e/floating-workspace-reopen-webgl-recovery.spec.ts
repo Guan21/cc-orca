@@ -435,7 +435,7 @@ test.describe('floating workspace reopen WebGL recovery @headful', () => {
     await electronApp.evaluate(({ BrowserWindow }) => {
       const mainWindow = BrowserWindow.getAllWindows()[0]
       if (!mainWindow) {
-        throw new Error('Orca window unavailable for system resume')
+        throw new Error('DevCrew window unavailable for system resume')
       }
       mainWindow.webContents.send('system:resumed')
     })

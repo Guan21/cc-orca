@@ -50,13 +50,13 @@ describe('isOrcaCliAvailableOnPath', () => {
     globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
 
     expect(getAgentSkillCliPrerequisiteNotice()).toBe(
-      'Before opening setup, Secure Orca Lite may show a system prompt to register the `orca` CLI command on PATH.'
+      'Before opening setup, DevCrew may show a system prompt to register the `orca` CLI command on PATH.'
     )
   })
 
   it('keeps default prerequisite wording outside corporate builds', () => {
     expect(getAgentSkillCliPrerequisiteNotice()).toBe(
-      'Before opening setup, Orca may show a system prompt to register the Orca CLI command on PATH.'
+      'Before opening setup, DevCrew may show a system prompt to register the `orca` CLI command on PATH.'
     )
   })
 })
@@ -106,7 +106,7 @@ describe('ensureOrcaCliAvailableForAgentSkillTerminal', () => {
     const initial = cliStatus({
       platform: 'win32',
       pathConfigured: null,
-      detail: 'Orca could not read the Windows user PATH registry value.'
+      detail: 'DevCrew could not read the Windows user PATH registry value.'
     })
     const install = vi.fn()
     vi.stubGlobal('window', {

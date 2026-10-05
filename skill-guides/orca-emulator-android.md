@@ -1,8 +1,8 @@
 ---
 name: orca-emulator-android
 description: >-
-  Android device and emulator control from inside Orca over adb, with the live
-  device view in Orca's emulator pane. Use when driving an adb-connected emulator
+  Android device and emulator control from inside DevCrew over adb, with the live
+  device view in DevCrew's emulator pane. Use when driving an adb-connected emulator
   or phone on Windows, Linux, or macOS: booting AVDs, taps, swipes, typing,
   hardware buttons, rotation, app install and launch, runtime permissions, the
   accessibility tree, and logcat. For an iOS simulator use the iOS emulator
@@ -10,7 +10,7 @@ description: >-
 license: Apache-2.0
 ---
 
-# Orca Emulator (Android)
+# DevCrew Emulator (Android)
 
 `ORCA` is a placeholder for the executable you resolved in the stub; substitute it before running.
 

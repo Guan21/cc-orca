@@ -45,7 +45,7 @@ describe('buildHttpLinkActions', () => {
       }
     )
 
-    expect(actions.primary.label).toBe('Orca Browser')
+    expect(actions.primary.label).toBe('DevCrew Browser')
     expect(actions.primary.external).toBe(false)
     expect(actions.alternate?.label).toBe('System Browser')
     expect(actions.alternate?.external).toBe(true)

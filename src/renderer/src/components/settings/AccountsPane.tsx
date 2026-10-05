@@ -93,7 +93,7 @@ export function AccountsPane({
     wslDistros,
     wslCapabilitiesLoading
   )
-  // Why: with a Remote Orca Server active the server owns provider accounts
+  // Why: with a Remote DevCrew Server active the server owns provider accounts
   // (see #7973); every list/select/remove below must scope to it, not host/WSL.
   const isRemoteAccountScope = hasRemoteProviderAccountOwner(settings)
   const activeRuntimeEnvironmentId = settings.activeRuntimeEnvironmentId?.trim() || null
@@ -218,7 +218,10 @@ export function AccountsPane({
   const paneTitleSearchMatched =
     getOrcaBuildProfile() === 'corporate' &&
     matchesSettingsSearch(searchQuery, {
-      title: translate('auto.hooks.useSettingsNavigationMetadata.f70ac54d38', 'AI Provider Accounts'),
+      title: translate(
+        'auto.hooks.useSettingsNavigationMetadata.f70ac54d38',
+        'AI Provider Accounts'
+      ),
       description: translate(
         'auto.hooks.useSettingsNavigationMetadata.b1c2f8b0ac',
         'Optional account switching and usage setup for supported AI providers.'

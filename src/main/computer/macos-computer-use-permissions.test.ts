@@ -108,7 +108,7 @@ describe('openComputerUsePermissions', () => {
         { id: 'accessibility', status: 'granted' },
         { id: 'screenshots', status: 'not-granted' }
       ],
-      nextStep: 'Grant Screen Recording to Orca Computer Use, then retry get-app-state.'
+      nextStep: 'Grant Screen Recording to DevCrew Computer Use, then retry get-app-state.'
     })
     expect(spawnSync).toHaveBeenCalledWith(
       '/usr/bin/pkill',
@@ -141,7 +141,7 @@ describe('openComputerUsePermissions', () => {
         { id: 'accessibility', status: 'not-granted' },
         { id: 'screenshots', status: 'not-granted' }
       ],
-      nextStep: 'Grant Accessibility to Orca Computer Use, then retry get-app-state.'
+      nextStep: 'Grant Accessibility to DevCrew Computer Use, then retry get-app-state.'
     })
     expect(spawn).toHaveBeenCalledWith(
       '/usr/bin/open',
@@ -164,7 +164,7 @@ describe('openComputerUsePermissions', () => {
         { id: 'accessibility', status: 'granted' },
         { id: 'screenshots', status: 'not-granted' }
       ],
-      nextStep: 'Grant Screen Recording to Orca Computer Use, then retry get-app-state.'
+      nextStep: 'Grant Screen Recording to DevCrew Computer Use, then retry get-app-state.'
     })
     expect(spawn).toHaveBeenCalledWith(
       '/usr/bin/open',
@@ -194,9 +194,7 @@ describe('openComputerUsePermissions', () => {
   it('throws when the helper app is missing on macOS', async () => {
     resolveHelperAppPathMock.mockReturnValue(null)
 
-    await expect(openComputerUsePermissions()).rejects.toThrow(
-      'Orca Computer Use.app was not found'
-    )
+    await expect(openComputerUsePermissions()).rejects.toThrow('DevCrew Computer Use was not found')
   })
 
   it('throws when the helper executable is missing during setup', async () => {

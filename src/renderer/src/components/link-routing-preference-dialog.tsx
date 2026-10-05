@@ -183,7 +183,7 @@ export function LinkRoutingPreferenceDialogProvider({
                         )
                       : translate(
                           'auto.components.link.routing.preference.dialog.description',
-                          "Use Orca's browser for terminal links, or keep your system browser."
+                          "Use DevCrew's browser for terminal links, or keep your system browser."
                         )}
                 </DialogDescription>
               </div>
