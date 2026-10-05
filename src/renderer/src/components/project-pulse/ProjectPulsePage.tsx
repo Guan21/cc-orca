@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Activity,
   AlertTriangle,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react'
 import type { CircleDot } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
 import type { DevelopmentEvent } from '../../../../shared/development-event-types'
 import { projectPulseDemoEvents } from './project-pulse-demo-events'
@@ -36,22 +38,32 @@ type ProjectPulsePageProps = {
   errorMessage?: string
 }
 
-const CATEGORY_OPTIONS: { value: TimelineItemCategory | 'all'; label: string }[] = [
-  { value: 'all', label: 'All activity' },
-  { value: 'task', label: 'Tasks' },
-  { value: 'agent', label: 'Agents' },
-  { value: 'file', label: 'Files' },
-  { value: 'commit', label: 'Commits' },
-  { value: 'pull-request', label: 'Pull requests' },
-  { value: 'review', label: 'Reviews' },
-  { value: 'test', label: 'Tests' }
-]
+function categoryOptions(): { value: TimelineItemCategory | 'all'; label: string }[] {
+  return [
+    {
+      value: 'all',
+      label: translate('auto.components.projectPulse.page.allActivity', 'All activity')
+    },
+    { value: 'task', label: translate('auto.components.projectPulse.page.tasks', 'Tasks') },
+    { value: 'agent', label: translate('auto.components.projectPulse.page.agents', 'Agents') },
+    { value: 'file', label: translate('auto.components.projectPulse.page.files', 'Files') },
+    { value: 'commit', label: translate('auto.components.projectPulse.page.commits', 'Commits') },
+    {
+      value: 'pull-request',
+      label: translate('auto.components.projectPulse.page.pullRequests', 'Pull requests')
+    },
+    { value: 'review', label: translate('auto.components.projectPulse.page.reviews', 'Reviews') },
+    { value: 'test', label: translate('auto.components.projectPulse.page.tests', 'Tests') }
+  ]
+}
 
-const TIME_WINDOW_OPTIONS: { value: TimelineTimeWindow; label: string }[] = [
-  { value: 'all', label: 'All time' },
-  { value: '24h', label: 'Last 24h' },
-  { value: '7d', label: 'Last 7d' }
-]
+function timeWindowOptions(): { value: TimelineTimeWindow; label: string }[] {
+  return [
+    { value: 'all', label: translate('auto.components.projectPulse.page.allTime', 'All time') },
+    { value: '24h', label: translate('auto.components.projectPulse.page.last24h', 'Last 24h') },
+    { value: '7d', label: translate('auto.components.projectPulse.page.last7d', 'Last 7d') }
+  ]
+}
 
 const statusClassName: Record<TimelineItemStatus, string> = {
   neutral: 'bg-muted text-muted-foreground',
@@ -84,11 +96,26 @@ function PulseSummary({ events }: { events: readonly DevelopmentEvent[] }): Reac
   const summary = projectPulseSummary(events)
   return (
     <section className="grid shrink-0 grid-cols-2 gap-2 md:grid-cols-5">
-      <PulseMetric label="Active tasks" value={summary.activeTasks} />
-      <PulseMetric label="Active agents" value={summary.activeAgents} />
-      <PulseMetric label="Pending reviews" value={summary.pendingReviews} />
-      <PulseMetric label="Recent failures" value={summary.recentFailures} />
-      <PulseMetric label="Completed tasks" value={summary.recentlyCompletedTasks} />
+      <PulseMetric
+        label={translate('auto.components.projectPulse.page.activeTasks', 'Active tasks')}
+        value={summary.activeTasks}
+      />
+      <PulseMetric
+        label={translate('auto.components.projectPulse.page.activeAgents', 'Active agents')}
+        value={summary.activeAgents}
+      />
+      <PulseMetric
+        label={translate('auto.components.projectPulse.page.pendingReviews', 'Pending reviews')}
+        value={summary.pendingReviews}
+      />
+      <PulseMetric
+        label={translate('auto.components.projectPulse.page.recentFailures', 'Recent failures')}
+        value={summary.recentFailures}
+      />
+      <PulseMetric
+        label={translate('auto.components.projectPulse.page.completedTasks', 'Completed tasks')}
+        value={summary.recentlyCompletedTasks}
+      />
     </section>
   )
 }
@@ -143,38 +170,47 @@ function PulseFilters({
   return (
     <section className="flex shrink-0 flex-wrap gap-2 border-y border-border bg-muted/20 px-4 py-3">
       <FilterSelect
-        label="Filter by category"
+        label={translate(
+          'auto.components.projectPulse.page.filterByCategory',
+          'Filter by category'
+        )}
         value={filters.category ?? 'all'}
         onChange={(category) =>
           onFiltersChange({ ...filters, category: category as TimelineItemCategory | 'all' })
         }
-        options={CATEGORY_OPTIONS}
+        options={categoryOptions()}
       />
       <FilterSelect
-        label="Filter by actor"
+        label={translate('auto.components.projectPulse.page.filterByActor', 'Filter by actor')}
         value={filters.actorId ?? 'all'}
         onChange={(actorId) => onFiltersChange({ ...filters, actorId })}
         options={[
-          { value: 'all', label: 'All actors' },
+          {
+            value: 'all',
+            label: translate('auto.components.projectPulse.page.allActors', 'All actors')
+          },
           ...actors.map((id) => ({ value: id, label: id }))
         ]}
       />
       <FilterSelect
-        label="Filter by task"
+        label={translate('auto.components.projectPulse.page.filterByTask', 'Filter by task')}
         value={filters.taskId ?? 'all'}
         onChange={(taskId) => onFiltersChange({ ...filters, taskId })}
         options={[
-          { value: 'all', label: 'All tasks' },
+          {
+            value: 'all',
+            label: translate('auto.components.projectPulse.page.allTasks', 'All tasks')
+          },
           ...tasks.map((id) => ({ value: id, label: id }))
         ]}
       />
       <FilterSelect
-        label="Filter by time"
+        label={translate('auto.components.projectPulse.page.filterByTime', 'Filter by time')}
         value={filters.timeWindow ?? 'all'}
         onChange={(timeWindow) =>
           onFiltersChange({ ...filters, timeWindow: timeWindow as TimelineTimeWindow })
         }
-        options={TIME_WINDOW_OPTIONS}
+        options={timeWindowOptions()}
       />
     </section>
   )
@@ -227,9 +263,17 @@ function ActivityTimeline({
     return (
       <div className="flex min-h-[16rem] flex-col items-center justify-center gap-2 text-center">
         <SearchX className="size-7 text-muted-foreground" />
-        <h2 className="text-sm font-medium text-foreground">No recent DevCrew activity</h2>
+        <h2 className="text-sm font-medium text-foreground">
+          {translate(
+            'auto.components.projectPulse.page.noRecentActivity',
+            'No recent DevCrew activity'
+          )}
+        </h2>
         <p className="max-w-sm text-xs text-muted-foreground">
-          Change the filters or connect producer integrations in a follow-up.
+          {translate(
+            'auto.components.projectPulse.page.emptyTimelineHint',
+            'Change the filters or connect producer integrations in a follow-up.'
+          )}
         </p>
       </div>
     )
@@ -260,11 +304,23 @@ function ProjectPulseState({
           <AlertTriangle className="size-7 text-destructive" />
         )}
         <h1 className="text-base font-semibold">
-          {isLoading ? 'Loading DevCrew activity' : 'DevCrew activity is unavailable'}
+          {isLoading
+            ? translate(
+                'auto.components.projectPulse.page.loadingActivity',
+                'Loading DevCrew activity'
+              )
+            : translate(
+                'auto.components.projectPulse.page.activityUnavailable',
+                'DevCrew activity is unavailable'
+              )}
         </h1>
         {!isLoading ? (
           <p className="max-w-md text-sm text-muted-foreground">
-            {errorMessage ?? 'The activity fixture collection could not be loaded.'}
+            {errorMessage ??
+              translate(
+                'auto.components.projectPulse.page.fixtureLoadError',
+                'The activity fixture collection could not be loaded.'
+              )}
           </p>
         ) : null}
       </div>
@@ -277,6 +333,7 @@ export function ProjectPulsePage({
   state = 'ready',
   errorMessage
 }: ProjectPulsePageProps): React.JSX.Element {
+  useTranslation()
   const [filters, setFilters] = useState<TimelineFilters>({ category: 'all', timeWindow: 'all' })
   const timelineItems = useMemo(() => projectDevelopmentEventsToTimeline(events), [events])
   const visibleItems = useMemo(
@@ -295,9 +352,14 @@ export function ProjectPulsePage({
           <Activity className="size-4 text-muted-foreground" />
         </div>
         <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight">DevCrew Project Pulse</h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+            {translate('auto.components.projectPulse.page.title', 'DevCrew Project Pulse')}
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Recent project activity projected from DevelopmentEvent v1.
+            {translate(
+              'auto.components.projectPulse.page.subtitle',
+              'Recent project activity projected from DevelopmentEvent v1.'
+            )}
           </p>
         </div>
       </header>

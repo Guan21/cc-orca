@@ -71,6 +71,12 @@ describe('projectDevelopmentEventsToTimeline', () => {
         payload: { agentId: 'claude-1', status: 'started' }
       }),
       agentDevelopmentEventFixture({
+        eventId: 'agent-completed',
+        eventType: 'agent.completed',
+        actor: { type: 'agent', id: 'codex-2', provider: 'codex' },
+        payload: { agentId: 'codex-2', status: 'completed' }
+      }),
+      agentDevelopmentEventFixture({
         eventId: 'agent-failed',
         eventType: 'agent.failed',
         actor: { type: 'agent', id: 'codex-1', provider: 'codex' },
@@ -125,6 +131,7 @@ describe('projectDevelopmentEventsToTimeline', () => {
       ['task-started', 'Started task #42', 'active'],
       ['task-completed', 'Completed task #42', 'success'],
       ['agent-started', 'Claude started', 'active'],
+      ['agent-completed', 'Codex completed', 'success'],
       ['agent-failed', 'Codex failed', 'danger'],
       ['file-changed', 'src/auth.ts changed', 'neutral'],
       ['commit-created', 'Commit abcdef1 created', 'success'],

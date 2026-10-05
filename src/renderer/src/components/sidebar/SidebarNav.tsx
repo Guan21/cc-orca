@@ -150,7 +150,7 @@ const SidebarNav = React.memo(function SidebarNav() {
           strokeWidth={activityActive ? 2.25 : 1.75}
         />
         <span className="flex-1">
-          {translate('auto.components.sidebar.SidebarNav.projectPulse', 'Pulse')}
+          {translate('auto.components.sidebar.SidebarNav.projectPulse', 'Project Pulse')}
         </span>
       </button>
       {showArtifactsButton ? (

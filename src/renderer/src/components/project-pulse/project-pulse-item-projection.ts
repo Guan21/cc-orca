@@ -3,6 +3,35 @@ import type {
   DevelopmentEventActor,
   DevelopmentEventType
 } from '../../../../shared/development-event-types'
+import {
+  agentCompletedSummary,
+  agentCompletedTitle,
+  agentFailedSummary,
+  agentFailedTitle,
+  agentStartedSummary,
+  agentStartedTitle,
+  capitalize,
+  commitCreatedSummary,
+  commitCreatedTitle,
+  fileChangedSummary,
+  fileChangedTitle,
+  fileRenamedSummary,
+  providerLabel,
+  pullRequestCreatedSummary,
+  pullRequestCreatedTitle,
+  reviewCompletedSummary,
+  reviewCompletedTitle,
+  reviewRequestedSummary,
+  reviewRequestedTitle,
+  taskCompletedSummary,
+  taskCompletedTitle,
+  taskLabel,
+  taskStartedTitle,
+  taskWorkStartedSummary,
+  testCountSummary,
+  testRunCompletedSummary,
+  testsCompletedTitle
+} from './project-pulse-item-copy'
 import type {
   TimelineItemActorViewModel,
   TimelineItemCategory,
@@ -17,41 +46,10 @@ function formatTimeLabel(occurredAt: string): { label: string; ms: number } {
   return { label: occurredAt.match(/T(\d{2}:\d{2})/)?.[1] ?? '--:--', ms }
 }
 
-function capitalize(value: string): string {
-  const trimmed = value.trim()
-  return trimmed ? `${trimmed.slice(0, 1).toUpperCase()}${trimmed.slice(1)}` : ''
-}
-
-function providerLabel(value: string | undefined): string | null {
-  if (!value) {
-    return null
-  }
-  const normalized = value.trim().toLowerCase()
-  if (normalized === 'github') {
-    return 'GitHub'
-  }
-  if (normalized === 'gitlab') {
-    return 'GitLab'
-  }
-  return capitalize(normalized)
-}
-
 function actorViewModel(actor: DevelopmentEventActor): TimelineItemActorViewModel {
   const provider = providerLabel(actor.provider)
   const label = provider ?? capitalize(actor.id.replace(/[-_]+/g, ' ')) ?? actor.id
   return { id: actor.id, label, type: actor.type, provider: actor.provider }
-}
-
-function taskLabel(taskId: string | undefined): string {
-  return taskId ? `task #${taskId.replace(/^#/, '')}` : 'task'
-}
-
-function prLabel(pullRequestId: string | undefined): string {
-  return pullRequestId ? `PR #${pullRequestId.replace(/^#/, '')}` : 'PR'
-}
-
-function shortSha(sha: string): string {
-  return sha.slice(0, 7)
 }
 
 function categoryForEvent(eventType: DevelopmentEventType): TimelineItemCategory {
@@ -112,8 +110,8 @@ export function projectEventToTimelineItem(event: DevelopmentEvent): TimelineIte
       const label = taskLabel(event.taskId)
       return {
         ...base,
-        title: event.taskId ? `Started ${label}` : 'Started task',
-        summary: event.payload.title ?? 'Task work started.',
+        title: taskStartedTitle(label, Boolean(event.taskId)),
+        summary: event.payload.title ?? taskWorkStartedSummary(),
         status: 'active',
         badges: [label]
       }
@@ -122,8 +120,8 @@ export function projectEventToTimelineItem(event: DevelopmentEvent): TimelineIte
       const label = taskLabel(event.taskId)
       return {
         ...base,
-        title: event.taskId ? `Completed ${label}` : 'Completed task',
-        summary: event.payload.title ?? event.payload.result ?? 'Task completed.',
+        title: taskCompletedTitle(label, Boolean(event.taskId)),
+        summary: event.payload.title ?? event.payload.result ?? taskCompletedSummary(),
         status: 'success',
         badges: [label]
       }
@@ -131,35 +129,35 @@ export function projectEventToTimelineItem(event: DevelopmentEvent): TimelineIte
     case 'agent.started':
       return {
         ...base,
-        title: `${base.actor.label} started`,
-        summary: `Agent ${event.payload.agentId} started work.`,
+        title: agentStartedTitle(base.actor.label),
+        summary: agentStartedSummary(event.payload.agentId),
         status: 'active',
         badges: [event.payload.agentId]
       }
     case 'agent.completed':
       return {
         ...base,
-        title: `${base.actor.label} completed`,
-        summary: `Agent ${event.payload.agentId} completed work.`,
+        title: agentCompletedTitle(base.actor.label),
+        summary: agentCompletedSummary(event.payload.agentId),
         status: 'success',
         badges: [event.payload.agentId]
       }
     case 'agent.failed':
       return {
         ...base,
-        title: `${base.actor.label} failed`,
-        summary: event.payload.errorMessage || `Agent ${event.payload.agentId} failed.`,
+        title: agentFailedTitle(base.actor.label),
+        summary: event.payload.errorMessage || agentFailedSummary(event.payload.agentId),
         status: 'danger',
         badges: [event.payload.agentId]
       }
     case 'file.changed':
       return {
         ...base,
-        title: `${event.payload.path} changed`,
+        title: fileChangedTitle(event.payload.path),
         summary:
           event.payload.changeType === 'renamed' && event.payload.oldPath
-            ? `Renamed from ${event.payload.oldPath}.`
-            : `${capitalize(event.payload.changeType)} file.`,
+            ? fileRenamedSummary(event.payload.oldPath)
+            : fileChangedSummary(event.payload.changeType),
         status: 'neutral',
         badges: [event.payload.changeType],
         related: {
@@ -174,8 +172,8 @@ export function projectEventToTimelineItem(event: DevelopmentEvent): TimelineIte
     case 'commit.created':
       return {
         ...base,
-        title: `Commit ${shortSha(event.payload.sha)} created`,
-        summary: event.payload.message || 'Commit created.',
+        title: commitCreatedTitle(event.payload.sha),
+        summary: event.payload.message ?? commitCreatedSummary(),
         status: 'success',
         badges: event.payload.branch ? [event.payload.branch] : [],
         related: {
@@ -186,10 +184,8 @@ export function projectEventToTimelineItem(event: DevelopmentEvent): TimelineIte
     case 'pull_request.created':
       return {
         ...base,
-        title: `${prLabel(event.payload.pullRequestId)} created`,
-        summary:
-          event.payload.title ||
-          `${providerLabel(event.payload.provider) ?? 'Provider'} pull request created.`,
+        title: pullRequestCreatedTitle(event.payload.pullRequestId),
+        summary: event.payload.title || pullRequestCreatedSummary(event.payload.provider),
         status: 'success',
         badges: [providerLabel(event.payload.provider) ?? event.payload.provider],
         related: {
@@ -204,8 +200,8 @@ export function projectEventToTimelineItem(event: DevelopmentEvent): TimelineIte
     case 'review.requested':
       return {
         ...base,
-        title: `Review requested for ${prLabel(event.payload.pullRequestId)}`,
-        summary: `${providerLabel(event.payload.provider) ?? 'Provider'} review requested.`,
+        title: reviewRequestedTitle(event.payload.pullRequestId),
+        summary: reviewRequestedSummary(event.payload.provider),
         status: 'attention',
         badges: [providerLabel(event.payload.provider) ?? event.payload.provider],
         related: {
@@ -223,8 +219,8 @@ export function projectEventToTimelineItem(event: DevelopmentEvent): TimelineIte
     case 'review.completed':
       return {
         ...base,
-        title: `Review completed for ${prLabel(event.payload.pullRequestId)}`,
-        summary: `${providerLabel(event.payload.provider) ?? 'Provider'} review completed.`,
+        title: reviewCompletedTitle(event.payload.pullRequestId),
+        summary: reviewCompletedSummary(event.payload.provider),
         status: 'success',
         badges: [providerLabel(event.payload.provider) ?? event.payload.provider],
         related: {
@@ -244,13 +240,13 @@ export function projectEventToTimelineItem(event: DevelopmentEvent): TimelineIte
       const skipped = event.payload.status === 'skipped'
       const countSummary =
         event.payload.passed !== undefined || event.payload.failed !== undefined
-          ? `${event.payload.passed ?? 0} passed, ${event.payload.failed ?? 0} failed`
+          ? testCountSummary(event.payload.passed, event.payload.failed)
           : event.payload.suite
             ? event.payload.suite
-            : 'Test run completed.'
+            : testRunCompletedSummary()
       return {
         ...base,
-        title: failed ? 'Tests failed' : skipped ? 'Tests skipped' : 'Tests passed',
+        title: testsCompletedTitle(event.payload.status),
         summary: countSummary,
         status: failed ? 'danger' : skipped ? 'attention' : 'success',
         badges: event.payload.suite ? [event.payload.suite] : []
