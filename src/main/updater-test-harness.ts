@@ -197,6 +197,14 @@ export function createUpdaterMocks(): UpdaterMocks {
 
   /** Shared `beforeEach` body: fresh module registry plus every mock back to its default. */
   const resetUpdaterMocks = () => {
+    // #90 removed updater public fallbacks. Tests that exercise updater behavior
+    // must opt in with explicit non-production endpoints instead of depending on
+    // a packaged default.
+    process.env.ORCA_RELEASE_LATEST_FEED_URL =
+      'https://updates.example.test/releases/latest/download'
+    process.env.ORCA_RELEASE_DOWNLOAD_BASE_URL =
+      'https://updates.example.test/releases/download'
+    process.env.ORCA_RELEASE_ATOM_FEED_URL = 'https://updates.example.test/releases.atom'
     vi.clearAllTimers()
     vi.useRealTimers()
     // Why: the generation fence only ignores a stale instance's spy calls; this cancels the real
