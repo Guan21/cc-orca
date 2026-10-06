@@ -17074,7 +17074,8 @@
           "security": "Confirm the security-sensitive path is intentional and safe.",
           "review": "Complete the requested human review.",
           "default": "Confirm the change is ready to proceed.",
-          "reviewed": "No human judgment is currently pending."
+          "reviewed": "No human judgment is currently pending.",
+          "disagreement": "Resolve the reviewer disagreement before proceeding."
         },
         "detail": {
           "empty": "Select review work to inspect its priority, evidence, and remaining judgment.",
@@ -17129,7 +17130,8 @@
           "foundationTitle": "Build Review Queue foundation",
           "verifierTitle": "Tighten verifier handoff states",
           "projectPulseTitle": "Polish Project Pulse summaries",
-          "rolloutTitle": "Document Review Queue rollout"
+          "rolloutTitle": "Document Review Queue rollout",
+          "disagreementTitle": "Resolve reviewer disagreement"
         }
       }
     },

@@ -220,6 +220,14 @@ export function humanJudgmentLines(item: ReviewItem): string[] {
       )
     )
   }
+  if (item.reasons.some((reason) => reason.type === 'review_disagreement')) {
+    lines.push(
+      translate(
+        'auto.components.reviewQueue.judgment.disagreement',
+        'Resolve the reviewer disagreement before proceeding.'
+      )
+    )
+  }
   if (item.reasons.some((reason) => reason.type === 'review_pending')) {
     lines.push(
       translate(
@@ -236,7 +244,7 @@ export function humanJudgmentLines(item: ReviewItem): string[] {
       )
     )
   }
-  if (item.state === 'reviewed') {
+  if (lines.length === 0 && item.state === 'reviewed') {
     lines.push(
       translate(
         'auto.components.reviewQueue.judgment.reviewed',

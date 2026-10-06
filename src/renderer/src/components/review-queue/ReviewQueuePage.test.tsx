@@ -12,6 +12,7 @@ import {
   testCompletedDevelopmentEventFixture
 } from '../../../../shared/development-event-fixtures'
 import type { DevelopmentEvent } from '../../../../shared/development-event-types'
+import type { DisagreementSignal } from '../../../../shared/disagreement-signal-types'
 import { ReviewQueuePage } from './ReviewQueuePage'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -332,6 +333,67 @@ describe('ReviewQueuePage', () => {
     expect(text()).toContain('Review immutable input')
   })
 
+  it('renders review disagreement reason, summary, guidance, and review-event evidence count', async () => {
+    await renderPage({
+      events: [
+        eventAt(
+          pullRequestDevelopmentEventFixture({
+            eventId: 'pr-disagreement',
+            payload: {
+              provider: 'github',
+              pullRequestId: '80',
+              url: 'https://github.com/Guan21/cc-orca/pull/80',
+              title: 'Resolve review disagreement'
+            }
+          }),
+          '2026-10-06T00:00:00Z'
+        ),
+        eventAt(
+          reviewDevelopmentEventFixture({
+            eventId: 'review-claude-event',
+            actor: { type: 'agent', id: 'claude', provider: 'claude' },
+            payload: {
+              provider: 'github',
+              reviewId: 'review-claude',
+              status: 'completed',
+              pullRequestId: '80'
+            }
+          }),
+          '2026-10-06T00:01:00Z'
+        ),
+        eventAt(
+          reviewDevelopmentEventFixture({
+            eventId: 'review-codex-event',
+            actor: { type: 'agent', id: 'codex', provider: 'codex' },
+            payload: {
+              provider: 'github',
+              reviewId: 'review-codex',
+              status: 'completed',
+              pullRequestId: '80',
+              metadata: { rawProviderPayload: 'DO_NOT_RENDER_PROVIDER_SECRET' }
+            }
+          }),
+          '2026-10-06T00:02:00Z'
+        )
+      ],
+      disagreementSignals: [
+        disagreementSignalFixture({
+          evidenceRefs: ['finding:sec-4', 'DO_NOT_RENDER_PROVIDER_SECRET'],
+          summary: 'Reviewers disagree on whether the change contains an issue.'
+        })
+      ]
+    })
+
+    expect(text()).toContain('Resolve review disagreement')
+    expect(text()).toContain('High')
+    expect(text()).toContain('Reviewer disagreement')
+    expect(text()).toContain('Reviewers disagree on whether the change contains an issue.')
+    expect(text()).toContain('2 supporting events')
+    expect(text()).toContain('Resolve the reviewer disagreement before proceeding.')
+    expect(text()).toContain('review.completed')
+    expect(text()).not.toContain('DO_NOT_RENDER_PROVIDER_SECRET')
+  })
+
   it('renders empty, loading, and error states', async () => {
     await renderPage({ events: [] })
     expect(text()).toContain('Nothing needs review')
@@ -350,3 +412,25 @@ describe('ReviewQueuePage', () => {
     expect(text()).toContain('Review events unavailable')
   })
 })
+
+function disagreementSignalFixture(
+  overrides: Partial<DisagreementSignal> = {}
+): DisagreementSignal {
+  return {
+    signalId: 'disagreement-1',
+    subjectId: 'project-1:pull_request:github:80',
+    kind: 'verdict_conflict',
+    severity: 'high',
+    reviewers: [
+      { id: 'claude', provider: 'claude' },
+      { id: 'codex', provider: 'codex' }
+    ],
+    categories: ['security'],
+    summary: 'Reviewers disagree on whether the change contains an issue.',
+    reviewIds: ['review-claude', 'review-codex'],
+    findingRefs: ['review-codex:sec-4'],
+    evidenceRefs: ['finding:sec-4'],
+    detectedAt: '2026-10-06T00:00:00.000Z',
+    ...overrides
+  }
+}
