@@ -174,13 +174,13 @@ describe('MobilePage pairing connection mode', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }))
   }
 
-  it('opens Android troubleshooting in the system browser', async () => {
+  it('does not open Android troubleshooting when no guide is configured', async () => {
     const user = userEvent.setup()
     render(<MobilePage />)
 
     await user.click(screen.getByRole('button', { name: 'Open Android install guide' }))
 
-    expect(window.api.shell.openUrl).toHaveBeenCalledWith('https://www.onorca.dev/docs/android-apk')
+    expect(window.api.shell.openUrl).not.toHaveBeenCalled()
   })
 
   it('defaults signed-in pairing to Anywhere and remints when same-network is selected', async () => {

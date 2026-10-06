@@ -103,7 +103,7 @@ export function LinkRoutingPreferenceDialogProvider({
     void requestPreference({
       openLinksInAppDefault: previewDefault === 'orca',
       preview: true,
-      url: 'https://github.com/stablyai/orca/pull/1234'
+      url: 'https://github.example.test/acme/repo/pull/1234'
     })
   }, [requestPreference])
 

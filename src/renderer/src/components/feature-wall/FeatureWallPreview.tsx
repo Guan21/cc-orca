@@ -60,7 +60,10 @@ export function RelatedFeatures(props: {
   const { workflow, source } = props
   const items = workflow.relatedTileIds
     .map((id) => getFeatureWallMediaTile(id))
-    .filter((tile): tile is NonNullable<typeof tile> => tile !== null)
+    .filter(
+      (tile): tile is NonNullable<typeof tile> & { docsUrl: string } =>
+        tile !== null && tile.docsUrl !== null
+    )
   if (items.length === 0) {
     return null
   }

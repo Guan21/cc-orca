@@ -5,9 +5,9 @@ import {
   type PluginKillList,
   type PluginKillListEntry
 } from '../../shared/plugins/plugin-kill-list'
+import { resolveCorporateConfiguredEndpoint } from '../../shared/network/corporate-network-contract'
 import { PluginKillListStore } from './plugin-kill-list-store'
 
-export const PLUGIN_KILL_LIST_URL = 'https://onorca.dev/plugins/kill-list.json'
 const PLUGIN_KILL_LIST_DOWNLOAD_LIMIT = 4 * 1024 * 1024
 
 type PluginKillListFetcher = () => Promise<PluginKillList>
@@ -30,7 +30,7 @@ export class PluginKillListService {
     fetcher?: PluginKillListFetcher
   }) {
     this.store = options.store ?? new PluginKillListStore(options.pluginsDataDir)
-    this.fetcher = options.fetcher ?? (() => fetchPluginKillList())
+    this.fetcher = options.fetcher ?? createPluginKillListFetcher()
   }
 
   async initialize(): Promise<void> {
@@ -94,9 +94,28 @@ export class PluginKillListService {
   }
 }
 
+export function createPluginKillListFetcher(options?: {
+  fetcher?: typeof fetch
+  url?: string | null
+  env?: NodeJS.ProcessEnv
+}): PluginKillListFetcher {
+  return () => {
+    const configuredEndpoint =
+      options && 'url' in options ? options.url : options?.env?.ORCA_PLUGIN_KILL_LIST_URL
+    const resolved = resolveCorporateConfiguredEndpoint({
+      capability: 'plugin-kill-list',
+      configuredEndpoint,
+      source: 'plugin-kill-list-service'
+    })
+    return resolved.status === 'allowed'
+      ? fetchPluginKillList(options?.fetcher ?? fetch, resolved.endpoint)
+      : Promise.resolve(emptyKillList())
+  }
+}
+
 export async function fetchPluginKillList(
   fetcher: typeof fetch = fetch,
-  url = PLUGIN_KILL_LIST_URL
+  url: string
 ): Promise<PluginKillList> {
   const response = await fetcher(url, { cache: 'no-store' })
   if (!response.ok) {

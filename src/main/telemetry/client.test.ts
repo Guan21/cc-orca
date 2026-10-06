@@ -4,7 +4,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CommonProps } from '../../shared/telemetry-events'
 import type { Store } from '../persistence'
-import { _setShuttingDownForTests, track, trackAppOpenedOnce } from './client'
+import { getTelemetryPostHogHost, _setShuttingDownForTests, track, trackAppOpenedOnce } from './client'
 import {
   BASE_COMMON,
   cleanupTelemetryClientTest,
@@ -119,5 +119,9 @@ describe('track()', () => {
     trackAppOpenedOnce()
     expect(mock.capture).toHaveBeenCalledTimes(1)
     expect(mock.capture.mock.calls[0]![0].event).toBe('app_opened')
+  })
+
+  it('has no default PostHog host without explicit telemetry configuration', () => {
+    expect(getTelemetryPostHogHost({})).toBeNull()
   })
 })

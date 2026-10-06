@@ -1,5 +1,6 @@
 import { net } from 'electron'
 import type { ChangelogData } from '../shared/update-status-types'
+import { resolveCorporateConfiguredEndpoint } from '../shared/network/corporate-network-contract'
 import { compareVersions } from './updater-fallback'
 
 type ChangelogEntry = {
@@ -9,8 +10,6 @@ type ChangelogEntry = {
   mediaUrl?: string
   releaseNotesUrl: string
 }
-
-const CHANGELOG_URL = 'https://onorca.dev/changelog'
 
 function isValidEntry(entry: ChangelogEntry): boolean {
   return (
@@ -40,9 +39,18 @@ function hasRichContent(entry: ChangelogEntry): boolean {
  */
 export async function fetchChangelog(
   incomingVersion: string,
-  localVersion: string
+  localVersion: string,
+  endpoint = process.env.ORCA_CHANGELOG_FEED_URL
 ): Promise<ChangelogData | null> {
-  const res = await net.fetch('https://onorca.dev/whats-new/changelog.json', {
+  const resolved = resolveCorporateConfiguredEndpoint({
+    capability: 'updater-changelog-feed',
+    configuredEndpoint: endpoint,
+    source: 'updater-changelog'
+  })
+  if (resolved.status !== 'allowed') {
+    return null
+  }
+  const res = await net.fetch(resolved.endpoint, {
     signal: AbortSignal.timeout(5000)
   })
   if (!res.ok) {
@@ -127,7 +135,7 @@ export async function fetchChangelog(
     const { version: _, ...release } = candidate
     // Why: the shown content is from an older entry, not the incoming version.
     // Point to the generic changelog page so the link doesn't mislead.
-    return { release: { ...release, releaseNotesUrl: CHANGELOG_URL }, releasesBehind }
+    return { release: { ...release, releaseNotesUrl: resolved.endpoint }, releasesBehind }
   }
 
   return null

@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   openSettingsPage: vi.fn(),
   openSettingsTarget: vi.fn(),
   appRestart: vi.fn(),
+  getCorporateSupportConfig: vi.fn(),
   updaterCheck: vi.fn(),
   shellOpenUrl: vi.fn(),
   useShortcutKeyDetails: vi.fn(),
@@ -136,7 +137,8 @@ function installWindowApi(): void {
   Object.assign(window, {
     api: {
       app: {
-        restart: mocks.appRestart
+        restart: mocks.appRestart,
+        getCorporateSupportConfig: mocks.getCorporateSupportConfig
       },
       shell: {
         openUrl: mocks.shellOpenUrl
@@ -175,6 +177,10 @@ describe('SidebarSettingsHelpMenu', () => {
     delete globalThis.__ORCA_BUILD_PROFILE__
     vi.clearAllMocks()
     installWindowApi()
+    mocks.getCorporateSupportConfig.mockResolvedValue({
+      bugTrackerUrl: null,
+      supportSlackUrl: null
+    })
     mocks.useShortcutKeyDetails.mockReturnValue({ keys: ['⌘', ','], doubleTap: false })
     updateStatus = { state: 'idle' }
     mocks.setupProgress = {
@@ -248,42 +254,13 @@ describe('SidebarSettingsHelpMenu', () => {
     expect(html).toContain('Restart DevCrew')
   })
 
-  it('renders Docs link', () => {
+  it('does not render legacy public help links', () => {
     const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
-    expect(html).toContain('Docs')
-  })
-
-  it('renders Changelog link', () => {
-    const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
-    expect(html).toContain('Changelog')
-  })
-
-  it('renders GitHub link', () => {
-    const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
-    expect(html).toContain('GitHub')
-  })
-
-  it('renders Discord link', () => {
-    const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
-    expect(html).toContain('Discord')
-    expect(html).toContain('viewBox="0 0 20 20"')
-    expect(html).toContain('M16.0742 4.45014C14.9244 3.92097 13.7106 3.54556 12.4638 3.3335')
-  })
-
-  it('opens Discord invite through the shell bridge', async () => {
-    const container = await renderMenu()
-    const discordButton = findMenuItem(container, 'Discord')
-
-    await act(async () => {
-      discordButton.click()
-    })
-
-    expect(mocks.shellOpenUrl).toHaveBeenCalledWith('https://discord.gg/fzjDKHxv8Q')
-  })
-
-  it('renders X link', () => {
-    const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
-    expect(html).toContain('>X<')
+    expect(html).not.toContain('Docs')
+    expect(html).not.toContain('Changelog')
+    expect(html).not.toContain('GitHub')
+    expect(html).not.toContain('Discord')
+    expect(html).not.toContain('>X<')
   })
 
   it('hides upstream help and community links and uses corporate restart copy in corporate builds', () => {
@@ -313,6 +290,30 @@ describe('SidebarSettingsHelpMenu', () => {
       )
     ).toBe(false)
     expect(mocks.updaterCheck).not.toHaveBeenCalled()
+  })
+
+  it('renders configured corporate support actions only after administrator configuration', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    mocks.getCorporateSupportConfig.mockResolvedValue({
+      bugTrackerUrl: 'https://github.enterprise.example/team/project/issues/new',
+      supportSlackUrl: 'https://team.slack.example/archives/support'
+    })
+
+    const container = await renderMenu()
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    const reportBug = findMenuItem(container, 'Report Bug')
+    const teamSupport = findMenuItem(container, 'Team Support')
+    await act(async () => {
+      reportBug.click()
+      teamSupport.click()
+    })
+    expect(mocks.shellOpenUrl).toHaveBeenCalledWith(
+      'https://github.enterprise.example/team/project/issues/new'
+    )
+    expect(mocks.shellOpenUrl).toHaveBeenCalledWith('https://team.slack.example/archives/support')
   })
 
   it('renders Check for Updates menu item', () => {

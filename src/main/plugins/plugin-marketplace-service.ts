@@ -41,7 +41,7 @@ export class PluginMarketplaceService {
   private readonly getKillListEntry: (pluginKey: string) => PluginKillListEntry | null
   private readonly refreshChains = new Map<string, Promise<PluginMarketplaceSourceState>>()
   private readonly sourceErrors = new Map<string, string>()
-  private officialSeedPromise: Promise<PluginMarketplaceSourceState> | null = null
+  private officialSeedPromise: Promise<PluginMarketplaceSourceState | null> | null = null
   private officialSeedRequested = false
 
   constructor(options: {
@@ -115,7 +115,7 @@ export class PluginMarketplaceService {
     return removed
   }
 
-  seedOfficialSource(): Promise<PluginMarketplaceSourceState> {
+  seedOfficialSource(): Promise<PluginMarketplaceSourceState | null> {
     this.officialSeedRequested = true
     if (!this.officialSeedPromise) {
       const seed = this.performOfficialSeed()
@@ -209,7 +209,10 @@ export class PluginMarketplaceService {
     }
   }
 
-  private async performOfficialSeed(): Promise<PluginMarketplaceSourceState> {
+  private async performOfficialSeed(): Promise<PluginMarketplaceSourceState | null> {
+    if (!OFFICIAL_MARKETPLACE_GIT_SOURCE) {
+      return null
+    }
     const sources = await this.store.listSources()
     const existing = sources.find((source) => isOfficialMarketplaceGitSource(source.source.url))
     const source =

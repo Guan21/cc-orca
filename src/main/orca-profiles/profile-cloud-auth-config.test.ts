@@ -37,30 +37,30 @@ describe('Orca cloud auth config', () => {
         orgEndpoint: 'https://orca-cloud.example/v1/desktop/auth/org',
         logoutEndpoint: 'https://orca-cloud.example/v1/desktop/auth/logout',
         relayTokenEndpoint: 'https://orca-cloud.example/v1/desktop/auth/relay-token',
-        relayDirectorUrl: 'https://relay.onorca.dev',
+        relayDirectorUrl: '',
         clientId: 'desktop-client',
         scope: 'openid profile email offline_access'
       }
     })
   })
 
-  it('uses first-party production endpoints without runtime env in packaged builds', () => {
+  it('does not use public cloud endpoints without runtime env in packaged builds', () => {
     expect(getOrcaCloudAuthConfig({}, true)).toEqual({
+      configured: false,
+      setupMessage: 'DevCrew Cloud sign-in is not configured for this build.'
+    })
+  })
+
+  it('uses an explicitly configured relay director URL', () => {
+    const state = getOrcaCloudAuthConfig({
+      ORCA_CLOUD_API_URL: 'https://orca-cloud.example',
+      ORCA_CLOUD_CLIENT_ID: 'desktop-client',
+      ORCA_RELAY_URL: 'https://relay.example'
+    })
+
+    expect(state).toMatchObject({
       configured: true,
-      config: {
-        apiBaseUrl: 'https://login.onorca.dev',
-        authorizeEndpoint: 'https://login.onorca.dev/v1/desktop/auth/authorize',
-        sessionEndpoint: 'https://login.onorca.dev/v1/desktop/auth/session',
-        refreshEndpoint: 'https://login.onorca.dev/v1/desktop/auth/refresh',
-        capabilitiesEndpoint: 'https://login.onorca.dev/v1/desktop/auth/capabilities',
-        profileEndpoint: 'https://login.onorca.dev/v1/desktop/auth/profile',
-        orgEndpoint: 'https://login.onorca.dev/v1/desktop/auth/org',
-        logoutEndpoint: 'https://login.onorca.dev/v1/desktop/auth/logout',
-        relayTokenEndpoint: 'https://login.onorca.dev/v1/desktop/auth/relay-token',
-        relayDirectorUrl: 'https://relay.onorca.dev',
-        clientId: 'orca-desktop',
-        scope: 'openid profile email offline_access'
-      }
+      config: { relayDirectorUrl: 'https://relay.example' }
     })
   })
 

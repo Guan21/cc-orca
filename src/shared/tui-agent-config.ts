@@ -70,7 +70,7 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
   claude: {
     detectCmd: 'claude',
     promptInjectionMode: 'argv',
-    // Why: `claude --prefill <text>` seeds the input without submitting, avoiding the paste-after-ready race (PR https://github.com/stablyai/orca/pull/926).
+    // Why: `claude --prefill <text>` seeds the input without submitting, avoiding the paste-after-ready race.
     draftPromptFlag: '--prefill'
   },
   'claude-agent-teams': {

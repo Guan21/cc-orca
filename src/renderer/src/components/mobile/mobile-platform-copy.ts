@@ -5,9 +5,9 @@ import { translate } from '@/i18n/i18n'
 // and the TestFlight preview build (daily). Android only ships one APK track.
 export type IosChannel = 'stable' | 'preview'
 
-export type InstallCopy = { ctaLabel: string; url: string }
+export type InstallCopy = { ctaLabel: string; url: string | null }
 
-export const ANDROID_INSTALL_GUIDE_URL = 'https://www.onorca.dev/docs/android-apk'
+export const ANDROID_INSTALL_GUIDE_URL: string | null = null
 
 const IOS_CHANNEL_COPY: Record<IosChannel, InstallCopy> = {
   stable: {
@@ -22,7 +22,7 @@ const IOS_CHANNEL_COPY: Record<IosChannel, InstallCopy> = {
 
 const ANDROID_COPY: InstallCopy = {
   ctaLabel: 'Download APK',
-  url: 'https://github.com/stablyai/orca/releases/download/mobile-android-v0.0.48/app-release.apk'
+  url: null
 }
 
 export function getInstallCopy(platform: Platform, iosChannel: IosChannel): InstallCopy {

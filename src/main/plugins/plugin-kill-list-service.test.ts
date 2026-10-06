@@ -3,7 +3,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PluginKillList } from '../../shared/plugins/plugin-kill-list'
-import { fetchPluginKillList, PluginKillListService } from './plugin-kill-list-service'
+import {
+  createPluginKillListFetcher,
+  fetchPluginKillList,
+  PluginKillListService
+} from './plugin-kill-list-service'
 import type { PluginKillListStore } from './plugin-kill-list-store'
 
 const roots: string[] = []
@@ -28,6 +32,21 @@ afterEach(async () => {
 })
 
 describe('PluginKillListService', () => {
+  it('does not fetch a kill list when no administrator endpoint is configured', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+    const service = new PluginKillListService({
+      pluginsDataDir: await tempRoot(),
+      fetcher: createPluginKillListFetcher({ fetcher, url: null })
+    })
+
+    await expect(service.refresh()).resolves.toEqual({
+      version: 1,
+      generatedAt: '1970-01-01T00:00:00Z',
+      plugins: []
+    })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
   it('loads cached revocations before any network refresh', async () => {
     const root = await tempRoot()
     const first = new PluginKillListService({
@@ -140,6 +159,8 @@ describe('PluginKillListService', () => {
 })
 
 describe('fetchPluginKillList', () => {
+  const killListUrl = 'https://security.example.test/plugins/kill-list.json'
+
   it('validates a bounded HTTPS response body', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify(killList()), {
@@ -148,11 +169,11 @@ describe('fetchPluginKillList', () => {
       })
     )
 
-    await expect(fetchPluginKillList(fetcher)).resolves.toEqual(killList())
+    await expect(fetchPluginKillList(fetcher, killListUrl)).resolves.toEqual(killList())
   })
 
   it('rejects non-success responses', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response('no', { status: 503 }))
-    await expect(fetchPluginKillList(fetcher)).rejects.toThrow('HTTP 503')
+    await expect(fetchPluginKillList(fetcher, killListUrl)).rejects.toThrow('HTTP 503')
   })
 })

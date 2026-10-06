@@ -7,7 +7,9 @@ import { is } from '@electron-toolkit/utils'
 import type { AppIdentity } from '../../shared/app-identity'
 import type { MarkdownDocument } from '../../shared/filesystem-entry-types'
 import type { FloatingTerminalCwdRequest } from '../../shared/ui-chrome-types'
+import type { CorporateSupportConfig } from '../../shared/corporate-support-config'
 import { relaunchApp } from '../app-relaunch'
+import { getCorporateSupportConfig } from '../corporate-support-config'
 import type { Store } from '../persistence'
 import { getDevInstanceIdentity } from '../startup/dev-instance-identity'
 import { isPwshAvailableAsync } from '../pwsh'
@@ -249,6 +251,9 @@ export function registerAppHandlers(store: Store, options: RegisterAppHandlersOp
   registerMacKeyboardLayoutChangeNotifications()
 
   ipcMain.handle('app:getFeatureWallAssetBaseUrl', (): string => getFeatureWallAssetBaseUrl())
+  ipcMain.handle('app:getCorporateSupportConfig', (): CorporateSupportConfig =>
+    getCorporateSupportConfig()
+  )
 
   ipcMain.handle('app:getIdentity', (): AppIdentity => {
     const identity = getDevInstanceIdentity(is.dev)

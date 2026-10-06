@@ -3,6 +3,7 @@ import {
   fetchNewerReleaseTagsWithReadiness,
   getReleaseDownloadUrl
 } from '../updater-prerelease-feed'
+import { resolveCorporateConfiguredEndpoint } from '../../shared/network/corporate-network-contract'
 import { isMissingUpdateManifestFailure, isPrereleaseVersion } from '../updater-fallback'
 import type { CheckFailureSource } from './updater-state'
 import type { UpdateCheckVariant } from './updater-types'
@@ -149,6 +150,13 @@ export abstract class UpdaterReleaseFeed extends UpdaterInstallExecution {
     if (newerTag) {
       this.clearPublishingWindowLastGoodCheck()
       const url = getReleaseDownloadUrl(newerTag)
+      if (!url) {
+        throw new ReleaseFeedPreflightError(
+          'manifest-unavailable',
+          isPerfCheck ? 'perf' : includePrerelease ? 'prerelease' : 'default',
+          'Release download source is not configured'
+        )
+      }
       console.info(
         `[updater] release feed pinned: current=${currentVersion} includePrerelease=${includePrerelease} → ${url}`
       )
@@ -160,6 +168,13 @@ export abstract class UpdaterReleaseFeed extends UpdaterInstallExecution {
       if (releaseTagsResult.lastGoodTag) {
         // Why: during a publish window the newest tag is unsafe; a verified last-good concrete feed lets electron-updater emit a real result.
         const url = getReleaseDownloadUrl(releaseTagsResult.lastGoodTag)
+        if (!url) {
+          throw new ReleaseFeedPreflightError(
+            'manifest-unavailable',
+            isPerfCheck ? 'perf' : includePrerelease ? 'prerelease' : 'default',
+            'Release download source is not configured'
+          )
+        }
         console.info(
           `[updater] release feed pinned to last-good: current=${currentVersion} includePrerelease=${includePrerelease} → ${url}`
         )
@@ -203,10 +218,22 @@ export abstract class UpdaterReleaseFeed extends UpdaterInstallExecution {
     }
     this.clearPrereleaseFallbackContext()
     this.clearPublishingWindowLastGoodCheck()
-    const url = 'https://github.com/stablyai/orca/releases/latest/download'
+    const latestFeedResolution = resolveCorporateConfiguredEndpoint({
+      capability: 'release-latest-feed',
+      configuredEndpoint: process.env.ORCA_RELEASE_LATEST_FEED_URL,
+      source: 'updater-release-feed'
+    })
+    const url = latestFeedResolution.status === 'allowed' ? latestFeedResolution.endpoint : null
     console.info(
       `[updater] release feed fallback: current=${currentVersion} includePrerelease=${includePrerelease} → ${url}`
     )
+    if (!url) {
+      throw new ReleaseFeedPreflightError(
+        'manifest-unavailable',
+        isPerfCheck ? 'perf' : includePrerelease ? 'prerelease' : 'default',
+        'Release feed is not configured'
+      )
+    }
     autoUpdater.setFeedURL({ provider: 'generic', url })
     return 'ready'
   }
@@ -239,6 +266,9 @@ export abstract class UpdaterReleaseFeed extends UpdaterInstallExecution {
     this.pendingPrereleaseFallback.fallbackCheckingForUpdateSeen = false
     const { primaryTag, fallbackTag } = this.pendingPrereleaseFallback
     const url = getReleaseDownloadUrl(fallbackTag)
+    if (!url) {
+      return false
+    }
     console.info(
       `[updater] prerelease manifest missing for ${primaryTag}; retrying once against ${url}`
     )

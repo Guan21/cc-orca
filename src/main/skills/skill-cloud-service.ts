@@ -294,7 +294,14 @@ export class SkillCloudService {
     options: SkillCloudOptions,
     operation: (apiUrl: string) => Promise<T>
   ): Promise<SkillCloudOperation<T>> {
-    const value = await operation(resolveArtifactCloudApiUrl(options.apiUrl))
+    const apiUrl = resolveArtifactCloudApiUrl(options.apiUrl)
+    if (!apiUrl) {
+      return {
+        status: 'unconfigured',
+        message: 'Skill Cloud is not configured for this build.'
+      }
+    }
+    const value = await operation(apiUrl)
     return { status: 'ok', value }
   }
 }
