@@ -18,6 +18,7 @@ env:
 
 jobs:
   windows:
+    if: ${{ !contains(github.event.head_commit.message, '[mac-only]') }}
     name: Windows installer
     runs-on: windows-2022
     timeout-minutes: 90
@@ -82,7 +83,7 @@ jobs:
 
   macos:
     name: macOS installers
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 120
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
