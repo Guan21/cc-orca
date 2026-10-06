@@ -5358,6 +5358,8 @@
           "f8a2c91d4e": "Milestones",
           "b7e4d2a19c": "Onboarding",
           "c4f8e1b72a": "X",
+          "reportBug": "Report Bug",
+          "teamSupport": "Team Support",
           "restartApplication": "Restarting application…",
           "restartApplicationFailed": "Couldn't restart application."
         },
