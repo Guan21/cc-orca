@@ -1,5 +1,14 @@
 import React from 'react'
-import { Activity, BookOpen, CalendarClock, EyeOff, Files, Search, Smartphone } from 'lucide-react'
+import {
+  Activity,
+  BookOpen,
+  CalendarClock,
+  ClipboardCheck,
+  EyeOff,
+  Files,
+  Search,
+  Smartphone
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '@/store'
 import { cn } from '@/lib/utils'
@@ -64,6 +73,7 @@ const SidebarNav = React.memo(function SidebarNav() {
   useTranslation()
   const worktreePaletteShortcutCombos = useShortcutKeyComboDetails('worktree.palette')
   const openActivityPage = useAppStore((s) => s.openActivityPage)
+  const openReviewQueuePage = useAppStore((s) => s.openReviewQueuePage)
   const openAutomationsPage = useAppStore((s) => s.openAutomationsPage)
   const openMobilePage = useAppStore((s) => s.openMobilePage)
   const openArtifactsPage = useAppStore((s) => s.openArtifactsPage)
@@ -78,6 +88,7 @@ const SidebarNav = React.memo(function SidebarNav() {
   const showSkillsButton = useAppStore((s) => shouldShowSkillsButton(s.settings))
   const automationsActive = activeView === 'automations'
   const activityActive = activeView === 'activity'
+  const reviewActive = activeView === 'review'
   const mobileActive = activeView === 'mobile'
   const artifactsActive = activeView === 'artifacts'
   const skillsActive = activeView === 'skills'
@@ -151,6 +162,25 @@ const SidebarNav = React.memo(function SidebarNav() {
         />
         <span className="flex-1">
           {translate('auto.components.sidebar.SidebarNav.projectPulse', 'Project Pulse')}
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={openReviewQueuePage}
+        aria-current={reviewActive ? 'page' : undefined}
+        className={cn(
+          'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight transition-colors',
+          reviewActive
+            ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
+            : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
+        )}
+      >
+        <ClipboardCheck
+          className={cn('size-4 shrink-0', !reviewActive && 'text-worktree-sidebar-foreground/30')}
+          strokeWidth={reviewActive ? 2.25 : 1.75}
+        />
+        <span className="flex-1">
+          {translate('auto.components.sidebar.SidebarNav.reviewQueue', 'Review Queue')}
         </span>
       </button>
       {showArtifactsButton ? (

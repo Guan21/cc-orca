@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   openTaskPage: vi.fn(),
   openAutomationsPage: vi.fn(),
   openActivityPage: vi.fn(),
+  openReviewQueuePage: vi.fn(),
   openMobilePage: vi.fn(),
   openArtifactsPage: vi.fn(),
   openModal: vi.fn(),
@@ -131,6 +132,7 @@ function setSidebarState({
     openTaskPage: mocks.openTaskPage,
     openAutomationsPage: mocks.openAutomationsPage,
     openActivityPage: mocks.openActivityPage,
+    openReviewQueuePage: mocks.openReviewQueuePage,
     openMobilePage: mocks.openMobilePage,
     openArtifactsPage: mocks.openArtifactsPage,
     openModal: mocks.openModal,
@@ -300,6 +302,21 @@ describe('SidebarNav', () => {
     await clickButton(getButtonByText(container, 'Artifacts'))
 
     expect(mocks.openArtifactsPage).toHaveBeenCalledOnce()
+  })
+
+  it('opens Review Queue from the sidebar near Project Pulse', async () => {
+    const container = await renderSidebarNav()
+
+    const pulseButton = getButtonByText(container, 'Project Pulse')
+    const reviewButton = getButtonByText(container, 'Review Queue')
+
+    expect(
+      pulseButton.compareDocumentPosition(reviewButton) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+
+    await clickButton(reviewButton)
+
+    expect(mocks.openReviewQueuePage).toHaveBeenCalledOnce()
   })
 
   it('hides Artifacts from its context menu', async () => {

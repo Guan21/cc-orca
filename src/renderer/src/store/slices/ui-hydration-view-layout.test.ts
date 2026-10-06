@@ -175,6 +175,14 @@ describe('createUISlice hydratePersistedUI', () => {
     expect(store.getState().activeView).toBe('activity')
   })
 
+  it('restores a persisted Review Queue view', () => {
+    const store = createUIStore()
+
+    store.getState().hydratePersistedUI(makePersistedUI({ activeView: 'review' }), 'startup')
+
+    expect(store.getState().activeView).toBe('review')
+  })
+
   it('restores a default-on view (mobile) even when its nav button is hidden', () => {
     const store = createUIStore()
     store.setState({

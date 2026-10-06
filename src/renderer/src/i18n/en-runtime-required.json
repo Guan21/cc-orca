@@ -767,6 +767,14 @@
           "testsSkipped": "Tests skipped"
         }
       },
+      "reviewQueue": {
+        "evidence": {
+          "testsUnknown": "No test result yet"
+        },
+        "page": {
+          "pending": "Pending human"
+        }
+      },
       "right": {
         "sidebar": {
           "AiVaultPanel": {

@@ -5326,7 +5326,8 @@
           "d599269755": "Hide from sidebar",
           "artifacts": "Artifacts",
           "skills": "Skills",
-          "projectPulse": "Project Pulse"
+          "projectPulse": "Project Pulse",
+          "reviewQueue": "Review Queue"
         },
         "SidebarRepositoryFilterSection": {
           "d3a9c4cea1": "Clear",
@@ -17020,6 +17021,115 @@
           "fixtureLoadError": "The activity fixture collection could not be loaded.",
           "title": "DevCrew Project Pulse",
           "subtitle": "Recent project activity projected from DevelopmentEvent v1."
+        }
+      },
+      "reviewQueue": {
+        "priority": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High",
+          "critical": "Critical"
+        },
+        "state": {
+          "reviewRequired": "Review needed",
+          "inReview": "In review",
+          "reviewed": "Reviewed",
+          "blocked": "Blocked"
+        },
+        "reason": {
+          "failedTests": "Tests failed",
+          "reviewPending": "Review requested but not completed",
+          "agentFailure": "Agent execution failed",
+          "securitySensitiveChange": "Security-sensitive area changed",
+          "largeChange": "Large change",
+          "reviewDisagreement": "Reviewer disagreement"
+        },
+        "subject": {
+          "pullRequest": "Pull request {{value0}}",
+          "change": "Change {{value0}}",
+          "prLabel": "PR {{value0}}",
+          "changeLabel": "Change {{value0}}"
+        },
+        "actor": {
+          "unknown": "unknown"
+        },
+        "evidence": {
+          "testsUnknown": "No test result yet",
+          "testsPassed": "{{value0}} passed",
+          "testsFailed": "{{value0}} failed",
+          "testsStatus": "Tests {{value0}}",
+          "reviewRequested": "Review requested",
+          "reviewCompleted": "Review completed",
+          "agentFailed": "Agent execution failed",
+          "commit": "Latest commit {{value0}}",
+          "testsPassedStatus": "PASS",
+          "testsFailedStatus": "FAILED",
+          "testsMixedStatus": "MIXED",
+          "testsUnknownStatus": "UNKNOWN",
+          "reviewUnknown": "No review result yet",
+          "agentClear": "No agent failure recorded"
+        },
+        "judgment": {
+          "blocked": "Decide whether the blocked work should be fixed, reverted, or escalated.",
+          "security": "Confirm the security-sensitive path is intentional and safe.",
+          "review": "Complete the requested human review.",
+          "default": "Confirm the change is ready to proceed.",
+          "reviewed": "No human judgment is currently pending."
+        },
+        "detail": {
+          "empty": "Select review work to inspect its priority, evidence, and remaining judgment.",
+          "actor": "Actor {{value0}}",
+          "openSubject": "Open review target",
+          "whyTitle": "Why first",
+          "evidenceCount": "{{value0}} supporting events",
+          "noReasons": "No elevated priority reason was found.",
+          "evidenceTitle": "Evidence",
+          "judgmentTitle": "Human judgment",
+          "changedFilesTitle": "Files",
+          "testsLabel": "Tests",
+          "reviewLabel": "Review status",
+          "agentLabel": "Agent status",
+          "referencesLabel": "References",
+          "noReferences": "No task or session reference",
+          "moreFiles": "+{{value0}} more",
+          "eventHistoryTitle": "Related events",
+          "noEventHistory": "No related events were found."
+        },
+        "empty": {
+          "title": "Nothing needs review",
+          "description": "When DevelopmentEvents contain pull requests, review requests, failures, or sensitive changes, they will appear here for human review."
+        },
+        "page": {
+          "loading": "Loading review queue...",
+          "unavailable": "Review Queue is unavailable",
+          "loadError": "The review event collection could not be loaded.",
+          "title": "DevCrew Review Queue",
+          "subtitle": "Human Review Compression for the work that needs judgment first.",
+          "total": "Needs review",
+          "urgent": "High urgency",
+          "blocked": "Blocked",
+          "pending": "Pending human",
+          "failedTests": "Failed tests"
+        },
+        "titlebar": {
+          "close": "Close DevCrew Review Queue",
+          "title": "DevCrew Review Queue"
+        },
+        "event": {
+          "taskWithTitle": "Task {{value0}}",
+          "task": "Task lifecycle event",
+          "agent": "Agent {{value0}} {{value1}}",
+          "file": "{{value0}} {{value1}}",
+          "commit": "Commit {{value0}}",
+          "pullRequestWithTitle": "PR {{value0}}: {{value1}}",
+          "pullRequest": "PR {{value0}}",
+          "review": "Review {{value0}} {{value1}}"
+        },
+        "demo": {
+          "foundationTitle": "Build Review Queue foundation",
+          "verifierTitle": "Tighten verifier handoff states",
+          "projectPulseTitle": "Polish Project Pulse summaries",
+          "rolloutTitle": "Document Review Queue rollout"
         }
       }
     },

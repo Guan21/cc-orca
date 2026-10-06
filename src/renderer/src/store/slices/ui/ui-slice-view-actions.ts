@@ -15,6 +15,19 @@ export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<U
       set((state) => ({
         activeView: state.previousViewBeforeActivity
       })),
+    openReviewQueuePage: () => {
+      get().recordViewVisit('review')
+      set((state) => ({
+        activeView: 'review',
+        previousViewBeforeReview:
+          state.activeView === 'review' ? state.previousViewBeforeReview : state.activeView
+      }))
+    },
+    closeReviewQueuePage: () =>
+      set((state) => ({
+        activeView: state.previousViewBeforeReview,
+        worktreeNavHistoryIndex: rewindHistoryIndexPastView(state, 'review')
+      })),
     selectedAutomationId: null,
     setSelectedAutomationId: (id) => set({ selectedAutomationId: id }),
     pendingAutomationRunNavigation: null,
