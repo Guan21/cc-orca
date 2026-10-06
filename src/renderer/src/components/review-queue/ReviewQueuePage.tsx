@@ -4,7 +4,7 @@ import { AlertTriangle, ClipboardCheck, Loader2 } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import type { DevelopmentEvent } from '../../../../shared/development-event-types'
 import { projectReviewQueue } from '../../../../shared/review-queue-projection'
-import { reviewQueueDemoEvents } from './review-queue-demo-events'
+import { createReviewQueueDemoEvents } from './review-queue-demo-events'
 import { ReviewQueueDetail } from './ReviewQueueDetail'
 import { ReviewQueueList } from './ReviewQueueList'
 import { summarizeReviewQueue } from './review-queue-view-model'
@@ -65,13 +65,18 @@ function ReviewQueueState({
 }
 
 export function ReviewQueuePage({
-  events = reviewQueueDemoEvents,
+  events,
   state = 'ready',
   errorMessage
 }: ReviewQueuePageProps): React.JSX.Element {
   useTranslation()
-  const reviewItems = useMemo(() => projectReviewQueue([...events]), [events])
-  const eventById = useMemo(() => new Map(events.map((event) => [event.eventId, event])), [events])
+  const defaultEvents = useMemo(() => createReviewQueueDemoEvents(), [])
+  const sourceEvents = events ?? defaultEvents
+  const reviewItems = useMemo(() => projectReviewQueue([...sourceEvents]), [sourceEvents])
+  const eventById = useMemo(
+    () => new Map(sourceEvents.map((event) => [event.eventId, event])),
+    [sourceEvents]
+  )
   const summary = useMemo(() => summarizeReviewQueue(reviewItems), [reviewItems])
   const [selectedItemId, setSelectedItemId] = useState<string | null>(reviewItems[0]?.id ?? null)
 

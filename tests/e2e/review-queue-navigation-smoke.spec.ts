@@ -11,8 +11,8 @@ test('Review Queue opens as a dedicated DevCrew surface and Project Pulse still 
 
   await reviewQueueButton.click()
   await expect(orcaPage.getByRole('heading', { name: 'DevCrew Review Queue' })).toBeVisible()
-  await expect(orcaPage.getByText('Build Review Queue foundation')).toBeVisible()
-  await expect(orcaPage.getByText('FAILED')).toBeVisible()
+  await orcaPage.getByRole('button', { name: /Build Review Queue foundation/ }).click()
+  await expect(orcaPage.locator('[data-review-queue-detail]')).toContainText('FAILED')
   await expect(orcaPage.getByText('Tests failed').first()).toBeVisible()
   await expect(orcaPage.getByText('Security-sensitive area changed').first()).toBeVisible()
   await expect(orcaPage.getByText('Related events')).toBeVisible()
