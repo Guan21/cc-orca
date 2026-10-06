@@ -31,13 +31,13 @@
     {
       "ruleId": "legacy-onorca-domain",
       "file": "src/main/ipc/feedback.ts",
-      "line": 17,
+      "line": 18,
       "match": "https://www.onorca.dev/v1/feedback"
     },
     {
       "ruleId": "legacy-onorca-domain",
       "file": "src/main/ipc/feedback.ts",
-      "line": 332,
+      "line": 334,
       "match": "api.onorca.dev"
     },
     {
@@ -103,7 +103,7 @@
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/main/updater-test-harness.ts",
-      "line": 266,
+      "line": 188,
       "match": "https://github.com/stablyai/orca/releases/download/${tag"
     },
     {
@@ -115,7 +115,7 @@
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/main/updater/updater-setup.ts",
-      "line": 158,
+      "line": 182,
       "match": "https://github.com/stablyai/orca/releases/latest/download"
     },
     {
@@ -127,13 +127,13 @@
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/components/Landing.tsx",
-      "line": 28,
+      "line": 30,
       "match": "https://github.com/stablyai/orca"
     },
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/components/link-routing-preference-dialog.tsx",
-      "line": 104,
+      "line": 106,
       "match": "https://github.com/stablyai/orca/pull/1234"
     },
     {
@@ -151,7 +151,7 @@
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/components/settings/GeneralSupportSection.tsx",
-      "line": 13,
+      "line": 14,
       "match": "https://github.com/stablyai/orca"
     },
     {
@@ -181,43 +181,43 @@
     {
       "ruleId": "legacy-onorca-domain",
       "file": "src/renderer/src/components/sidebar/SidebarSettingsHelpMenu.tsx",
-      "line": 50,
+      "line": 52,
       "match": "https://www.onorca.dev/docs"
     },
     {
       "ruleId": "legacy-onorca-domain",
       "file": "src/renderer/src/components/sidebar/SidebarSettingsHelpMenu.tsx",
-      "line": 51,
+      "line": 53,
       "match": "https://onorca.dev/changelog"
     },
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/components/sidebar/SidebarSettingsHelpMenu.tsx",
-      "line": 52,
+      "line": 54,
       "match": "https://github.com/stablyai/orca"
     },
     {
       "ruleId": "legacy-discord-invite",
       "file": "src/renderer/src/components/sidebar/SidebarSettingsHelpMenu.tsx",
-      "line": 53,
+      "line": 55,
       "match": "https://discord.gg/fzjDKHxv8Q"
     },
     {
       "ruleId": "legacy-x-profile",
       "file": "src/renderer/src/components/sidebar/SidebarSettingsHelpMenu.tsx",
-      "line": 54,
+      "line": 56,
       "match": "https://x.com/orca_build"
     },
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/components/star-nag/StarNagToastHost.tsx",
-      "line": 7,
+      "line": 8,
       "match": "https://github.com/stablyai/orca"
     },
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/components/StarNagCard.tsx",
-      "line": 9,
+      "line": 10,
       "match": "https://github.com/stablyai/orca"
     },
     {
@@ -241,37 +241,37 @@
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/i18n/locales/en.json",
-      "line": 4209,
+      "line": 4218,
       "match": "github.com/stablyai/orca"
     },
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/i18n/locales/es.json",
-      "line": 3756,
+      "line": 3753,
       "match": "github.com/stablyai/orca"
     },
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/i18n/locales/fr.json",
-      "line": 3976,
+      "line": 3973,
       "match": "github.com/stablyai/orca"
     },
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/i18n/locales/ja.json",
-      "line": 3756,
+      "line": 3753,
       "match": "github.com/stablyai/orca"
     },
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/i18n/locales/ko.json",
-      "line": 3761,
+      "line": 3758,
       "match": "github.com/stablyai/orca"
     },
     {
       "ruleId": "legacy-stablyai-orca-repository",
       "file": "src/renderer/src/i18n/locales/zh.json",
-      "line": 3771,
+      "line": 3768,
       "match": "github.com/stablyai/orca"
     },
     {
