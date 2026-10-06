@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
 import type { DevelopmentEvent } from '../../../../shared/development-event-types'
-import type { ReviewItem } from '../../../../shared/review-queue-types'
+import type { ReviewItem, ReviewPriorityReason } from '../../../../shared/review-queue-types'
 import { reviewEventHistoryEntries } from './review-queue-event-history'
 import {
   humanJudgmentLines,
@@ -57,6 +57,27 @@ function DetailSection({
       </h3>
       {children}
     </section>
+  )
+}
+
+function PriorityReasonCard({ reason }: { reason: ReviewPriorityReason }): React.JSX.Element {
+  const label = reviewReasonLabel(reason)
+  const showSummary = reason.summary.trim().length > 0 && reason.summary !== label
+
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2">
+      <div className="text-sm font-medium text-card-foreground">{label}</div>
+      {showSummary ? (
+        <div className="mt-1 text-sm text-muted-foreground">{reason.summary}</div>
+      ) : null}
+      <div className="mt-1 text-xs text-muted-foreground">
+        {translate(
+          'auto.components.reviewQueue.detail.evidenceCount',
+          '{{value0}} supporting events',
+          { value0: reason.evidenceEventIds.length }
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -128,23 +149,7 @@ export function ReviewQueueDetail({
         >
           <div className="space-y-2">
             {item.reasons.length > 0 ? (
-              item.reasons.map((reason) => (
-                <div
-                  key={reason.type}
-                  className="rounded-lg border border-border bg-card px-3 py-2"
-                >
-                  <div className="text-sm font-medium text-card-foreground">
-                    {reviewReasonLabel(reason)}
-                  </div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {translate(
-                      'auto.components.reviewQueue.detail.evidenceCount',
-                      '{{value0}} supporting events',
-                      { value0: reason.evidenceEventIds.length }
-                    )}
-                  </div>
-                </div>
-              ))
+              item.reasons.map((reason) => <PriorityReasonCard key={reason.type} reason={reason} />)
             ) : (
               <p className="text-sm text-muted-foreground">
                 {translate(

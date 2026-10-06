@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ClipboardCheck, Loader2 } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import type { DevelopmentEvent } from '../../../../shared/development-event-types'
+import type { DisagreementSignal } from '../../../../shared/disagreement-signal-types'
 import { projectReviewQueue } from '../../../../shared/review-queue-projection'
 import { createReviewQueueDemoEvents } from './review-queue-demo-events'
+import { createReviewQueueDemoDisagreementSignals } from './review-queue-demo-reviews'
 import { ReviewQueueDetail } from './ReviewQueueDetail'
 import { ReviewQueueList } from './ReviewQueueList'
 import { summarizeReviewQueue } from './review-queue-view-model'
@@ -13,9 +15,12 @@ type ReviewQueuePageState = 'ready' | 'loading' | 'error'
 
 type ReviewQueuePageProps = {
   events?: readonly DevelopmentEvent[]
+  disagreementSignals?: readonly DisagreementSignal[]
   state?: ReviewQueuePageState
   errorMessage?: string
 }
+
+const EMPTY_DISAGREEMENT_SIGNALS: readonly DisagreementSignal[] = []
 
 function ReviewQueueMetric({ label, value }: { label: string; value: number }): React.JSX.Element {
   return (
@@ -66,13 +71,23 @@ function ReviewQueueState({
 
 export function ReviewQueuePage({
   events,
+  disagreementSignals,
   state = 'ready',
   errorMessage
 }: ReviewQueuePageProps): React.JSX.Element {
   useTranslation()
   const defaultEvents = useMemo(() => createReviewQueueDemoEvents(), [])
+  const defaultDisagreementSignals = useMemo(() => createReviewQueueDemoDisagreementSignals(), [])
   const sourceEvents = events ?? defaultEvents
-  const reviewItems = useMemo(() => projectReviewQueue([...sourceEvents]), [sourceEvents])
+  const sourceDisagreementSignals =
+    disagreementSignals ?? (events ? EMPTY_DISAGREEMENT_SIGNALS : defaultDisagreementSignals)
+  const reviewItems = useMemo(
+    () =>
+      projectReviewQueue([...sourceEvents], {
+        disagreementSignals: sourceDisagreementSignals
+      }),
+    [sourceEvents, sourceDisagreementSignals]
+  )
   const eventById = useMemo(
     () => new Map(sourceEvents.map((event) => [event.eventId, event])),
     [sourceEvents]

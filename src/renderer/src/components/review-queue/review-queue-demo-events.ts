@@ -212,6 +212,56 @@ export function createReviewQueueDemoEvents(): DevelopmentEvent[] {
         }
       }),
       '2026-09-30T15:32:00.000Z'
+    ),
+    at(
+      pullRequestDevelopmentEventFixture({
+        eventId: 'review-demo-pr-96',
+        projectId: 'project-devcrew-control-plane',
+        taskId: 'issue-80',
+        sessionId: 'session-disagreement',
+        payload: {
+          provider: 'github',
+          pullRequestId: '96',
+          url: 'https://github.com/Guan21/cc-orca/pull/96',
+          title: translate(
+            'auto.components.reviewQueue.demo.disagreementTitle',
+            'Resolve reviewer disagreement'
+          )
+        }
+      }),
+      '2026-09-30T15:40:00.000Z'
+    ),
+    at(
+      reviewDevelopmentEventFixture({
+        eventId: 'review-demo-pr-96-claude-review',
+        projectId: 'project-devcrew-control-plane',
+        taskId: 'issue-80',
+        sessionId: 'session-disagreement',
+        actor: { type: 'agent', id: 'claude', provider: 'claude' },
+        payload: {
+          provider: 'github',
+          reviewId: 'review-claude-96',
+          status: 'completed',
+          pullRequestId: '96'
+        }
+      }),
+      '2026-09-30T15:41:00.000Z'
+    ),
+    at(
+      reviewDevelopmentEventFixture({
+        eventId: 'review-demo-pr-96-codex-review',
+        projectId: 'project-devcrew-control-plane',
+        taskId: 'issue-80',
+        sessionId: 'session-disagreement',
+        actor: { type: 'agent', id: 'codex', provider: 'codex' },
+        payload: {
+          provider: 'github',
+          reviewId: 'review-codex-96',
+          status: 'completed',
+          pullRequestId: '96'
+        }
+      }),
+      '2026-09-30T15:42:00.000Z'
     )
   ]
 }

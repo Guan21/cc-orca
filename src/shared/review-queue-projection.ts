@@ -1,4 +1,6 @@
 import type { DevelopmentEvent } from './development-event-types'
+import type { DisagreementSignal } from './disagreement-signal-types'
+import { buildDisagreementReviewReasons } from './review-queue-disagreement'
 import {
   buildReviewEvidenceSummary,
   buildReviewPriorityReasons,
@@ -16,7 +18,11 @@ import {
   sortDevelopmentEvents,
   type ReviewSubjectIdentity
 } from './review-queue-subject-identity'
-import type { ReviewActorType, ReviewItem } from './review-queue-types'
+import type { ReviewActorType, ReviewItem, ReviewPriorityReason } from './review-queue-types'
+
+export type ProjectReviewQueueOptions = {
+  disagreementSignals?: readonly DisagreementSignal[]
+}
 
 type ReviewEventRecord = {
   reviewId: string
@@ -52,10 +58,16 @@ type MutableReviewAggregate = {
   }
 }
 
-export function projectReviewQueue(events: DevelopmentEvent[]): ReviewItem[] {
-  const orderedEvents = sortDevelopmentEvents(events)
+export function projectReviewQueue(
+  events: readonly DevelopmentEvent[],
+  options: ProjectReviewQueueOptions = {}
+): ReviewItem[] {
+  const orderedEvents = sortDevelopmentEvents([...events])
   const subjectIndex = buildReviewSubjectIndex(orderedEvents)
   const aggregates = new Map<string, MutableReviewAggregate>()
+  const disagreementReasonsBySubject = options.disagreementSignals
+    ? buildDisagreementReviewReasons(orderedEvents, options.disagreementSignals)
+    : new Map()
 
   for (const event of orderedEvents) {
     const identity = resolveReviewSubjectIdentity(event, subjectIndex)
@@ -68,7 +80,11 @@ export function projectReviewQueue(events: DevelopmentEvent[]): ReviewItem[] {
     applyEventToAggregate(aggregate, event)
   }
 
-  return sortReviewQueueItems([...aggregates.values()].map(toReviewItem))
+  return sortReviewQueueItems(
+    [...aggregates.values()].map((aggregate) =>
+      toReviewItem(aggregate, disagreementReasonsBySubject.get(aggregate.identity.key) ?? [])
+    )
+  )
 }
 
 export function sortReviewQueueItems(items: ReviewItem[]): ReviewItem[] {
@@ -180,8 +196,14 @@ function appendUnique(values: string[], value: string): void {
   }
 }
 
-function toReviewItem(aggregate: MutableReviewAggregate): ReviewItem {
-  const reasons = sortReviewPriorityReasons(buildReviewPriorityReasons(aggregate))
+function toReviewItem(
+  aggregate: MutableReviewAggregate,
+  disagreementReasons: ReviewPriorityReason[] = []
+): ReviewItem {
+  const reasons = sortReviewPriorityReasons([
+    ...buildReviewPriorityReasons(aggregate),
+    ...disagreementReasons
+  ])
   const evidence = buildReviewEvidenceSummary(aggregate)
   const priority = resolveReviewPriority(reasons)
 
