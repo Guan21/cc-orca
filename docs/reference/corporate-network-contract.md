@@ -9,6 +9,8 @@ not configured -> disabled
 
 Administrator-configured endpoints never fall back to legacy Orca or DevCrew public services. A missing or invalid endpoint disables that feature until the administrator supplies a valid destination.
 
+This document and `src/shared/network/corporate-network-contract.ts` are the semantic Corporate Network Contract for #89. The #91 Corporate forbidden endpoint scanner is a static regression projection of this contract. Its machine-readable rules live in `config/corporate-forbidden-endpoints.json`, but that JSON is scanner input, not a second Corporate network policy.
+
 ## Categories
 
 `automatic-app-owned-egress`
@@ -26,6 +28,8 @@ Traffic attributable to an explicit user action, such as SCM operations, opening
 `administrator-configured-egress`
 
 Traffic to deployment-configured endpoints such as plugin marketplace sources, plugin kill-list endpoints, issue/support URLs, artifact services, approved SCM hosts, future browser allowlists, and internal services. Missing configuration disables the feature; it does not fall back.
+
+Explicit configuration means the endpoint is eligible for the intended feature path. It is not universal trust for all Corporate networking. Future enforcement can still apply scheme validation, host policy, corporate proxy routing, DLP, SASE, or other enterprise controls.
 
 `forbidden-legacy-implicit-dependency`
 
@@ -62,3 +66,21 @@ valid explicit endpoint?
 ```
 
 The contract is intentionally not a firewall/proxy implementation. It is the policy vocabulary and deterministic decision surface for #90 endpoint remediation, #91 static forbidden-endpoint scanning, and #92 runtime egress tests.
+
+## Static Scanner Projection
+
+#91 uses `config/corporate-forbidden-endpoints.json` to catch static references to destinations that the contract treats as `forbidden-legacy-implicit-dependency`, including legacy Orca/DevCrew public infrastructure. The scanner remains a data-driven CI regression gate and does not import the TypeScript contract at runtime.
+
+The temporary #91 baseline records the known violations that #90 has not removed yet. The expected lifecycle is monotonic burn-down:
+
+```text
+71 -> 60 -> 30 -> 5 -> 0
+```
+
+#90 is complete when the Corporate forbidden endpoint baseline reaches `0`. The scanner rejects normal baseline growth: current baseline entries must remain a subset of the audited #91 ceiling, so adding a new forbidden destination and adding a matching baseline entry does not silently pass CI.
+
+## Limitations
+
+A green #91 scanner result is not proof of zero runtime egress. The scanner primarily protects against static source and packaged-resource references. It may miss dynamically constructed destinations, child-process behavior, SDK-internal endpoints, DNS/runtime redirects, or network traffic introduced outside the scanned file set.
+
+#92 remains responsible for runtime behavioral verification of outbound egress.
