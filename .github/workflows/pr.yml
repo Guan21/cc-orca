@@ -167,6 +167,9 @@ jobs:
       - name: Check reliability gate manifest
         run: pnpm run check:reliability-gates
 
+      - name: Check Corporate forbidden endpoints
+        run: pnpm run check:corporate-forbidden-endpoints
+
       - name: Check VM runtime rollback compatibility
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}

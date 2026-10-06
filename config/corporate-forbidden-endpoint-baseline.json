@@ -1,0 +1,434 @@
+{
+  "version": 1,
+  "issue": "#90",
+  "auditBaseline": "company-work@4e11e8a9e6bdb3f43dc4b20bd1b483c44839e733",
+  "reason": "Temporary exact baseline for #91 while #90 removes known legacy Corporate egress endpoints. Do not add entries except to track already-known #90 remediation scope.",
+  "violations": [
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "package.json",
+      "line": 5,
+      "match": "https://github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/artifacts/artifact-cloud-config.ts",
+      "line": 3,
+      "match": "https://share.onorca.dev"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/artifacts/artifact-cloud-config.ts",
+      "line": 21,
+      "match": "onorca.dev"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/artifacts/artifact-cloud-config.ts",
+      "line": 26,
+      "match": "onorca.dev"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/ipc/feedback.ts",
+      "line": 18,
+      "match": "https://www.onorca.dev/v1/feedback"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/ipc/feedback.ts",
+      "line": 334,
+      "match": "api.onorca.dev"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/orca-profiles/profile-cloud-auth-config.ts",
+      "line": 19,
+      "match": "https://login.onorca.dev"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/orca-profiles/profile-cloud-auth-config.ts",
+      "line": 21,
+      "match": "https://relay.onorca.dev"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/plugins/plugin-kill-list-service.ts",
+      "line": 10,
+      "match": "https://onorca.dev/plugins/kill-list.json"
+    },
+    {
+      "ruleId": "legacy-posthog-ingest",
+      "file": "src/main/telemetry/client.ts",
+      "line": 104,
+      "match": "https://us.i.posthog.com"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/updater-changelog.ts",
+      "line": 13,
+      "match": "https://onorca.dev/changelog"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/updater-changelog.ts",
+      "line": 45,
+      "match": "https://onorca.dev/whats-new/changelog.json"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/updater-events.ts",
+      "line": 167,
+      "match": "onorca.dev"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/main/updater-nudge.ts",
+      "line": 12,
+      "match": "https://onorca.dev/whats-new/nudge.json"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/main/updater-prerelease-feed.ts",
+      "line": 5,
+      "match": "https://github.com/stablyai/orca/releases.atom"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/main/updater-prerelease-feed.ts",
+      "line": 6,
+      "match": "https://github.com/stablyai/orca/releases/download"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/main/updater-test-harness.ts",
+      "line": 188,
+      "match": "https://github.com/stablyai/orca/releases/download/${tag"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/main/updater/updater-release-feed.ts",
+      "line": 206,
+      "match": "https://github.com/stablyai/orca/releases/latest/download"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/main/updater/updater-setup.ts",
+      "line": 182,
+      "match": "https://github.com/stablyai/orca/releases/latest/download"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/github-project/ProjectViewStates.tsx",
+      "line": 11,
+      "match": "https://github.com/stablyai/orca/issues/new"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/Landing.tsx",
+      "line": 30,
+      "match": "https://github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/link-routing-preference-dialog.tsx",
+      "line": 106,
+      "match": "https://github.com/stablyai/orca/pull/1234"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/renderer/src/components/mobile/mobile-platform-copy.ts",
+      "line": 10,
+      "match": "https://www.onorca.dev/docs/android-apk"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/mobile/mobile-platform-copy.ts",
+      "line": 25,
+      "match": "https://github.com/stablyai/orca/releases/download/mobile-android-v0.0.48/app-release.apk"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/settings/GeneralSupportSection.tsx",
+      "line": 14,
+      "match": "https://github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/settings/MobileSettingsPane.tsx",
+      "line": 16,
+      "match": "https://github.com/stablyai/orca/releases/download/mobile-android-v0.0.48/app-release.apk"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/sidebar/SidebarFeedbackDialog.tsx",
+      "line": 27,
+      "match": "https://github.com/stablyai/orca/issues/"
+    },
+    {
+      "ruleId": "legacy-discord-invite",
+      "file": "src/renderer/src/components/sidebar/SidebarFeedbackDialog.tsx",
+      "line": 28,
+      "match": "https://discord.gg/fzjDKHxv8Q"
+    },
+    {
+      "ruleId": "legacy-x-profile",
+      "file": "src/renderer/src/components/sidebar/SidebarFeedbackDialog.tsx",
+      "line": 29,
+      "match": "https://x.com/orca_build"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/renderer/src/components/sidebar/SidebarSettingsHelpMenu.tsx",
+      "line": 52,
+      "match": "https://www.onorca.dev/docs"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/renderer/src/components/sidebar/SidebarSettingsHelpMenu.tsx",
+      "line": 53,
+      "match": "https://onorca.dev/changelog"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/sidebar/SidebarSettingsHelpMenu.tsx",
+      "line": 54,
+      "match": "https://github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-discord-invite",
+      "file": "src/renderer/src/components/sidebar/SidebarSettingsHelpMenu.tsx",
+      "line": 55,
+      "match": "https://discord.gg/fzjDKHxv8Q"
+    },
+    {
+      "ruleId": "legacy-x-profile",
+      "file": "src/renderer/src/components/sidebar/SidebarSettingsHelpMenu.tsx",
+      "line": 56,
+      "match": "https://x.com/orca_build"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/star-nag/StarNagToastHost.tsx",
+      "line": 8,
+      "match": "https://github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/StarNagCard.tsx",
+      "line": 10,
+      "match": "https://github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/stats/share-card-utils.tsx",
+      "line": 218,
+      "match": "github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/stats/ShareUsageButton.tsx",
+      "line": 113,
+      "match": "github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/components/terminal-pane/TerminalErrorToast.tsx",
+      "line": 272,
+      "match": "https://github.com/stablyai/orca/issues"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/i18n/locales/en.json",
+      "line": 4218,
+      "match": "github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/i18n/locales/es.json",
+      "line": 3753,
+      "match": "github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/i18n/locales/fr.json",
+      "line": 3973,
+      "match": "github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/i18n/locales/ja.json",
+      "line": 3753,
+      "match": "github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/i18n/locales/ko.json",
+      "line": 3758,
+      "match": "github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/renderer/src/i18n/locales/zh.json",
+      "line": 3768,
+      "match": "github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/renderer/src/lib/telemetry.ts",
+      "line": 11,
+      "match": "https://www.onorca.dev/docs/telemetry"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/shared/agent-feature-install-commands.ts",
+      "line": 3,
+      "match": "https://github.com/stablyai/orca"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 68,
+      "match": "https://www.onorca.dev/docs/model/worktrees"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 80,
+      "match": "https://www.onorca.dev/docs/terminal"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 92,
+      "match": "https://www.onorca.dev/docs/review/linear"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 103,
+      "match": "https://www.onorca.dev/docs/agents/supported"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 115,
+      "match": "https://www.onorca.dev/docs/browser/design-mode"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 127,
+      "match": "https://www.onorca.dev/docs/ssh"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 139,
+      "match": "https://www.onorca.dev/docs/editing/file-explorer"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 151,
+      "match": "https://www.onorca.dev/docs/review/annotate-ai-diff"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 162,
+      "match": "https://www.onorca.dev/docs/cli/overview"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 174,
+      "match": "https://www.onorca.dev/docs/model/quick-open"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 186,
+      "match": "https://www.onorca.dev/docs/agents/usage-tracking"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-tiles.ts",
+      "line": 198,
+      "match": "https://www.onorca.dev/docs/editing/viewers"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-workflows.ts",
+      "line": 33,
+      "match": "https://www.onorca.dev/docs/model/worktrees"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-workflows.ts",
+      "line": 42,
+      "match": "https://www.onorca.dev/docs/review/linear"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-workflows.ts",
+      "line": 51,
+      "match": "https://www.onorca.dev/docs/agents/supported"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-workflows.ts",
+      "line": 60,
+      "match": "https://www.onorca.dev/docs/terminal"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/feature-wall-workflows.ts",
+      "line": 69,
+      "match": "https://www.onorca.dev/docs/review/annotate-ai-diff"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/mobile-relay-pairing-fixtures.ts",
+      "line": 21,
+      "match": "https://relay.onorca.dev"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/mobile-relay-pairing-fixtures.ts",
+      "line": 22,
+      "match": "https://relay-c1.onorca.dev"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/mobile-relay-pairing-fixtures.ts",
+      "line": 68,
+      "match": "https://relay.onorca.dev"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/mobile-relay-pairing-fixtures.ts",
+      "line": 73,
+      "match": "http://relay-c1.onorca.dev"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-plugins-repository",
+      "file": "src/shared/plugins/plugin-marketplace.ts",
+      "line": 119,
+      "match": "https://github.com/stablyai/orca-plugins.git"
+    },
+    {
+      "ruleId": "legacy-onorca-domain",
+      "file": "src/shared/skill-share-link.ts",
+      "line": 2,
+      "match": "share.onorca.dev"
+    },
+    {
+      "ruleId": "legacy-stablyai-orca-repository",
+      "file": "src/shared/tui-agent-config.ts",
+      "line": 73,
+      "match": "https://github.com/stablyai/orca/pull/926"
+    }
+  ]
+}

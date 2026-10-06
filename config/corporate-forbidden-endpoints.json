@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "description": "#91 static regression projection of the #89 Corporate Network Contract. This file is scanner input, not a second authoritative network policy.",
+  "contract": {
+    "semanticContract": "src/shared/network/corporate-network-contract.ts",
+    "documentation": "docs/reference/corporate-network-contract.md",
+    "scannerRole": "static-regression-projection",
+    "legacyViolationCategory": "forbidden-legacy-implicit-dependency",
+    "baselineCeilingPath": "config/corporate-forbidden-endpoint-baseline-ceiling.json"
+  },
+  "scan": {
+    "includePaths": [
+      "src/main/",
+      "src/renderer/",
+      "src/shared/",
+      "resources/",
+      "package.json",
+      "electron.vite.config.ts",
+      "config/electron-builder.config.cjs",
+      "config/packaged-runtime-node-modules.cjs",
+      "orca.yaml"
+    ],
+    "textExtensions": [
+      ".cjs",
+      ".css",
+      ".cts",
+      ".html",
+      ".js",
+      ".json",
+      ".jsonc",
+      ".mjs",
+      ".mts",
+      ".plist",
+      ".sh",
+      ".ts",
+      ".tsx",
+      ".xml",
+      ".yaml",
+      ".yml"
+    ],
+    "excludePaths": [
+      ".git/",
+      "node_modules/",
+      "dist/",
+      "out/",
+      "build/",
+      "coverage/",
+      "src/shared/network/corporate-network-contract.ts",
+      "src/main/runtime/orca-runtime-tests/"
+    ],
+    "excludePathContains": [
+      "/__fixtures__/",
+      "/test-fixtures/",
+      "/test-harness/",
+      "/test-utils/"
+    ],
+    "excludeFilePatterns": [
+      "\\.(?:test|spec)\\.(?:cjs|cts|js|jsx|mjs|mts|ts|tsx)$"
+    ]
+  },
+  "rules": [
+    {
+      "id": "legacy-onorca-domain",
+      "severity": "forbidden",
+      "scope": "runtime-package",
+      "contractCategory": "forbidden-legacy-implicit-dependency",
+      "reason": "Corporate runtime must not implicitly depend on legacy Orca cloud infrastructure.",
+      "match": {
+        "kind": "domain",
+        "domain": "onorca.dev",
+        "includeSubdomains": true
+      }
+    },
+    {
+      "id": "legacy-stablyai-orca-repository",
+      "severity": "forbidden",
+      "scope": "runtime-package",
+      "contractCategory": "forbidden-legacy-implicit-dependency",
+      "reason": "Corporate runtime must not implicitly depend on the legacy public Orca repository.",
+      "match": {
+        "kind": "githubRepository",
+        "owner": "stablyai",
+        "repository": "orca"
+      }
+    },
+    {
+      "id": "legacy-stablyai-orca-plugins-repository",
+      "severity": "forbidden",
+      "scope": "runtime-package",
+      "contractCategory": "forbidden-legacy-implicit-dependency",
+      "reason": "Corporate plugin discovery must not implicitly depend on the legacy public Orca plugin repository.",
+      "match": {
+        "kind": "githubRepository",
+        "owner": "stablyai",
+        "repository": "orca-plugins"
+      }
+    },
+    {
+      "id": "legacy-discord-invite",
+      "severity": "forbidden",
+      "scope": "runtime-package",
+      "contractCategory": "forbidden-legacy-implicit-dependency",
+      "reason": "Corporate runtime must not surface undeclared public Discord support endpoints.",
+      "match": {
+        "kind": "host",
+        "host": "discord.gg"
+      }
+    },
+    {
+      "id": "legacy-x-profile",
+      "severity": "forbidden",
+      "scope": "runtime-package",
+      "contractCategory": "forbidden-legacy-implicit-dependency",
+      "reason": "Corporate runtime must not surface undeclared public X/Twitter support endpoints.",
+      "match": {
+        "kind": "urlPrefix",
+        "prefix": "https://x.com/orca_build"
+      }
+    },
+    {
+      "id": "legacy-posthog-ingest",
+      "severity": "forbidden",
+      "scope": "runtime-package",
+      "contractCategory": "forbidden-legacy-implicit-dependency",
+      "reason": "Corporate runtime telemetry endpoints must be declared by the Corporate Network Contract.",
+      "match": {
+        "kind": "domain",
+        "domain": "posthog.com",
+        "includeSubdomains": true
+      }
+    },
+    {
+      "id": "legacy-twitter-profile",
+      "severity": "forbidden",
+      "scope": "runtime-package",
+      "contractCategory": "forbidden-legacy-implicit-dependency",
+      "reason": "Corporate runtime must not surface undeclared public X/Twitter support endpoints.",
+      "match": {
+        "kind": "urlPrefix",
+        "prefix": "https://twitter.com/orca_build"
+      }
+    }
+  ]
+}
