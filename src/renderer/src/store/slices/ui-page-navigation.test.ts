@@ -310,6 +310,18 @@ describe('createUISlice settings navigation', () => {
     expect(store.getState().activeView).toBe('activity')
   })
 
+  it('returns to Review Queue after visiting settings', () => {
+    const store = createUIStore()
+
+    store.getState().openReviewQueuePage()
+    expect(store.getState().activeView).toBe('review')
+
+    store.getState().openSettingsPage()
+    store.getState().closeSettingsPage()
+
+    expect(store.getState().activeView).toBe('review')
+  })
+
   it('clears transient settings search when opening settings', () => {
     const store = createUIStore()
 
@@ -714,6 +726,21 @@ describe('createUISlice space navigation', () => {
 
     expect(store.getState().worktreeNavHistory).toEqual(['a', 'artifacts', 'skills'])
     expect(store.getState().worktreeNavHistoryIndex).toBe(2)
+  })
+
+  it('records and rewinds Review Queue visits on close', () => {
+    const store = createUIStore()
+    store.setState({ worktreesByRepo: { 'repo-1': [makeWorktree('a')] } })
+
+    store.getState().recordWorktreeVisit('a')
+    store.getState().openReviewQueuePage()
+    expect(store.getState().activeView).toBe('review')
+    expect(store.getState().worktreeNavHistory).toEqual(['a', 'review'])
+    expect(store.getState().worktreeNavHistoryIndex).toBe(1)
+
+    store.getState().closeReviewQueuePage()
+    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().worktreeNavHistoryIndex).toBe(0)
   })
 
   it('records a Skills visit when opening a shared skill link', () => {

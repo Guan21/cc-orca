@@ -34,6 +34,7 @@ describe('right sidebar visibility helpers', () => {
       'settings',
       'tasks',
       'activity',
+      'review',
       'automations',
       'space',
       'skills',
