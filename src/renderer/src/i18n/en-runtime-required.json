@@ -595,7 +595,8 @@
             "c3b81ddea2": "DRAFT_ISSUE"
           },
           "ProjectViewWrapper": {
-            "1bf8c01c8b": "Switch to a Table view to work with this project in DevCrew."
+            "1bf8c01c8b": "Switch to a Table view to work with this project in DevCrew.",
+            "4d2a77a119": "File feature request"
           }
         }
       },
@@ -1454,7 +1455,8 @@
         "MobileSettingsPane": {
           "9a3c280e49": "GitHub Releases",
           "b0088412a1": "or the Android APK from",
-          "c8491c17ef": "Control DevCrew from your phone by scanning a QR code. Beta / early preview - expect bugs and breaking changes. Get the iOS app from the"
+          "c8491c17ef": "Control DevCrew from your phone by scanning a QR code. Beta / early preview - expect bugs and breaking changes. Get the iOS app from the",
+          "androidApkLabel": "Android APK"
         },
         "NotificationsPane": {
           "274af61bc0": "system",
@@ -2026,7 +2028,12 @@
           "4e8f5710d3": "Couldn't restart DevCrew.",
           "5161eef55d": "Restarting DevCrew…",
           "ad3d3ed7f1": "Restart DevCrew",
-          "d396773ef0": "checking"
+          "d396773ef0": "checking",
+          "5687ab246a": "GitHub",
+          "5f83d86d92": "Changelog",
+          "c4f8e1b72a": "X",
+          "cdc87f897e": "Docs",
+          "eb9884e55b": "Discord"
         },
         "SidebarToolbar": {
           "19e32d0e5f": "Open folder picker to add a project",
@@ -2127,6 +2134,16 @@
               }
             }
           }
+        },
+        "SidebarFeedbackDialog": {
+          "26108d3699": "Join Discord",
+          "3460258a54": "Follow on X",
+          "5b120b9634": "Submit anonymously",
+          "8de03e23c5": "Submit with your typed feedback only, or connect `gh` to include GitHub identity.",
+          "9b33530b3d": "Other ways to reach us",
+          "c9e5ea0791": "GitHub:",
+          "d20439c560": "Checking GitHub identity…",
+          "d245c4ef6c": "GitHub issues"
         }
       },
       "skills": {
@@ -2607,6 +2624,9 @@
                 "29c031b49a": "Uploading {{value0}} file{{value1}} to runtime…"
               }
             }
+          },
+          "TerminalErrorToast": {
+            "a7e2fd2699": "file an issue"
           }
         },
         "quick": {
