@@ -1,0 +1,146 @@
+name: DevCrew Phase 1 Installers
+
+on:
+  push:
+    branches:
+      - build/devcrew-phase1-installers
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devcrew-phase1-installers-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
+
+jobs:
+  windows:
+    name: Windows installer
+    runs-on: windows-2022
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.0.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build DevCrew Windows installer
+        shell: pwsh
+        env:
+          ORCA_LOCAL_BUILD_VERSION: 1.4.197-phase1.20261006
+          ORCA_BUILD_COMMIT: ${{ github.sha }}
+        run: pnpm run build:win:corporate
+
+      - name: Verify Windows installer
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "dist/devcrew-windows-setup.exe")) {
+            Write-Error "Missing dist/devcrew-windows-setup.exe"
+            exit 1
+          }
+          Get-FileHash "dist/devcrew-windows-setup.exe" -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  devcrew-windows-setup.exe" } |
+            Set-Content "dist/SHA256SUMS-windows.txt"
+          @(
+            "DevCrew Phase 1"
+            "Source commit: ${{ github.sha }}"
+            "Platform: Windows x64"
+            "Build profile: corporate"
+          ) | Set-Content "dist/BUILD-INFO-windows.txt"
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: devcrew-phase1-windows-x64
+          path: |
+            dist/devcrew-windows-setup.exe
+            dist/*.yml
+            dist/*.blockmap
+            dist/SHA256SUMS-windows.txt
+            dist/BUILD-INFO-windows.txt
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+  macos:
+    name: macOS installers
+    runs-on: macos-14
+    timeout-minutes: 120
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.0.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build DevCrew macOS installers
+        env:
+          ORCA_BUILD_COMMIT: ${{ github.sha }}
+        run: pnpm run build:mac:corporate
+
+      - name: Verify macOS installers
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/devcrew-macos-x64.dmg
+          test -f dist/devcrew-macos-arm64.dmg
+          shasum -a 256             dist/devcrew-macos-x64.dmg             dist/devcrew-macos-arm64.dmg             > dist/SHA256SUMS-macos.txt
+          {
+            echo "DevCrew Phase 1"
+            echo "Source commit: ${{ github.sha }}"
+            echo "Platforms: macOS x64 + arm64"
+            echo "Build profile: corporate local (unsigned/not notarized)"
+          } > dist/BUILD-INFO-macos.txt
+
+      - name: Upload macOS installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: devcrew-phase1-macos-x64-arm64
+          path: |
+            dist/devcrew-macos-x64.dmg
+            dist/devcrew-macos-arm64.dmg
+            dist/devcrew-macos-x64.zip
+            dist/devcrew-macos-arm64.zip
+            dist/*.yml
+            dist/*.blockmap
+            dist/SHA256SUMS-macos.txt
+            dist/BUILD-INFO-macos.txt
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
