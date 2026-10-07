@@ -34,6 +34,9 @@ const AUDITED_GLOBAL_FETCH_LINES = new Map<string, number>([
   // obligation stays with the caller — unchanged from when those callers used
   // Electron's net directly.
   ['main/network/http-client.ts', 2],
+  // Runtime egress observer: wraps global fetch without making extra requests or
+  // reading bodies; original callers keep the consume/cancel obligation.
+  ['main/network/corporate-runtime-egress-installation.ts', 2],
   // fetch appears only inside injected browser script source strings, not as a
   // call this process makes
   ['main/amp/agent-status-plugin-source.ts', 1],

@@ -5,7 +5,8 @@ import {
   CORPORATE_RUNTIME_EGRESS_SUPPRESS_EXTERNAL_ENV,
   recordRuntimeEgressAttempt,
   setRuntimeEgressScenario,
-  getRuntimeEgressLifecycleScenario
+  getRuntimeEgressLifecycleScenario,
+  type RuntimeEgressAttempt
 } from './corporate-runtime-egress-observer'
 
 type FetchLike = typeof globalThis.fetch
