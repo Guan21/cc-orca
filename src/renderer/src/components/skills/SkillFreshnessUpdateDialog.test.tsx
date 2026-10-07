@@ -15,6 +15,8 @@ import {
 } from './skill-freshness-update-dialog'
 import { _resetSkillUpdateRunStore, SKILL_UPDATE_SUCCESS_LINGER_MS } from './skill-update-run-store'
 
+const TEST_SKILLS_REPOSITORY_URL = 'https://github.example.test/devcrew/skills'
+
 const mocks = vi.hoisted(() => ({
   inventory: null as SkillFreshnessInventory | null,
   loading: false,
@@ -187,6 +189,7 @@ describe('SkillFreshnessUpdateDialog', () => {
     skillsApi.cancelUpdateRun.mockClear()
     skillsApi.acknowledgeUpdateRun.mockClear()
     skillsApi.getUpdateRun.mockClear()
+    process.env.ORCA_SKILLS_REPOSITORY_URL = TEST_SKILLS_REPOSITORY_URL
     ;(window as unknown as { api: { skills: typeof skillsApi } }).api = { skills: skillsApi }
   })
 
@@ -197,6 +200,7 @@ describe('SkillFreshnessUpdateDialog', () => {
     root = null
     container?.remove()
     container = null
+    delete process.env.ORCA_SKILLS_REPOSITORY_URL
   })
 
   it('stays closed until an open request arrives', async () => {
@@ -380,11 +384,11 @@ describe('SkillFreshnessUpdateDialog', () => {
       state: 'success',
       names: ['orca-cli'],
       finishedAt: 2,
-      output: 'Checking skills from source: stablyai/orca\n  ✓ Updated orca-cli'
+      output: 'Checking skills from source: devcrew/skills\n  ✓ Updated orca-cli'
     })
 
     expect(container?.querySelector('pre')?.textContent).toContain(
-      'Checking skills from source: stablyai/orca'
+      'Checking skills from source: devcrew/skills'
     )
   })
 
@@ -533,7 +537,7 @@ describe('SkillFreshnessUpdateDialog', () => {
     await openViaRequest()
 
     expect(container?.textContent).toContain(
-      'npx skills add https://github.com/stablyai/orca --skill orchestration --global'
+      `npx skills add ${TEST_SKILLS_REPOSITORY_URL} --skill orchestration --global`
     )
   })
 
@@ -564,7 +568,7 @@ describe('SkillFreshnessUpdateDialog', () => {
 
     const row = container?.querySelector('[data-skill-row="orchestration"]')
     expect(row?.textContent).toContain(
-      'npx skills add https://github.com/stablyai/orca --skill orchestration --global'
+      `npx skills add ${TEST_SKILLS_REPOSITORY_URL} --skill orchestration --global`
     )
     expect(row?.textContent).not.toContain('This is a project skill, not a global one')
     // Still listed, though — ownership silences the explanation, never the location.

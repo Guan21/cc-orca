@@ -178,6 +178,8 @@ warmUpdaterModule()
 describe('quitAndInstall failure carries the updater cause', () => {
   beforeEach(() => {
     vi.resetModules()
+    process.env.ORCA_RELEASE_LATEST_FEED_URL =
+      'https://updates.example.test/releases/latest/download'
     autoUpdaterMock.reset()
     nativeUpdaterMock.on.mockReset()
     browserWindowMock.getAllWindows.mockReset()

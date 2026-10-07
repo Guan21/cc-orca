@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { getDefaultSettings } from '../../../../shared/constants'
 import { buildAgentFeatureSkillInstallCommand } from '../../../../shared/agent-feature-install-commands'
 import { buildWslLoginShellCommand } from '../../../../shared/wsl-login-shell-command'
@@ -15,6 +15,8 @@ import {
   getSelectedAgentRuntime,
   getSkillDiscoveryTargetForRuntime
 } from './CliSkillRuntimeSetup'
+
+const TEST_SKILLS_REPOSITORY_URL = 'https://github.example.test/devcrew/skills'
 
 function decodeWslLoginShellScript(command: string): string {
   const encoded =
@@ -33,6 +35,14 @@ function getWslOuterShellScript(command: string): string {
 }
 
 describe('CliSkillRuntimeSetup runtime helpers', () => {
+  beforeEach(() => {
+    process.env.ORCA_SKILLS_REPOSITORY_URL = TEST_SKILLS_REPOSITORY_URL
+  })
+
+  afterEach(() => {
+    delete process.env.ORCA_SKILLS_REPOSITORY_URL
+  })
+
   const windowsNpxPreflightPrefix = 'cmd.exe /d /s /c "where.exe npx >nul 2>nul & if errorlevel 1 ('
   const windowsNpxGuidance =
     'echo ERROR: npx was not found. Install Node.js LTS from https://nodejs.org/ to get npx. & echo Then close this terminal and start skill setup again - a new terminal picks up the updated PATH. & exit /b 1'

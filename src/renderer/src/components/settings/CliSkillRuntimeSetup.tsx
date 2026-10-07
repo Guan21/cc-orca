@@ -117,7 +117,6 @@ function normalizeWindowsSkillUpdateCommand(
     return command
   }
 
-  // Why: the `skills update` subcommand is currently unreliable on native
   // Windows, while reinstalling from the same repo source is idempotent when an
   // explicit source exists. #90 removes the implicit public repository fallback,
   // so an unconfigured build must not throw while rendering Settings.

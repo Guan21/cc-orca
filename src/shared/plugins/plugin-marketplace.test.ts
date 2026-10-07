@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  OFFICIAL_MARKETPLACE_REPOSITORY,
+  OFFICIAL_MARKETPLACE_GIT_SOURCE,
   PLUGIN_MARKETPLACE_CATEGORY_LIMIT,
   PLUGIN_MARKETPLACE_ENTRY_LIMIT,
   isMarketplaceListingSupported,
@@ -150,12 +150,8 @@ describe('marketplace provenance contracts', () => {
     expect(isOfficialOrganizationGitSource('https://gitlab.com/stablyai/orca-skills')).toBe(false)
   })
 
-  it('recognizes only the canonical official marketplace repository', () => {
-    expect(
-      isOfficialMarketplaceGitSource(
-        `git@github.com:stablyai/${OFFICIAL_MARKETPLACE_REPOSITORY}.git`
-      )
-    ).toBe(true)
+  it('treats the official marketplace as unconfigured without a declared source', () => {
+    expect(OFFICIAL_MARKETPLACE_GIT_SOURCE).toBeNull()
     expect(isOfficialMarketplaceGitSource('git@github.com:stablyai/plugins.git')).toBe(false)
   })
 

@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { SkillLocationRow } from './skill-freshness-grouping'
 import { skippedReason } from './skill-freshness-skipped-reason'
+
+const TEST_SKILLS_REPOSITORY_URL = 'https://github.example.test/devcrew/skills'
 
 function row(
   chip: SkillLocationRow['chip'],
@@ -18,6 +20,14 @@ function projectRow(chip: SkillLocationRow['chip'] = 'in-a-repo'): SkillLocation
 }
 
 describe('skippedReason', () => {
+  beforeEach(() => {
+    process.env.ORCA_SKILLS_REPOSITORY_URL = TEST_SKILLS_REPOSITORY_URL
+  })
+
+  afterEach(() => {
+    delete process.env.ORCA_SKILLS_REPOSITORY_URL
+  })
+
   it('names the stale duplicate the global command cannot reach', () => {
     const reason = skippedReason([row('current'), row('duplicate')])
     expect(reason).toContain('separate copy')
@@ -40,8 +50,17 @@ describe('skippedReason', () => {
     const reason = skippedReason([row(null)], 'orchestration')
     expect(reason).toContain('reports the skill as already up to date')
     expect(reason).toContain(
-      'npx skills add https://github.com/stablyai/orca --skill orchestration --global'
+      `npx skills add ${TEST_SKILLS_REPOSITORY_URL} --skill orchestration --global`
     )
+  })
+
+  it('does not offer a reinstall command when no repository is configured', () => {
+    delete process.env.ORCA_SKILLS_REPOSITORY_URL
+
+    const reason = skippedReason([row(null)], 'orchestration')
+
+    expect(reason).toContain('no skills repository is configured')
+    expect(reason).not.toContain('skills add')
   })
 
   it('never offers the reinstall for a copy that is ahead of this build', () => {

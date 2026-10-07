@@ -110,6 +110,9 @@ const FRIENDLY_MESSAGE = "Couldn't reach the update server. Try again in a few m
 const RELEASE_NOT_READY_MESSAGE =
   "A newer release isn't available for this device yet. Check again later."
 const NOT_READY_DIAGNOSTIC = 'Latest release artifacts are not ready'
+const TEST_RELEASE_ATOM_FEED_URL = 'https://updates.example.test/releases.atom'
+const TEST_RELEASE_DOWNLOAD_BASE_URL = 'https://updates.example.test/releases/download'
+const TEST_RELEASE_LATEST_FEED_URL = 'https://updates.example.test/releases/latest/download'
 
 type NotReadyProbe = {
   assetStatus?: number
@@ -129,7 +132,7 @@ function respondWithNotReadyRelease({
     )
     .join('')}</feed>`
   netFetchMock.mockImplementation((url: string, init?: { method?: string }) => {
-    if (url === 'https://updates.example.test/releases.atom') {
+    if (url === TEST_RELEASE_ATOM_FEED_URL) {
       return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve(atom) })
     }
     if (init?.method === 'HEAD' && assetStatus !== undefined) {
@@ -163,6 +166,9 @@ warmUpdaterModule()
 describe('updater check failure handling', () => {
   beforeEach(() => {
     vi.resetModules()
+    process.env.ORCA_RELEASE_ATOM_FEED_URL = TEST_RELEASE_ATOM_FEED_URL
+    process.env.ORCA_RELEASE_DOWNLOAD_BASE_URL = TEST_RELEASE_DOWNLOAD_BASE_URL
+    process.env.ORCA_RELEASE_LATEST_FEED_URL = TEST_RELEASE_LATEST_FEED_URL
     autoUpdaterMock.reset()
     nativeUpdaterMock.on.mockReset()
     browserWindowMock.getAllWindows.mockReset()

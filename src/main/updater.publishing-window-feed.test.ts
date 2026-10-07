@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadUpdaterModule, warmUpdaterModule } from './updater-test-module-loader'
 
+const TEST_LATEST_RELEASE_FEED_URL = 'https://updates.example.test/releases/latest/download'
+
 const {
   appMock,
   autoUpdaterMock,
@@ -30,6 +32,7 @@ warmUpdaterModule()
 describe('updater', () => {
   beforeEach(() => {
     resetUpdaterMocks()
+    process.env.ORCA_RELEASE_LATEST_FEED_URL = TEST_LATEST_RELEASE_FEED_URL
   })
 
   // Why: native github provider + allowPrerelease traps RC users on the RC channel, so resolve the newest tag ourselves and pin the generic feed to it.
@@ -46,7 +49,7 @@ describe('updater', () => {
     // Setup pins the default generic feed; resolver only runs per check.
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://updates.example.test/releases/latest/download'
+      url: TEST_LATEST_RELEASE_FEED_URL
     })
     expect(autoUpdaterMock.allowPrerelease).not.toBe(true)
 
@@ -104,7 +107,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://updates.example.test/releases/latest/download'
+      url: TEST_LATEST_RELEASE_FEED_URL
     })
   })
 
@@ -135,7 +138,7 @@ describe('updater', () => {
     expect(autoUpdaterMock.setFeedURL.mock.calls.slice(feedCallsBeforeCheck)).not.toContainEqual([
       {
         provider: 'generic',
-        url: 'https://updates.example.test/releases/latest/download'
+        url: TEST_LATEST_RELEASE_FEED_URL
       }
     ])
   })
@@ -159,7 +162,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://updates.example.test/releases/latest/download'
+      url: TEST_LATEST_RELEASE_FEED_URL
     })
     expect(sendMock).not.toHaveBeenCalledWith(
       'updater:status',
@@ -210,7 +213,7 @@ describe('updater', () => {
     expect(autoUpdaterMock.setFeedURL.mock.calls.slice(feedCallsBeforeCheck)).not.toContainEqual([
       {
         provider: 'generic',
-        url: 'https://updates.example.test/releases/latest/download'
+        url: TEST_LATEST_RELEASE_FEED_URL
       }
     ])
     expect(sendMock).not.toHaveBeenCalledWith(

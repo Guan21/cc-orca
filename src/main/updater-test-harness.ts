@@ -10,6 +10,8 @@ import type {
 
 export type { UpdaterMocks }
 
+const TEST_RELEASE_LATEST_FEED_URL = 'https://updates.example.test/releases/latest/download'
+
 // Why: macOS keeps the restart advice because quitting does re-stage a Squirrel update.
 export const PRE_COMMIT_INSTALL_FAILURE =
   process.platform === 'darwin'
@@ -211,6 +213,7 @@ export function createUpdaterMocks(): UpdaterMocks {
     // timers it left armed so it never runs at all.
     clearTrackedRealTimers()
     vi.resetModules()
+    process.env.ORCA_RELEASE_LATEST_FEED_URL = TEST_RELEASE_LATEST_FEED_URL
     autoUpdaterMock.reset()
     nativeUpdaterMock.on.mockReset()
     browserWindowMock.getAllWindows.mockReset()

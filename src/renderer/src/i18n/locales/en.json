@@ -4431,6 +4431,7 @@
           "skippedReasonDuplicate": "This is a separate copy, so the update won’t reach it — the command only refreshes the main copy. Remove this copy, then reinstall the skill so this location follows the main one.",
           "skippedReasonNewer": "This copy is a later version than the one this build of DevCrew ships, so DevCrew left it alone rather than roll it back. Updating DevCrew will bring the two back in line.",
           "skippedReasonStaleRecord": "The skills updater has no usable record of this copy, so it reports the skill as already up to date and changes nothing. Reinstall it to bring the record back in line: {{value0}}",
+          "skippedReasonStaleRecordNoRepository": "The skills updater has no usable record of this copy, and no skills repository is configured for reinstalling it.",
           "chipNewer": "Newer",
           "tipNewer": "This copy is a later version than the one this build of DevCrew ships."
         },

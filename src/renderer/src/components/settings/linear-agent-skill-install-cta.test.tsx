@@ -7,6 +7,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TooltipProvider } from '../ui/tooltip'
 import { LinearAgentSkillInstallCta } from './linear-agent-skill-install-cta'
 
+const TEST_SKILLS_REPOSITORY_URL = 'https://github.example.test/devcrew/skills'
+const ORCA_LINEAR_INSTALL_COMMAND = `npx skills add ${TEST_SKILLS_REPOSITORY_URL} --skill orca-linear --global`
+
 const mocks = vi.hoisted(() => ({
   skillState: {
     installed: false,
@@ -20,6 +23,10 @@ const mocks = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
   toastError: vi.fn()
 }))
+
+vi.hoisted(() => {
+  process.env.ORCA_SKILLS_REPOSITORY_URL = 'https://github.example.test/devcrew/skills'
+})
 
 vi.mock('@/hooks/useInstalledAgentSkills', async (importOriginal) => ({
   ...(await importOriginal()),
@@ -78,6 +85,7 @@ async function renderCta(
 
 describe('LinearAgentSkillInstallCta', () => {
   beforeEach(() => {
+    process.env.ORCA_SKILLS_REPOSITORY_URL = TEST_SKILLS_REPOSITORY_URL
     mocks.skillState.installed = false
     mocks.skillState.loading = false
     mocks.skillState.error = null
@@ -103,6 +111,7 @@ describe('LinearAgentSkillInstallCta', () => {
     root = null
     container?.remove()
     container = null
+    delete process.env.ORCA_SKILLS_REPOSITORY_URL
     Reflect.deleteProperty(window, 'api')
   })
 
@@ -115,9 +124,7 @@ describe('LinearAgentSkillInstallCta', () => {
     expect(rendered.textContent).toContain(
       'Full guided setup (connect + skill + visibility) is under Settings → Task Sources.'
     )
-    expect(rendered.textContent).toContain(
-      'npx skills add https://github.com/stablyai/orca --skill orca-linear --global'
-    )
+    expect(rendered.textContent).toContain(ORCA_LINEAR_INSTALL_COMMAND)
   })
 
   it('copies the install command to the clipboard', async () => {
@@ -129,9 +136,7 @@ describe('LinearAgentSkillInstallCta', () => {
         ?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
-    expect(mocks.clipboardWrite).toHaveBeenCalledWith(
-      'npx skills add https://github.com/stablyai/orca --skill orca-linear --global'
-    )
+    expect(mocks.clipboardWrite).toHaveBeenCalledWith(ORCA_LINEAR_INSTALL_COMMAND)
     expect(mocks.toastSuccess).toHaveBeenCalled()
   })
 

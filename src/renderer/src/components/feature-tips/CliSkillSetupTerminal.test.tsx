@@ -5,14 +5,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { CliSkillSetupTerminal } from './CliSkillSetupTerminal'
 
-const mocks = vi.hoisted(() => ({
-  runtime: {
-    agentRuntime: { runtime: 'wsl' as const, wslDistro: 'Missing', label: 'WSL Missing' },
-    installDisabledReason: 'The selected WSL distro is unavailable.',
-    terminalShellOverride: 'powershell.exe'
-  },
-  terminalCommand: ''
-}))
+const mocks = vi.hoisted(() => {
+  process.env.ORCA_SKILLS_REPOSITORY_URL = 'https://github.example.test/devcrew/skills'
+  return {
+    runtime: {
+      agentRuntime: { runtime: 'wsl' as const, wslDistro: 'Missing', label: 'WSL Missing' },
+      installDisabledReason: 'The selected WSL distro is unavailable.',
+      terminalShellOverride: 'powershell.exe'
+    },
+    terminalCommand: ''
+  }
+})
 
 vi.mock('@/hooks/useActiveProjectSkillRuntime', () => ({
   useActiveProjectSkillRuntime: () => mocks.runtime
