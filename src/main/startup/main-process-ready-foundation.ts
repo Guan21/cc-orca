@@ -1,8 +1,12 @@
-import { app, session } from 'electron'
+import { app, session, shell } from 'electron'
 import { electronApp, is } from '@electron-toolkit/utils'
 import { applyBackgroundActivationPolicy } from '../window/foreground-activation-policy'
 import { applyElectronProxySettings } from '../network/proxy-settings'
 import { installElectronProxyRequestGuard } from '../network/electron-proxy-request-guard'
+import {
+  installCorporateRuntimeEgressSessionObserver,
+  installCorporateRuntimeEgressShellObserver
+} from '../network/corporate-runtime-egress-installation'
 import { handleElectronProxyLogin } from '../network/electron-proxy-credentials'
 import { installMainThreadHangWatchdog } from '../hang-watchdog/main-thread-hang-watchdog'
 import {
@@ -55,6 +59,8 @@ export async function initializeReadyFoundation(): Promise<void> {
   // Why: a headless automated run must not claim a macOS Dock tile or the menu bar.
   applyBackgroundActivationPolicy({ warn: console.warn })
   installElectronProxyRequestGuard(session.defaultSession)
+  installCorporateRuntimeEgressSessionObserver(session.defaultSession)
+  installCorporateRuntimeEgressShellObserver(shell)
   app.on('login', (event, webContents, details, authInfo, callback) => {
     handleElectronProxyLogin(
       event,

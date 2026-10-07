@@ -50,11 +50,13 @@ const BARRIER_UNVERIFIED_EXIT_GRACE_MS = 10_000
  */
 export function spawnProcess(spec: ProcessSpec): ChildProcessWithoutNullStreams {
   const resolved = resolveSpawn(spec, process.platform)
-  return nodeSpawn(
+  const child = nodeSpawn(
     resolved.file,
     [...resolved.args],
     resolved.options
   ) as ChildProcessWithoutNullStreams
+  recordChildProcessLaunch('spawnProcess', resolved.file, child.pid)
+  return child
 }
 
 /**
@@ -332,6 +334,7 @@ export function runProcessSync(spec: ProcessSpec): ProcessResult {
     maxBuffer: spec.maxOutputBytes ?? DEFAULT_MAX_OUTPUT_BYTES,
     encoding: 'buffer'
   })
+  recordChildProcessLaunch('runProcessSync', resolved.file, result.pid)
   if (result.error && (result.error as NodeJS.ErrnoException).code !== 'ETIMEDOUT') {
     throw result.error
   }
@@ -349,4 +352,15 @@ export function runProcessSync(spec: ProcessSpec): ProcessResult {
     // stopped process as having timed out, which callers retry.
     timedOut: (result.error as NodeJS.ErrnoException | undefined)?.code === 'ETIMEDOUT'
   }
+}
+
+function recordChildProcessLaunch(source: string, file: string, pid: number | undefined): void {
+  globalThis.__orcaCorporateRuntimeEgressRecord?.({
+    processKind: 'child-process',
+    pid,
+    source,
+    category: 'automatic-app-owned-egress',
+    capability: 'child-process.launch',
+    initiatedBy: { kind: 'child-process', command: file }
+  })
 }
