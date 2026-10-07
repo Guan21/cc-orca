@@ -1,6 +1,18 @@
 import { beforeAll, TestRunner } from 'vitest'
 import type * as UpdaterModule from './updater'
 
+const UPDATER_TEST_ENDPOINTS = {
+  atom: 'https://updates.example.test/releases.atom',
+  downloadBase: 'https://updates.example.test/releases/download',
+  latest: 'https://updates.example.test/releases/latest/download'
+} as const
+
+function ensureUpdaterTestEndpoints(): void {
+  process.env.ORCA_RELEASE_ATOM_FEED_URL ||= UPDATER_TEST_ENDPOINTS.atom
+  process.env.ORCA_RELEASE_DOWNLOAD_BASE_URL ||= UPDATER_TEST_ENDPOINTS.downloadBase
+  process.env.ORCA_RELEASE_LATEST_FEED_URL ||= UPDATER_TEST_ENDPOINTS.latest
+}
+
 /**
  * Pays `updater.ts`'s transform cost once per file, against `hookTimeout` instead of `testTimeout`.
  *
@@ -12,6 +24,7 @@ import type * as UpdaterModule from './updater'
  */
 export function warmUpdaterModule(): void {
   beforeAll(async () => {
+    ensureUpdaterTestEndpoints()
     await import('./updater')
   })
 }
@@ -26,6 +39,7 @@ export function warmUpdaterModule(): void {
  * continuation and leaves the timeout as the only reported failure.
  */
 export async function loadUpdaterModule(): Promise<typeof UpdaterModule> {
+  ensureUpdaterTestEndpoints()
   const owner = TestRunner.getCurrentTest()
   const module = await import('./updater')
   if (owner !== undefined && TestRunner.getCurrentTest() !== owner) {
