@@ -94,12 +94,10 @@ test.describe('Corporate runtime egress gate', () => {
       })
 
       await setScenario(runtime.app, 'report-bug')
-      await runtime.page.getByRole('button', { name: /^(Help|ヘルプ)$/ }).click({ force: true })
-      await runtime.page.getByRole('menuitem', { name: 'Report Bug' }).click()
+      await openCorporateSupportMenuItem(runtime.page, 'Report Bug')
 
       await setScenario(runtime.app, 'team-support')
-      await runtime.page.getByRole('button', { name: /^(Help|ヘルプ)$/ }).click({ force: true })
-      await runtime.page.getByRole('menuitem', { name: 'Team Support' }).click()
+      await openCorporateSupportMenuItem(runtime.page, 'Team Support')
 
       const attempts = await runtime.close()
       expect(
@@ -213,6 +211,12 @@ async function waitForCorporateSupportConfig(
       { timeout: 10_000 }
     )
     .toEqual(expected)
+}
+
+async function openCorporateSupportMenuItem(page: Page, name: 'Report Bug' | 'Team Support'): Promise<void> {
+  await page.getByRole('button', { name: /^(Help|ヘルプ)$/ }).click({ force: true })
+  await expect(page.getByRole('menuitem', { name })).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('menuitem', { name }).click({ force: true })
 }
 
 async function launchGoldenStubProvider(page: Page, provider: 'claude' | 'codex'): Promise<void> {
