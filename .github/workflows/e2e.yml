@@ -233,26 +233,33 @@ jobs:
             . != "tests/e2e/ssh-localhost.spec.ts" and
             . != "tests/e2e/ssh-client-hosted-browser-drop-reconnect.spec.ts" and
             . != "tests/e2e/ssh-docker-bulk-open-freeze-repro.spec.ts" and
-            . != "tests/e2e/terminal-ibus-hangul-native.spec.ts"
+            . != "tests/e2e/terminal-ibus-hangul-native.spec.ts" and
+            . != "tests/e2e/corporate-runtime-egress.spec.ts"
           )' <<<"$TEST_FILES_JSON")
           if [ "${#TEST_FILES[@]}" -eq 0 ]; then
             echo "Changed specs are all owned by dedicated lanes."
-            exit 0
+          else
+            E2E_ENV=(SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 ORCA_E2E_WEB_CLIENT=1 ORCA_RELAY_PATH="$GITHUB_WORKSPACE/out/relay")
+            # Second clause: a spec that reads ORCA_E2E_SSH_DOCKER test.skip()s itself without it, so
+            # naming only one trigger silently skipped every other Docker-SSH spec in this lane.
+            # The first clause stays because that spec needs Docker without referencing the variable.
+            if printf '%s\n' "${TEST_FILES[@]}" | grep -qx 'tests/e2e/ephemeral-vm-provisioned-root.spec.ts' \
+              || grep -l 'ORCA_E2E_SSH_DOCKER' "${TEST_FILES[@]}" >/dev/null 2>&1; then
+              E2E_ENV+=(ORCA_E2E_SSH_DOCKER=1)
+            fi
+            E2E_PROJECT_ARGS=()
+            if grep -l '@headful' "${TEST_FILES[@]}" >/dev/null; then
+              E2E_PROJECT_ARGS+=(--project=electron-headful)
+            fi
+            xvfb-run --auto-servernum bash .github/scripts/e2e-with-window-manager.sh env "${E2E_ENV[@]}" \
+              pnpm run test:e2e "${TEST_FILES[@]}" --workers=1 "${E2E_PROJECT_ARGS[@]}"
           fi
-          E2E_ENV=(SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 ORCA_E2E_WEB_CLIENT=1 ORCA_RELAY_PATH="$GITHUB_WORKSPACE/out/relay")
-          # Second clause: a spec that reads ORCA_E2E_SSH_DOCKER test.skip()s itself without it, so
-          # naming only one trigger silently skipped every other Docker-SSH spec in this lane.
-          # The first clause stays because that spec needs Docker without referencing the variable.
-          if printf '%s\n' "${TEST_FILES[@]}" | grep -qx 'tests/e2e/ephemeral-vm-provisioned-root.spec.ts' \
-            || grep -l 'ORCA_E2E_SSH_DOCKER' "${TEST_FILES[@]}" >/dev/null 2>&1; then
-            E2E_ENV+=(ORCA_E2E_SSH_DOCKER=1)
+          if jq -e 'index("tests/e2e/corporate-runtime-egress.spec.ts") != null' <<<"$TEST_FILES_JSON" >/dev/null; then
+            xvfb-run --auto-servernum bash .github/scripts/e2e-with-window-manager.sh env \
+              ORCA_E2E_CORPORATE_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 ORCA_E2E_WEB_CLIENT=1 \
+              ORCA_RELAY_PATH="$GITHUB_WORKSPACE/out/relay" \
+              pnpm run test:e2e tests/e2e/corporate-runtime-egress.spec.ts --workers=1 --project=electron-headless
           fi
-          E2E_PROJECT_ARGS=()
-          if grep -l '@headful' "${TEST_FILES[@]}" >/dev/null; then
-            E2E_PROJECT_ARGS+=(--project=electron-headful)
-          fi
-          xvfb-run --auto-servernum bash .github/scripts/e2e-with-window-manager.sh env "${E2E_ENV[@]}" \
-            pnpm run test:e2e "${TEST_FILES[@]}" --workers=1 "${E2E_PROJECT_ARGS[@]}"
 
       - name: Upload Playwright traces
         if: failure()
