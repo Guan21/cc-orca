@@ -88,6 +88,10 @@ test.describe('Corporate runtime egress gate', () => {
       ORCA_SUPPORT_SLACK_URL: slackUrl
     })
     try {
+      await waitForCorporateSupportConfig(runtime.page, {
+        bugTrackerUrl: bugUrl,
+        supportSlackUrl: slackUrl
+      })
 
       await setScenario(runtime.app, 'report-bug')
       await runtime.page.getByRole('button', { name: /^(Help|ヘルプ)$/ }).click({ force: true })
@@ -197,6 +201,18 @@ async function setScenario(app: ElectronApplication, scenario: string): Promise<
 
 async function activeView(page: Page): Promise<string | null> {
   return page.evaluate(() => window.__store?.getState().activeView ?? null)
+}
+
+async function waitForCorporateSupportConfig(
+  page: Page,
+  expected: { bugTrackerUrl: string; supportSlackUrl: string }
+): Promise<void> {
+  await expect
+    .poll(
+      () => page.evaluate(() => window.api.app.getCorporateSupportConfig()),
+      { timeout: 10_000 }
+    )
+    .toEqual(expected)
 }
 
 async function launchGoldenStubProvider(page: Page, provider: 'claude' | 'codex'): Promise<void> {
