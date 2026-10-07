@@ -10,6 +10,8 @@ import type {
 
 export type { UpdaterMocks }
 
+const TEST_RELEASE_LATEST_FEED_URL = 'https://updates.example.test/releases/latest/download'
+
 // Why: macOS keeps the restart advice because quitting does re-stage a Squirrel update.
 export const PRE_COMMIT_INSTALL_FAILURE =
   process.platform === 'darwin'
@@ -185,7 +187,7 @@ export function createUpdaterMocks(): UpdaterMocks {
           : result
       },
       getReleaseDownloadUrl: (tag: string) =>
-        `https://github.com/stablyai/orca/releases/download/${tag}`
+        `https://updates.example.test/releases/download/${tag}`
     }),
     localBuildSwitch: () => ({ chooseLocalBuild: chooseLocalBuildMock }),
     localBuildFeedServer: () => ({ startLocalBuildFeed: startLocalBuildFeedMock }),
@@ -197,12 +199,21 @@ export function createUpdaterMocks(): UpdaterMocks {
 
   /** Shared `beforeEach` body: fresh module registry plus every mock back to its default. */
   const resetUpdaterMocks = () => {
+    // #90 removed updater public fallbacks. Tests that exercise updater behavior
+    // must opt in with explicit non-production endpoints instead of depending on
+    // a packaged default.
+    process.env.ORCA_RELEASE_LATEST_FEED_URL =
+      'https://updates.example.test/releases/latest/download'
+    process.env.ORCA_RELEASE_DOWNLOAD_BASE_URL =
+      'https://updates.example.test/releases/download'
+    process.env.ORCA_RELEASE_ATOM_FEED_URL = 'https://updates.example.test/releases.atom'
     vi.clearAllTimers()
     vi.useRealTimers()
     // Why: the generation fence only ignores a stale instance's spy calls; this cancels the real
     // timers it left armed so it never runs at all.
     clearTrackedRealTimers()
     vi.resetModules()
+    process.env.ORCA_RELEASE_LATEST_FEED_URL = TEST_RELEASE_LATEST_FEED_URL
     autoUpdaterMock.reset()
     nativeUpdaterMock.on.mockReset()
     browserWindowMock.getAllWindows.mockReset()

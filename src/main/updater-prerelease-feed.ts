@@ -1,19 +1,38 @@
 import { net } from 'electron'
 import { parse } from 'yaml'
+import { resolveCorporateConfiguredEndpoint } from '../shared/network/corporate-network-contract'
 import { compareVersions, isPrereleaseVersion, isValidVersion } from './updater-fallback'
 
-const ATOM_FEED_URL = 'https://github.com/stablyai/orca/releases.atom'
-const RELEASES_DOWNLOAD_BASE = 'https://github.com/stablyai/orca/releases/download'
+const ATOM_FEED_URL_ENV = 'ORCA_RELEASE_ATOM_FEED_URL'
+const RELEASES_DOWNLOAD_BASE_ENV = 'ORCA_RELEASE_DOWNLOAD_BASE_URL'
 const FETCH_TIMEOUT_MS = 5000
 const MAX_MANIFEST_PROBE_CANDIDATES = 6
 
-// Why: GitHub's atom feed lists every release (prerelease or stable) in a
-// single flat list. Each entry has a /releases/tag/<tag> URL we can mine
-// without any channel filtering.
-const TAG_HREF_RE = /href="https:\/\/github\.com\/stablyai\/orca\/releases\/tag\/([^"]+)"/g
+const TAG_HREF_RE = /href="[^"]*\/releases\/tag\/([^"]+)"/g
 
-export function getReleaseDownloadUrl(tag: string): string {
-  return `${RELEASES_DOWNLOAD_BASE}/${encodeURIComponent(tag)}`
+function resolveConfiguredReleaseEndpoint(capability: string, endpoint: string | undefined): string | null {
+  const resolution = resolveCorporateConfiguredEndpoint({
+    capability,
+    configuredEndpoint: endpoint,
+    source: 'updater-release-feed'
+  })
+  return resolution.status === 'allowed' ? resolution.endpoint : null
+}
+
+function getReleaseAtomFeedUrl(): string | null {
+  return resolveConfiguredReleaseEndpoint('release-atom-feed', process.env[ATOM_FEED_URL_ENV])
+}
+
+export function getReleaseDownloadBaseUrl(): string | null {
+  return resolveConfiguredReleaseEndpoint(
+    'release-download-base',
+    process.env[RELEASES_DOWNLOAD_BASE_ENV]
+  )
+}
+
+export function getReleaseDownloadUrl(tag: string): string | null {
+  const baseUrl = getReleaseDownloadBaseUrl()
+  return baseUrl ? `${baseUrl.replace(/\/+$/, '')}/${encodeURIComponent(tag)}` : null
 }
 
 function getPlatformManifestName(): string {
@@ -26,12 +45,14 @@ function getPlatformManifestName(): string {
   return 'latest.yml'
 }
 
-function getReleaseManifestUrl(tag: string): string {
-  return `${getReleaseDownloadUrl(tag)}/${getPlatformManifestName()}`
+function getReleaseManifestUrl(tag: string): string | null {
+  const downloadUrl = getReleaseDownloadUrl(tag)
+  return downloadUrl ? `${downloadUrl}/${getPlatformManifestName()}` : null
 }
 
-function getReleaseAssetUrl(tag: string, assetName: string): string {
-  return `${getReleaseDownloadUrl(tag)}/${encodeURIComponent(assetName)}`
+function getReleaseAssetUrl(tag: string, assetName: string): string | null {
+  const downloadUrl = getReleaseDownloadUrl(tag)
+  return downloadUrl ? `${downloadUrl}/${encodeURIComponent(assetName)}` : null
 }
 
 export function normalizeTagToVersion(tag: string): string {
@@ -56,8 +77,12 @@ export function isPerfPrereleaseTag(tag: string): boolean {
 }
 
 async function fetchReleaseFeedTags(): Promise<ReleaseFeedTag[] | null> {
+  const feedUrl = getReleaseAtomFeedUrl()
+  if (!feedUrl) {
+    return null
+  }
   try {
-    const res = await net.fetch(ATOM_FEED_URL, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
+    const res = await net.fetch(feedUrl, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
     if (!res.ok) {
       return null
     }
@@ -105,7 +130,7 @@ function getManifestAssetNames(manifestText: string): string[] {
 
 type ReleaseReadiness = 'ready' | 'not-ready' | 'unavailable'
 
-function getGitHubReleaseAssetReadiness(assetUrl: string): Promise<ReleaseReadiness> {
+function getRedirectedReleaseAssetReadiness(assetUrl: string): Promise<ReleaseReadiness> {
   return new Promise((resolve) => {
     const request = net.request({ method: 'HEAD', url: assetUrl, redirect: 'manual' })
     let settled = false
@@ -127,7 +152,7 @@ function getGitHubReleaseAssetReadiness(assetUrl: string): Promise<ReleaseReadin
     }, FETCH_TIMEOUT_MS)
 
     request.on('redirect', (statusCode) => {
-      // Why: GitHub's 302 proves the asset exists without probing its signed storage URL.
+      // Why: a redirect proves the asset exists without probing its signed storage URL.
       settle(statusCode >= 300 && statusCode < 400 ? 'ready' : 'unavailable')
     })
     request.on('response', (response) => {
@@ -150,15 +175,15 @@ function getGitHubReleaseAssetReadiness(assetUrl: string): Promise<ReleaseReadin
 
 async function getReleaseAssetReadiness(tag: string, assetName: string): Promise<ReleaseReadiness> {
   const isRelativeAsset = !/^https?:\/\//i.test(assetName)
-  const isGitHubReleaseAsset =
-    process.platform === 'win32' &&
-    (isRelativeAsset ||
-      /^https:\/\/github\.com\/stablyai\/orca\/releases\/download\//i.test(assetName))
+  const shouldUseRedirectProbe = process.platform === 'win32' && isRelativeAsset
   const assetUrl = isRelativeAsset
     ? getReleaseAssetUrl(tag, assetName.split('/').findLast(Boolean) ?? assetName)
     : assetName
-  if (isGitHubReleaseAsset) {
-    return getGitHubReleaseAssetReadiness(assetUrl)
+  if (!assetUrl) {
+    return 'unavailable'
+  }
+  if (shouldUseRedirectProbe) {
+    return getRedirectedReleaseAssetReadiness(assetUrl)
   }
 
   try {
@@ -181,6 +206,9 @@ async function getPlatformManifestReadiness(tag: string): Promise<ReleaseReadine
     // they have updater manifests or the ZIP/exe/AppImage assets referenced by
     // those manifests. Pinning to those tags makes download clicks 404.
     const manifestUrl = getReleaseManifestUrl(tag)
+    if (!manifestUrl) {
+      return 'unavailable'
+    }
     const res = await net.fetch(manifestUrl, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
     if (res.status === 404) {
       return 'not-ready'

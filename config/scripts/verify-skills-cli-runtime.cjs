@@ -137,7 +137,15 @@ function collectRuntimeClosure(outDir, artifactRoot = dirname(outDir)) {
 
 function runCli(outDir, args, timeoutMs = CLI_COMMAND_TIMEOUT_MS) {
   const entry = resolve(outDir, 'cli', 'index.js')
-  const env = { ...process.env, NODE_PATH: '' }
+  const env = {
+    ...process.env,
+    NODE_PATH: '',
+    // Verification-only explicit config: #90 removed the legacy public Skills repository fallback.
+    // Dry-run probes must supply a destination without restoring a production default.
+    ORCA_SKILLS_REPOSITORY_URL:
+      process.env.ORCA_SKILLS_REPOSITORY_URL?.trim() ||
+      'https://skills.example.test/devcrew-skills.git'
+  }
   delete env.ORCA_CLI_CWD
   const result = spawnSync(process.execPath, [entry, ...args], {
     cwd: dirname(outDir),

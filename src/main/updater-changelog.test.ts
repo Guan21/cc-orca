@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const fetchMock = vi.fn()
+const CHANGELOG_ENDPOINT = 'https://updates.example/changelog.json'
 
 vi.mock('electron', () => ({
   net: { fetch: (...args: unknown[]) => fetchMock(...args) }
@@ -47,12 +48,17 @@ describe('fetchChangelog', () => {
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.21', '1.1.19')
+    const result = await fetchChangelog('1.1.21', '1.1.19', CHANGELOG_ENDPOINT)
 
     expect(result).not.toBeNull()
     expect(result!.release.title).toBe('Release 1.1.21')
     expect(result!.release.releaseNotesUrl).toBe('https://onorca.dev/changelog/1.1.21')
     expect(result!.releasesBehind).toBe(2)
+  })
+
+  it('returns null without fetching when no changelog endpoint is configured', async () => {
+    await expect(fetchChangelog('1.1.21', '1.1.19')).resolves.toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('falls back to the most recent rich entry when incoming version is not in JSON', async () => {
@@ -70,13 +76,13 @@ describe('fetchChangelog', () => {
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.21', '1.1.15')
+    const result = await fetchChangelog('1.1.21', '1.1.15', CHANGELOG_ENDPOINT)
 
     expect(result).not.toBeNull()
     expect(result!.release.title).toBe('Release 1.1.17')
     expect(result!.release.description).toBe('Cool feature')
     // Why: fallback entries link to the generic changelog, not a version-specific page.
-    expect(result!.release.releaseNotesUrl).toBe('https://onorca.dev/changelog')
+    expect(result!.release.releaseNotesUrl).toBe(CHANGELOG_ENDPOINT)
     expect(result!.releasesBehind).toBe(2)
   })
 
@@ -94,11 +100,11 @@ describe('fetchChangelog', () => {
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.21', '1.1.15')
+    const result = await fetchChangelog('1.1.21', '1.1.15', CHANGELOG_ENDPOINT)
 
     expect(result).not.toBeNull()
     expect(result!.release.title).toBe('Release 1.1.17')
-    expect(result!.release.releaseNotesUrl).toBe('https://onorca.dev/changelog')
+    expect(result!.release.releaseNotesUrl).toBe(CHANGELOG_ENDPOINT)
     // releasesBehind is from local (index 2) to incoming (index 0) = 2
     expect(result!.releasesBehind).toBe(2)
   })
@@ -111,7 +117,7 @@ describe('fetchChangelog', () => {
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.21', '1.1.19')
+    const result = await fetchChangelog('1.1.21', '1.1.19', CHANGELOG_ENDPOINT)
 
     expect(result).toBeNull()
   })
@@ -125,7 +131,7 @@ describe('fetchChangelog', () => {
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.21', '1.1.19')
+    const result = await fetchChangelog('1.1.21', '1.1.19', CHANGELOG_ENDPOINT)
 
     expect(result).toBeNull()
   })
@@ -143,7 +149,7 @@ describe('fetchChangelog', () => {
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.20', '1.1.18')
+    const result = await fetchChangelog('1.1.20', '1.1.18', CHANGELOG_ENDPOINT)
 
     // 1.1.18 is at index 1, 1.1.17 is at index 2 — user is already past it.
     expect(result).toBeNull()
@@ -164,11 +170,11 @@ describe('fetchChangelog', () => {
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.20', '1.1.18')
+    const result = await fetchChangelog('1.1.20', '1.1.18', CHANGELOG_ENDPOINT)
 
     expect(result).not.toBeNull()
     expect(result!.release.title).toBe('Release 1.1.18')
-    expect(result!.release.releaseNotesUrl).toBe('https://onorca.dev/changelog')
+    expect(result!.release.releaseNotesUrl).toBe(CHANGELOG_ENDPOINT)
   })
 
   it('shows rich entry when local version is not in JSON (very old user)', async () => {
@@ -182,11 +188,11 @@ describe('fetchChangelog', () => {
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.21', '1.0.0')
+    const result = await fetchChangelog('1.1.21', '1.0.0', CHANGELOG_ENDPOINT)
 
     expect(result).not.toBeNull()
     expect(result!.release.title).toBe('Release 1.1.17')
-    expect(result!.release.releaseNotesUrl).toBe('https://onorca.dev/changelog')
+    expect(result!.release.releaseNotesUrl).toBe(CHANGELOG_ENDPOINT)
     // releasesBehind is null because the local version isn't in the JSON.
     expect(result!.releasesBehind).toBeNull()
   })
@@ -205,7 +211,7 @@ describe('fetchChangelog', () => {
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.26', '1.1.25')
+    const result = await fetchChangelog('1.1.26', '1.1.25', CHANGELOG_ENDPOINT)
 
     expect(result).toBeNull()
   })
@@ -213,7 +219,7 @@ describe('fetchChangelog', () => {
   it('returns null on non-ok HTTP response', async () => {
     fetchMock.mockResolvedValue({ ok: false })
 
-    const result = await fetchChangelog('1.1.21', '1.1.19')
+    const result = await fetchChangelog('1.1.21', '1.1.19', CHANGELOG_ENDPOINT)
 
     expect(result).toBeNull()
   })
@@ -221,7 +227,7 @@ describe('fetchChangelog', () => {
   it('returns null on non-array JSON', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ bad: true }))
 
-    const result = await fetchChangelog('1.1.21', '1.1.19')
+    const result = await fetchChangelog('1.1.21', '1.1.19', CHANGELOG_ENDPOINT)
 
     expect(result).toBeNull()
   })
@@ -242,7 +248,7 @@ describe('fetchChangelog', () => {
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.21', '1.1.15')
+    const result = await fetchChangelog('1.1.21', '1.1.15', CHANGELOG_ENDPOINT)
 
     expect(result!.release.title).toBe('Release 1.1.21')
     // Exact match keeps its own releaseNotesUrl.
@@ -256,7 +262,7 @@ describe('fetchChangelog', () => {
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))
 
-    const result = await fetchChangelog('1.1.21', '1.1.15')
+    const result = await fetchChangelog('1.1.21', '1.1.15', CHANGELOG_ENDPOINT)
 
     expect(result).not.toBeNull()
     expect('version' in result!.release).toBe(false)

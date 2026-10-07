@@ -24,6 +24,7 @@ const { getConsentStateMock, setOptInMock } = vi.hoisted(() => ({
 }))
 vi.mock('../../lib/telemetry', () => ({
   getConsentState: getConsentStateMock,
+  PRIVACY_URL: 'https://example.test/privacy',
   setOptIn: setOptInMock
 }))
 

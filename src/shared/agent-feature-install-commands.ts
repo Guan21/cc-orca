@@ -1,6 +1,13 @@
 import { isSkillsCliAgentKeyShaped } from './skills-cli-agent-keys'
 
-export const ORCA_SKILLS_REPOSITORY_URL = 'https://github.com/stablyai/orca'
+const ORCA_SKILLS_REPOSITORY_URL_ENV = 'ORCA_SKILLS_REPOSITORY_URL'
+
+export function getAgentFeatureSkillsRepositoryUrl(
+  env: Record<string, string | undefined> =
+    typeof process === 'undefined' ? {} : (process.env as Record<string, string | undefined>)
+): string | null {
+  return env[ORCA_SKILLS_REPOSITORY_URL_ENV]?.trim() || null
+}
 
 export const ORCA_CLI_SKILL_NAME = 'orca-cli'
 export const COMPUTER_USE_SKILL_NAME = 'computer-use'
@@ -39,12 +46,16 @@ export function buildAgentFeatureSkillInstallArgs(
   if (unusable !== undefined) {
     throw new Error(`"${unusable}" is not a usable install target.`)
   }
+  const repositoryUrl = getAgentFeatureSkillsRepositoryUrl()
+  if (!repositoryUrl) {
+    throw new Error('A skills repository URL is not configured.')
+  }
   // Why: one flag per name remains compatible with both single-value and variadic parsers.
   const skillArgs = skillNames.flatMap((name) => ['--skill', name])
   return [
     'skills',
     'add',
-    ORCA_SKILLS_REPOSITORY_URL,
+    repositoryUrl,
     ...skillArgs,
     ...(global ? ['--global'] : []),
     // Why: an explicit --agent stops `skills add` calling its own detection, whose
@@ -62,6 +73,14 @@ export function buildAgentFeatureSkillInstallCommand(
   options: AgentFeatureSkillCommandOptions = {}
 ): string {
   return `npx ${buildAgentFeatureSkillInstallArgs(skillNames, options).join(' ')}`
+}
+
+function configuredAgentFeatureSkillInstallCommand(skillNames: readonly string[]): string {
+  try {
+    return buildAgentFeatureSkillInstallCommand(skillNames)
+  } catch {
+    return ''
+  }
 }
 
 export function buildAgentFeatureSkillUpdateArgs(
@@ -90,40 +109,37 @@ export function buildAgentFeatureSkillUpdateCommand(
   return `npx ${buildAgentFeatureSkillUpdateArgs(skillNames, options).join(' ')}`
 }
 
-export const ORCA_CLI_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
+export const ORCA_CLI_SKILL_INSTALL_COMMAND = configuredAgentFeatureSkillInstallCommand([
   ORCA_CLI_SKILL_NAME
 ])
 
-export const ORCA_CLI_SKILL_UPDATE_COMMAND =
-  buildAgentFeatureSkillUpdateCommand(ORCA_CLI_SKILL_NAME)
+export const ORCA_CLI_SKILL_UPDATE_COMMAND = buildAgentFeatureSkillUpdateCommand(ORCA_CLI_SKILL_NAME)
 
-export const COMPUTER_USE_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
+export const COMPUTER_USE_SKILL_INSTALL_COMMAND = configuredAgentFeatureSkillInstallCommand([
   COMPUTER_USE_SKILL_NAME
 ])
 
 export const COMPUTER_USE_SKILL_UPDATE_COMMAND =
   buildAgentFeatureSkillUpdateCommand(COMPUTER_USE_SKILL_NAME)
 
-export const ORCHESTRATION_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
+export const ORCHESTRATION_SKILL_INSTALL_COMMAND = configuredAgentFeatureSkillInstallCommand([
   ORCHESTRATION_SKILL_NAME
 ])
 
 export const ORCHESTRATION_SKILL_UPDATE_COMMAND =
   buildAgentFeatureSkillUpdateCommand(ORCHESTRATION_SKILL_NAME)
 
-export const EPHEMERAL_VMS_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
+export const EPHEMERAL_VMS_SKILL_INSTALL_COMMAND = configuredAgentFeatureSkillInstallCommand([
   EPHEMERAL_VMS_SKILL_NAME
 ])
 
 export const EPHEMERAL_VMS_SKILL_UPDATE_COMMAND =
   buildAgentFeatureSkillUpdateCommand(EPHEMERAL_VMS_SKILL_NAME)
 
-export const ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
-  ORCA_CLI_SKILL_NAME,
-  ORCHESTRATION_SKILL_NAME
-])
+export const ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND =
+  configuredAgentFeatureSkillInstallCommand([ORCA_CLI_SKILL_NAME, ORCHESTRATION_SKILL_NAME])
 
-export const ORCA_LINEAR_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
+export const ORCA_LINEAR_SKILL_INSTALL_COMMAND = configuredAgentFeatureSkillInstallCommand([
   ORCA_LINEAR_SKILL_NAME
 ])
 

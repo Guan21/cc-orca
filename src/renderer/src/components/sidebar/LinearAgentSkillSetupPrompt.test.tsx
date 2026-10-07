@@ -53,6 +53,8 @@ const mocks = vi.hoisted(() => ({
   panelProps: [] as Record<string, unknown>[]
 }))
 
+vi.hoisted(() => { process.env.ORCA_SKILLS_REPOSITORY_URL = 'https://github.example.test/devcrew/skills' })
+
 vi.mock('@/hooks/useInstalledAgentSkills', async (importOriginal) => ({
   ...(await importOriginal()),
   useInstalledAgentSkillNames: mocks.useInstalledAgentSkillNames
@@ -229,8 +231,7 @@ describe('LinearAgentSkillSetupPrompt', () => {
   })
 
   afterEach(async () => {
-    await unmountPrompt()
-    window.localStorage.clear()
+    await unmountPrompt(); window.localStorage.clear()
     _linearAgentSkillSetupPromptInternalsForTests.resetSessionReminders()
     Reflect.deleteProperty(window, 'api')
   })

@@ -1,4 +1,5 @@
 import { net } from 'electron'
+import { resolveCorporateConfiguredEndpoint } from '../shared/network/corporate-network-contract'
 import { compareVersions, isValidVersion } from './updater-fallback'
 
 export type NudgeConfig = {
@@ -7,9 +8,19 @@ export type NudgeConfig = {
   maxVersion?: string
 }
 
-export async function fetchNudge(): Promise<NudgeConfig | null> {
+export async function fetchNudge(
+  endpoint = process.env.ORCA_UPDATE_NUDGE_URL
+): Promise<NudgeConfig | null> {
   try {
-    const res = await net.fetch('https://onorca.dev/whats-new/nudge.json', {
+    const resolved = resolveCorporateConfiguredEndpoint({
+      capability: 'updater-nudge-feed',
+      configuredEndpoint: endpoint,
+      source: 'updater-nudge'
+    })
+    if (resolved.status !== 'allowed') {
+      return null
+    }
+    const res = await net.fetch(resolved.endpoint, {
       signal: AbortSignal.timeout(5000)
     })
     if (!res.ok) {

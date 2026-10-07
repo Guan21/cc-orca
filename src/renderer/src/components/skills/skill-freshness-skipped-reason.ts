@@ -98,15 +98,23 @@ export function skippedReason(locations: readonly SkillLocationRow[], skillName?
       // it was meant to fetch, the command reports "up to date" and writes nothing. No
       // retry converges it; only a reinstall rewrites the record, which is why the
       // sentence has to hand over the command rather than say the update was skipped.
-      return skillName
-        ? translate(
-            'auto.components.skills.SkillFreshnessRow.skippedReasonStaleRecord',
-            'The skills updater has no usable record of this copy, so it reports the skill as already up to date and changes nothing. Reinstall it to bring the record back in line: {{value0}}',
-            { value0: buildAgentFeatureSkillInstallCommand([skillName]) }
-          )
-        : translate(
-            'auto.components.skills.SkillFreshnessRow.cantUpdateReason',
-            'DevCrew left this skill out of the update command.'
-          )
+      if (!skillName) {
+        return translate(
+          'auto.components.skills.SkillFreshnessRow.cantUpdateReason',
+          'DevCrew left this skill out of the update command.'
+        )
+      }
+      try {
+        return translate(
+          'auto.components.skills.SkillFreshnessRow.skippedReasonStaleRecord',
+          'The skills updater has no usable record of this copy, so it reports the skill as already up to date and changes nothing. Reinstall it to bring the record back in line: {{value0}}',
+          { value0: buildAgentFeatureSkillInstallCommand([skillName]) }
+        )
+      } catch {
+        return translate(
+          'auto.components.skills.SkillFreshnessRow.skippedReasonStaleRecordNoRepository',
+          'The skills updater has no usable record of this copy, and no skills repository is configured for reinstalling it.'
+        )
+      }
   }
 }

@@ -15,6 +15,7 @@ import { consumeBurstToken, resetBurstCapsForSession } from './burst-cap'
 import { getCohortAtEmit } from './cohort-classifier'
 import { resolveConsent, type ConsentState } from './consent'
 import { commonPropsSchema, validate } from './validator'
+import { resolveCorporateConfiguredEndpoint } from '../../shared/network/corporate-network-contract'
 
 // Compile-time feature flag, independent of the build-identity gate — both must be satisfied to transmit.
 // NOTE: config/scripts/verify-telemetry-constants.mjs greps `const TELEMETRY_ENABLED = true|false`; keep that shape or update its regex.
@@ -49,6 +50,15 @@ let testTransportEnabled = false
 
 // First-launch `app_opened` gate: no events transmit until the banner resolves; keep mark+emit atomic.
 let appOpenedTrackedThisSession = false
+
+export function getTelemetryPostHogHost(env: NodeJS.ProcessEnv = process.env): string | null {
+  const resolved = resolveCorporateConfiguredEndpoint({
+    capability: 'telemetry-posthog',
+    configuredEndpoint: env.ORCA_POSTHOG_HOST,
+    source: 'telemetry-client'
+  })
+  return resolved.status === 'allowed' ? resolved.endpoint : null
+}
 
 function buildCommonProps(installId: string, sid: string, channel: 'stable' | 'rc'): CommonProps {
   // Don't truncate here; the validator's `.max(64)` is authoritative, so an over-long string drops rather than being silently masked.
@@ -100,8 +110,13 @@ export function initTelemetry(store: Store): void {
     return
   }
 
+  const telemetryHost = getTelemetryPostHogHost()
+  if (!telemetryHost) {
+    return
+  }
+
   posthog = new PostHog(WRITE_KEY as string, {
-    host: 'https://us.i.posthog.com',
+    host: telemetryHost,
     flushAt: 20,
     flushInterval: 10_000,
     // Strip SDK-auto GeoIP / client-IP enrichment; our wire is exactly CommonProps ∪ EventProps ∪ a small allow-list.

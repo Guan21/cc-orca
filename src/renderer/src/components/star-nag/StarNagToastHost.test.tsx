@@ -154,7 +154,7 @@ describe('StarNagToastHost', () => {
     expect(toastContainer.textContent).toContain('Starred — thank you!')
   })
 
-  it('opens GitHub fallback without calling direct star success path', async () => {
+  it('resolves web fallback without opening a legacy public repository', async () => {
     ;({ root, container } = renderHost())
 
     act(() => showCallback?.({ mode: 'web', surface: 'toast' }))
@@ -171,7 +171,7 @@ describe('StarNagToastHost', () => {
       button?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
 
-    expect(shell.openUrl).toHaveBeenCalledWith('https://github.com/stablyai/orca')
+    expect(shell.openUrl).not.toHaveBeenCalled()
     expect(starNag.openWeb).toHaveBeenCalledTimes(1)
     expect(starNag.starOrca).not.toHaveBeenCalled()
     expect(toastContainer.textContent).toContain('GitHub opened')

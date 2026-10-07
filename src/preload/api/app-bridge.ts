@@ -16,6 +16,7 @@ export const appApi = {
   getIdentity: (): Promise<AppIdentity> => ipcRenderer.invoke('app:getIdentity'),
   getFeatureWallAssetBaseUrl: (): Promise<string> =>
     ipcRenderer.invoke('app:getFeatureWallAssetBaseUrl'),
+  getCorporateSupportConfig: () => ipcRenderer.invoke('app:getCorporateSupportConfig'),
   relaunch: (): Promise<void> =>
     prepareAndInvokeAppRestart(
       window,

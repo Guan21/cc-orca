@@ -19,7 +19,7 @@ export type FeatureWallWorkflow = {
   lede: string
   primaryTileId: FeatureWallMediaTileId
   relatedTileIds: readonly FeatureWallMediaTileId[]
-  docsUrl: string
+  docsUrl: string | null
 }
 
 export const FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
@@ -30,7 +30,7 @@ export const FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
     lede: 'DevCrew splits each task into an isolated workspace so agents can run in parallel.',
     primaryTileId: 'tile-01',
     relatedTileIds: ['tile-10'],
-    docsUrl: 'https://www.onorca.dev/docs/model/worktrees'
+    docsUrl: null
   },
   {
     id: 'tasks',
@@ -39,7 +39,7 @@ export const FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
     lede: 'Start work directly from GitHub or Linear.',
     primaryTileId: 'tile-03',
     relatedTileIds: [],
-    docsUrl: 'https://www.onorca.dev/docs/review/linear'
+    docsUrl: null
   },
   {
     id: 'agents-orchestration',
@@ -48,7 +48,7 @@ export const FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
     lede: 'Run several agents at once, track their progress, and let automation drive DevCrew when it helps.',
     primaryTileId: 'tile-04',
     relatedTileIds: ['tile-11', 'tile-09'],
-    docsUrl: 'https://www.onorca.dev/docs/agents/supported'
+    docsUrl: null
   },
   {
     id: 'workbench',
@@ -57,7 +57,7 @@ export const FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
     lede: 'Bring your terminal setup into DevCrew, then split panes to keep servers, tests, logs, and agents running side by side.',
     primaryTileId: 'tile-02',
     relatedTileIds: ['tile-07', 'tile-05', 'tile-12'],
-    docsUrl: 'https://www.onorca.dev/docs/terminal'
+    docsUrl: null
   },
   {
     id: 'review',
@@ -66,7 +66,7 @@ export const FEATURE_WALL_WORKFLOWS: readonly FeatureWallWorkflow[] = [
     lede: 'Review what changed, leave focused feedback, and send it back to the agent.',
     primaryTileId: 'tile-08',
     relatedTileIds: [],
-    docsUrl: 'https://www.onorca.dev/docs/review/annotate-ai-diff'
+    docsUrl: null
   }
 ] as const
 

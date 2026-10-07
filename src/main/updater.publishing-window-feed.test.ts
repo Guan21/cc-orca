@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadUpdaterModule, warmUpdaterModule } from './updater-test-module-loader'
 
+const TEST_LATEST_RELEASE_FEED_URL = 'https://updates.example.test/releases/latest/download'
+
 const {
   appMock,
   autoUpdaterMock,
@@ -30,6 +32,7 @@ warmUpdaterModule()
 describe('updater', () => {
   beforeEach(() => {
     resetUpdaterMocks()
+    process.env.ORCA_RELEASE_LATEST_FEED_URL = TEST_LATEST_RELEASE_FEED_URL
   })
 
   // Why: native github provider + allowPrerelease traps RC users on the RC channel, so resolve the newest tag ourselves and pin the generic feed to it.
@@ -46,7 +49,7 @@ describe('updater', () => {
     // Setup pins the default generic feed; resolver only runs per check.
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/latest/download'
+      url: TEST_LATEST_RELEASE_FEED_URL
     })
     expect(autoUpdaterMock.allowPrerelease).not.toBe(true)
 
@@ -58,7 +61,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/download/v1.3.17-rc.2'
+        url: 'https://updates.example.test/releases/download/v1.3.17-rc.2'
       })
       expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     })
@@ -80,7 +83,7 @@ describe('updater', () => {
     await vi.waitFor(() => {
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/download/v1.3.19'
+        url: 'https://updates.example.test/releases/download/v1.3.19'
       })
     })
     expect(autoUpdaterMock.allowPrerelease).not.toBe(true)
@@ -104,7 +107,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/latest/download'
+      url: TEST_LATEST_RELEASE_FEED_URL
     })
   })
 
@@ -135,7 +138,7 @@ describe('updater', () => {
     expect(autoUpdaterMock.setFeedURL.mock.calls.slice(feedCallsBeforeCheck)).not.toContainEqual([
       {
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: TEST_LATEST_RELEASE_FEED_URL
       }
     ])
   })
@@ -159,7 +162,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/latest/download'
+      url: TEST_LATEST_RELEASE_FEED_URL
     })
     expect(sendMock).not.toHaveBeenCalledWith(
       'updater:status',
@@ -201,16 +204,16 @@ describe('updater', () => {
     expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.26'
+      url: 'https://updates.example.test/releases/download/v1.4.26'
     })
     expect(autoUpdaterMock.setFeedURL).not.toHaveBeenCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.27'
+      url: 'https://updates.example.test/releases/download/v1.4.27'
     })
     expect(autoUpdaterMock.setFeedURL.mock.calls.slice(feedCallsBeforeCheck)).not.toContainEqual([
       {
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: TEST_LATEST_RELEASE_FEED_URL
       }
     ])
     expect(sendMock).not.toHaveBeenCalledWith(
@@ -253,7 +256,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.26'
+      url: 'https://updates.example.test/releases/download/v1.4.26'
     })
   })
 
@@ -288,7 +291,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.26'
+      url: 'https://updates.example.test/releases/download/v1.4.26'
     })
     expect(setLastUpdateCheckAt).not.toHaveBeenCalled()
 
@@ -308,7 +311,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.27'
+      url: 'https://updates.example.test/releases/download/v1.4.27'
     })
   })
 
@@ -358,7 +361,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.27'
+      url: 'https://updates.example.test/releases/download/v1.4.27'
     })
   })
 
@@ -397,7 +400,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/download/v1.4.27'
+      url: 'https://updates.example.test/releases/download/v1.4.27'
     })
   })
 

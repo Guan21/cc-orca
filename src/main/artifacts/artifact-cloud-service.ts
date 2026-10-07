@@ -278,6 +278,12 @@ export class ArtifactCloudService {
     operation: (token: string, apiUrl: string, auth: ArtifactAuthContext) => Promise<T>
   ): Promise<ArtifactCloudOperation<T>> {
     const apiUrl = resolveArtifactCloudApiUrl(options.apiUrl)
+    if (!apiUrl) {
+      return {
+        status: 'unconfigured',
+        message: 'Artifact Cloud is not configured for this build.'
+      }
+    }
     const active = ensureActiveOrcaProfile(this.userDataPath)
     prepareArtifactCloudUse(active.profile, this.userDataPath)
     if (options.authToken?.trim()) {

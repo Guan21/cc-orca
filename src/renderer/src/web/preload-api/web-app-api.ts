@@ -19,6 +19,8 @@ export function createWebAppApi(): Partial<PreloadApi> {
           dockBadgeLabel: null
         }),
       getFeatureWallAssetBaseUrl: () => Promise.resolve('/'),
+      getCorporateSupportConfig: () =>
+        Promise.resolve({ bugTrackerUrl: null, supportSlackUrl: null }),
       relaunch: () => Promise.resolve(window.location.reload()),
       restart: () => Promise.resolve(window.location.reload()),
       reload: () => Promise.resolve(window.location.reload()),

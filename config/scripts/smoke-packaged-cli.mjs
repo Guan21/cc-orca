@@ -39,7 +39,14 @@ let smokeFailure = null
 try {
   await cp(appDir, copiedAppDir, { recursive: true, verbatimSymlinks: true })
   const cliPath = getPackagedCliPath(copiedAppDir)
-  const env = { ...process.env, NODE_PATH: '' }
+  const env = {
+    ...process.env,
+    NODE_PATH: '',
+    // Verification-only explicit source: #90 intentionally removed the packaged public fallback.
+    ORCA_SKILLS_REPOSITORY_URL:
+      process.env.ORCA_SKILLS_REPOSITORY_URL?.trim() ||
+      'https://skills.example.test/devcrew-skills.git'
+  }
   delete env.ORCA_CLI_CWD
   const run = (args) =>
     execFileAsync(cliPath, args, {

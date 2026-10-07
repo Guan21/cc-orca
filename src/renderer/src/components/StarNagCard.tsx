@@ -7,7 +7,6 @@ import { useMountedRef } from '@/hooks/useMountedRef'
 import { translate } from '@/i18n/i18n'
 import { isCapabilityEnabledForBuildProfile } from '../../../shared/corporate-build-profile'
 
-const ORCA_REPO_URL = 'https://github.com/stablyai/orca'
 type StarNagMode = 'gh' | 'web'
 
 /**
@@ -104,18 +103,11 @@ function StarNagCardContent(): React.JSX.Element | null {
       return
     }
     const openGithubFallback = async (): Promise<boolean> => {
-      try {
-        await window.api.shell.openUrl(ORCA_REPO_URL)
-        await window.api.starNag.openWeb()
-        if (mountedRef.current) {
-          setVisible(false)
-        }
-        return true
-      } catch {
-        // Why: failing to open the external browser is recoverable; keep the
-        // prompt available so the user can retry or choose another action.
-        return false
+      await window.api.starNag.openWeb()
+      if (mountedRef.current) {
+        setVisible(false)
       }
+      return true
     }
     if (mode === 'web') {
       setBusy(true)

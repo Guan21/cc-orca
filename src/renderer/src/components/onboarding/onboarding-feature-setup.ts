@@ -127,7 +127,7 @@ export function buildOnboardingFeatureSetupSkillCommand(
   if (skillNames.length === 0) {
     return null
   }
-  return buildAgentFeatureSkillInstallCommand(skillNames)
+  try { return buildAgentFeatureSkillInstallCommand(skillNames) } catch { return null }
 }
 
 export function onboardingFeatureSetupTelemetryFeature(

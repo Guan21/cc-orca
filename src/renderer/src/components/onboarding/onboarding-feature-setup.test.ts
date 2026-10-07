@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 import type { CliInstallStatus } from '../../../../shared/cli-install-types'
 import type {
   ComputerUsePermissionSetupResult,
@@ -19,6 +19,7 @@ import {
 import {
   DEFAULT_ONBOARDING_FEATURE_SETUP_SELECTION,
   buildOnboardingFeatureSetupClipboardText,
+  buildOnboardingFeatureSetupSkillCommand,
   createOnboardingFeatureSetupDeps,
   onboardingFeatureSetupRunTelemetry,
   onboardingFeatureSetupTelemetryFeature,
@@ -28,6 +29,12 @@ import {
   type OnboardingFeatureSetupSelection
 } from './onboarding-feature-setup'
 import { getOnboardingFeatureSetupAgentRuntime } from './onboarding-feature-setup-runtime'
+
+const TEST_SKILLS_REPOSITORY_URL = 'https://github.example.test/devcrew/skills'
+
+vi.hoisted(() => {
+  process.env.ORCA_SKILLS_REPOSITORY_URL = 'https://github.example.test/devcrew/skills'
+})
 
 const ALL_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
   ORCA_CLI_SKILL_NAME,
@@ -102,7 +109,12 @@ function createDeps(
 }
 
 describe('onboarding feature setup runner', () => {
+  afterAll(() => {
+    delete process.env.ORCA_SKILLS_REPOSITORY_URL
+  })
+
   afterEach(() => {
+    process.env.ORCA_SKILLS_REPOSITORY_URL = TEST_SKILLS_REPOSITORY_URL
     vi.unstubAllGlobals()
   })
 
@@ -125,8 +137,21 @@ describe('onboarding feature setup runner', () => {
 
     expect(text).toBe(ALL_SKILL_INSTALL_COMMAND)
     expect(text).toBe(
-      'npx skills add https://github.com/stablyai/orca --skill orca-cli --skill computer-use --skill orchestration --skill orca-linear --global'
+      `npx skills add ${TEST_SKILLS_REPOSITORY_URL} --skill orca-cli --skill computer-use --skill orchestration --skill orca-linear --global`
     )
+  })
+
+  it('does not prepare a skills command when no repository is configured', () => {
+    delete process.env.ORCA_SKILLS_REPOSITORY_URL
+
+    expect(
+      buildOnboardingFeatureSetupSkillCommand({
+        browserUse: false,
+        computerUse: false,
+        orchestration: true,
+        linearTickets: false
+      })
+    ).toBeNull()
   })
 
   it('keeps the copied command valid for the WSL target shell', () => {

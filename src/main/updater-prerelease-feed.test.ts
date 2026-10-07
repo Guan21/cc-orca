@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { installNetRequestFetchAdapter } from './updater-net-request.fixture'
 
 const ORIGINAL_PLATFORM = process.platform
+const TEST_RELEASE_ATOM_FEED_URL = 'https://updates.example.test/releases.atom'
+const TEST_RELEASE_DOWNLOAD_BASE_URL = 'https://updates.example.test/releases/download'
 
 const { netFetchMock, netRequestMock } = vi.hoisted(() => ({
   netFetchMock: vi.fn(),
@@ -16,7 +18,7 @@ function buildAtomFeed(tags: string[]): string {
   const entries = tags
     .map(
       (tag) =>
-        `<entry><link rel="alternate" type="text/html" href="https://github.com/stablyai/orca/releases/tag/${tag}"/><title>${tag}</title></entry>`
+        `<entry><link rel="alternate" type="text/html" href="https://updates.example.test/releases/tag/${tag}"/><title>${tag}</title></entry>`
     )
     .join('')
   return `<?xml version="1.0" encoding="UTF-8"?><feed>${entries}</feed>`
@@ -43,7 +45,7 @@ function respondWithAtom(
   const missingAssets = new Set(missingAssetTags)
   const unavailableManifests = new Set(unavailableManifestTags)
   netFetchMock.mockImplementation((url: string, init?: { method?: string }) => {
-    if (url === 'https://github.com/stablyai/orca/releases.atom') {
+    if (url === TEST_RELEASE_ATOM_FEED_URL) {
       return Promise.resolve({
         ok: true,
         text: () => Promise.resolve(buildAtomFeed(tags))
@@ -90,12 +92,16 @@ function setPlatformForTest(platform: NodeJS.Platform): void {
 describe('fetchNewerReleaseTag', () => {
   beforeEach(() => {
     vi.resetModules()
+    process.env.ORCA_RELEASE_ATOM_FEED_URL = TEST_RELEASE_ATOM_FEED_URL
+    process.env.ORCA_RELEASE_DOWNLOAD_BASE_URL = TEST_RELEASE_DOWNLOAD_BASE_URL
     netFetchMock.mockReset()
     netRequestMock.mockReset()
     installNetRequestFetchAdapter(netRequestMock, netFetchMock)
   })
 
   afterEach(() => {
+    delete process.env.ORCA_RELEASE_ATOM_FEED_URL
+    delete process.env.ORCA_RELEASE_DOWNLOAD_BASE_URL
     setPlatformForTest(ORIGINAL_PLATFORM)
   })
 
@@ -129,7 +135,7 @@ describe('fetchNewerReleaseTag', () => {
       const assetUrls: string[] = []
 
       netFetchMock.mockImplementation((url: string, init?: { method?: string }) => {
-        if (url === 'https://github.com/stablyai/orca/releases.atom') {
+        if (url === TEST_RELEASE_ATOM_FEED_URL) {
           return Promise.resolve({
             ok: true,
             text: () => Promise.resolve(buildAtomFeed(['v1.4.1']))
@@ -156,11 +162,9 @@ describe('fetchNewerReleaseTag', () => {
       const { fetchNewerReleaseTag } = await import('./updater-prerelease-feed')
 
       expect(await fetchNewerReleaseTag('1.4.0')).toBe('v1.4.1')
-      expect(manifestUrls).toEqual([
-        `https://github.com/stablyai/orca/releases/download/v1.4.1/${manifestName}`
-      ])
+      expect(manifestUrls).toEqual([`${TEST_RELEASE_DOWNLOAD_BASE_URL}/v1.4.1/${manifestName}`])
       expect(assetUrls).toEqual([
-        'https://github.com/stablyai/orca/releases/download/v1.4.1/Orca-1.4.1-arm64-mac.zip'
+        `${TEST_RELEASE_DOWNLOAD_BASE_URL}/v1.4.1/Orca-1.4.1-arm64-mac.zip`
       ])
       expect(netRequestMock).toHaveBeenCalledTimes(platform === 'win32' ? 1 : 0)
     }
@@ -176,6 +180,18 @@ describe('fetchNewerReleaseTag', () => {
     respondWithAtom(['v1.3.18', 'v1.3.17'])
     const { fetchNewerReleaseTag } = await import('./updater-prerelease-feed')
     expect(await fetchNewerReleaseTag('1.3.19-rc.6')).toBe(null)
+  })
+
+  it('reports feed unavailable when the atom feed is not configured', async () => {
+    delete process.env.ORCA_RELEASE_ATOM_FEED_URL
+    const { fetchNewerReleaseTagsWithReadiness } = await import('./updater-prerelease-feed')
+
+    await expect(fetchNewerReleaseTagsWithReadiness('1.3.19-rc.6', 1)).resolves.toEqual({
+      tags: [],
+      state: 'unavailable',
+      unavailableReason: 'feed'
+    })
+    expect(netFetchMock).not.toHaveBeenCalled()
   })
 
   it('ignores entries with unparseable tags', async () => {
@@ -365,7 +381,7 @@ describe('fetchNewerReleaseTag', () => {
     const manifestResolvers: (() => void)[] = []
 
     netFetchMock.mockImplementation((url: string) => {
-      if (url === 'https://github.com/stablyai/orca/releases.atom') {
+      if (url === TEST_RELEASE_ATOM_FEED_URL) {
         return Promise.resolve({
           ok: true,
           text: () => Promise.resolve(buildAtomFeed(feedTags))

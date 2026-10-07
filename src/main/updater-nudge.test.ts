@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const { netFetchMock } = vi.hoisted(() => ({
   netFetchMock: vi.fn()
 }))
+const NUDGE_ENDPOINT = 'https://updates.example/nudge.json'
 
 vi.mock('electron', () => ({
   net: { fetch: netFetchMock }
@@ -22,8 +23,13 @@ describe('updater-nudge', () => {
         json: async () => ({ id: 'campaign-1', minVersion: '1.1.0', maxVersion: '1.1.19' })
       })
 
-      const result = await fetchNudge()
+      const result = await fetchNudge(NUDGE_ENDPOINT)
       expect(result).toEqual({ id: 'campaign-1', minVersion: '1.1.0', maxVersion: '1.1.19' })
+    })
+
+    it('returns null without fetching when no nudge endpoint is configured', async () => {
+      await expect(fetchNudge()).resolves.toBeNull()
+      expect(netFetchMock).not.toHaveBeenCalled()
     })
 
     it('returns a valid config with only maxVersion', async () => {
@@ -32,7 +38,7 @@ describe('updater-nudge', () => {
         json: async () => ({ id: 'campaign-2', maxVersion: '1.1.19' })
       })
 
-      const result = await fetchNudge()
+      const result = await fetchNudge(NUDGE_ENDPOINT)
       expect(result).toEqual({ id: 'campaign-2', maxVersion: '1.1.19' })
     })
 
@@ -42,7 +48,7 @@ describe('updater-nudge', () => {
         json: async () => ({})
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge(NUDGE_ENDPOINT)).resolves.toBeNull()
     })
 
     it('returns null for a null response', async () => {
@@ -51,19 +57,19 @@ describe('updater-nudge', () => {
         json: async () => null
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge(NUDGE_ENDPOINT)).resolves.toBeNull()
     })
 
     it('returns null on non-ok HTTP response', async () => {
       netFetchMock.mockResolvedValue({ ok: false })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge(NUDGE_ENDPOINT)).resolves.toBeNull()
     })
 
     it('returns null on network error', async () => {
       netFetchMock.mockRejectedValue(new Error('network down'))
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge(NUDGE_ENDPOINT)).resolves.toBeNull()
     })
 
     it('trims whitespace from the campaign id', async () => {
@@ -72,7 +78,7 @@ describe('updater-nudge', () => {
         json: async () => ({ id: '  campaign-1  ', minVersion: '1.0.0' })
       })
 
-      const result = await fetchNudge()
+      const result = await fetchNudge(NUDGE_ENDPOINT)
       expect(result?.id).toBe('campaign-1')
     })
 
@@ -82,7 +88,7 @@ describe('updater-nudge', () => {
         json: async () => ({ minVersion: '1.0.0' })
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge(NUDGE_ENDPOINT)).resolves.toBeNull()
     })
 
     it('returns null when neither version endpoint is present', async () => {
@@ -91,7 +97,7 @@ describe('updater-nudge', () => {
         json: async () => ({ id: 'campaign-1' })
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge(NUDGE_ENDPOINT)).resolves.toBeNull()
     })
 
     it('returns null when minVersion is invalid', async () => {
@@ -100,7 +106,7 @@ describe('updater-nudge', () => {
         json: async () => ({ id: 'campaign-1', minVersion: 'not-a-version' })
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge(NUDGE_ENDPOINT)).resolves.toBeNull()
     })
 
     it('returns null when maxVersion is invalid', async () => {
@@ -109,7 +115,7 @@ describe('updater-nudge', () => {
         json: async () => ({ id: 'campaign-1', maxVersion: 'wat' })
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge(NUDGE_ENDPOINT)).resolves.toBeNull()
     })
 
     it('returns null when the configured range is inverted', async () => {
@@ -122,7 +128,7 @@ describe('updater-nudge', () => {
         })
       })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge(NUDGE_ENDPOINT)).resolves.toBeNull()
     })
   })
 

@@ -7,38 +7,33 @@ import {
   validateFeedbackImages,
   type FeedbackImageAttachment
 } from './feedback-image-attachments'
+import { resolveFeedbackApiUrl } from './feedback-endpoint'
+import type {
+  FeedbackDiagnosticBundleAttachment,
+  FeedbackRequestFailure,
+  FeedbackSubmissionType,
+  FeedbackSubmitArgs,
+  FeedbackSubmitResult
+} from './feedback-types'
 
 export type { FeedbackImageAttachment }
+export type {
+  FeedbackDiagnosticBundleAttachment,
+  FeedbackSubmitArgs,
+  FeedbackSubmitResult
+} from './feedback-types'
 
 // Why: the production Mac build loads the renderer from a file:// origin, so a
 // cross-origin POST from fetch() triggers a CORS preflight that the feedback
 // endpoint rejects. Electron's net module runs in the main process and is not
 // subject to CORS, so we proxy the submission through IPC. This mirrors the
 // same pattern used by updater-changelog.ts and updater-nudge.ts.
-const FEEDBACK_API_URL = 'https://www.onorca.dev/v1/feedback'
 const FEEDBACK_REQUEST_TIMEOUT_MS = 10_000
 const FEEDBACK_ATTACHMENT_REQUEST_TIMEOUT_MS = 60_000
 const DIAGNOSTIC_BUNDLE_CONTENT_TYPE = 'application/x-ndjson'
 // Why: corporate filters can reject multipart with 403 while allowing the
 // small JSON report, so content-shaped failures should shed the attachment.
 const DIAGNOSTIC_BUNDLE_JSON_RETRY_STATUSES = new Set([400, 403, 408, 413, 415, 422])
-
-export type FeedbackSubmissionType = 'feedback' | 'crash'
-
-export type FeedbackSubmitArgs = {
-  feedback: string
-  submitAnonymously?: boolean
-  githubLogin: string | null
-  githubEmail: string | null
-  images?: FeedbackImageAttachment[]
-}
-
-export type FeedbackDiagnosticBundleAttachment = {
-  bundleSubmissionId: string
-  content: string
-  bytes: number
-  spanCount: number
-}
 
 type FeedbackSubmitBody = {
   feedback: string
@@ -52,22 +47,6 @@ type FeedbackSubmitBody = {
   diagnosticBundle?: FeedbackDiagnosticBundleAttachment
   images?: FeedbackImageAttachment[]
 }
-
-export type FeedbackRequestFailure = {
-  status: number | null
-  error: string
-}
-
-export type FeedbackSubmitResult =
-  | {
-      ok: true
-      diagnosticBundleFailure?: FeedbackRequestFailure
-      /** Absent when nothing was attached; false when the text landed but the images did not. */
-      imagesDelivered?: boolean
-    }
-  | ({ ok: false } & FeedbackRequestFailure & {
-        diagnosticBundleFailure?: FeedbackRequestFailure
-      })
 
 type InternalFeedbackSubmitArgs = FeedbackSubmitArgs & {
   submissionType?: FeedbackSubmissionType
@@ -200,10 +179,11 @@ function errorFailure(error: unknown): FeedbackRequestFailure {
 
 async function retryFeedbackOnPrimary(
   body: FeedbackSubmitBody,
+  feedbackApiUrl: string,
   primaryError?: unknown
 ): Promise<FeedbackSubmitResult> {
   try {
-    const retry = await postFeedback(FEEDBACK_API_URL, body)
+    const retry = await postFeedback(feedbackApiUrl, body)
     if (retry.ok) {
       return { ok: true }
     }
@@ -237,10 +217,11 @@ function shouldRetryWithoutDiagnosticBundle(status: number): boolean {
 
 async function submitFeedbackWithoutDiagnosticBundle(
   body: FeedbackSubmitBody,
-  diagnosticBundleFailure: FeedbackRequestFailure
+  diagnosticBundleFailure: FeedbackRequestFailure,
+  feedbackApiUrl: string
 ): Promise<FeedbackSubmitResult> {
   try {
-    const response = await postFeedback(FEEDBACK_API_URL, body)
+    const response = await postFeedback(feedbackApiUrl, body)
     if (response.ok) {
       return { ok: true, diagnosticBundleFailure }
     }
@@ -252,13 +233,14 @@ async function submitFeedbackWithoutDiagnosticBundle(
 
 async function submitFeedbackWithDiagnosticBundle(
   body: FeedbackSubmitBody,
-  bodyWithoutDiagnosticBundle: FeedbackSubmitBody | null
+  bodyWithoutDiagnosticBundle: FeedbackSubmitBody | null,
+  feedbackApiUrl: string
 ): Promise<FeedbackSubmitResult> {
   try {
     // Why: diagnostic bundles can approach 4 MiB and need more upload time than
     // the small JSON report-only path, especially on constrained connections.
     const response = await postFeedback(
-      FEEDBACK_API_URL,
+      feedbackApiUrl,
       body,
       FEEDBACK_ATTACHMENT_REQUEST_TIMEOUT_MS
     )
@@ -267,13 +249,13 @@ async function submitFeedbackWithDiagnosticBundle(
     }
     const failure = responseFailure(response)
     if (bodyWithoutDiagnosticBundle && shouldRetryWithoutDiagnosticBundle(response.status)) {
-      return submitFeedbackWithoutDiagnosticBundle(bodyWithoutDiagnosticBundle, failure)
+      return submitFeedbackWithoutDiagnosticBundle(bodyWithoutDiagnosticBundle, failure, feedbackApiUrl)
     }
     return { ok: false, ...failure }
   } catch (error) {
     const failure = errorFailure(error)
     return bodyWithoutDiagnosticBundle
-      ? submitFeedbackWithoutDiagnosticBundle(bodyWithoutDiagnosticBundle, failure)
+      ? submitFeedbackWithoutDiagnosticBundle(bodyWithoutDiagnosticBundle, failure, feedbackApiUrl)
       : { ok: false, ...failure }
   }
 }
@@ -283,6 +265,10 @@ export async function submitFeedback(
 ): Promise<FeedbackSubmitResult> {
   if (getOrcaBuildProfile() === 'corporate') {
     return { ok: false, status: null, error: 'Remote submission is disabled in corporate builds.' }
+  }
+  const feedbackApiUrl = resolveFeedbackApiUrl()
+  if (!feedbackApiUrl) {
+    return { ok: false, status: null, error: 'Remote feedback submission is not configured.' }
   }
   // Why: buildSubmitBody drops images on the crash lane, so validating them
   // there would abort a crash report over attachments it never meant to send.
@@ -297,7 +283,7 @@ export async function submitFeedback(
     try {
       let imagesDelivered = true
       const response = await postFeedback(
-        FEEDBACK_API_URL,
+        feedbackApiUrl,
         body,
         FEEDBACK_ATTACHMENT_REQUEST_TIMEOUT_MS,
         async (nextResponse) => {
@@ -324,21 +310,21 @@ export async function submitFeedback(
             diagnosticBundle: undefined
           })
         : null
-    return submitFeedbackWithDiagnosticBundle(body, bodyWithoutDiagnosticBundle)
+    return submitFeedbackWithDiagnosticBundle(body, bodyWithoutDiagnosticBundle, feedbackApiUrl)
   }
   try {
-    const res = await postFeedback(FEEDBACK_API_URL, body)
+    const res = await postFeedback(feedbackApiUrl, body)
     if (res.ok) {
       return { ok: true }
     }
-    // Why: api.onorca.dev serves a different product, so transient failures
-    // retry the endpoint that owns feedback and crash delivery.
+    // Why: transient failures retry the same configured endpoint once so
+    // short outages do not drop feedback that the user explicitly submitted.
     if (res.status >= 500) {
-      return retryFeedbackOnPrimary(body, new Error(`status ${res.status}`))
+      return retryFeedbackOnPrimary(body, feedbackApiUrl, new Error(`status ${res.status}`))
     }
     return { ok: false, status: res.status, error: `status ${res.status}` }
   } catch (error) {
-    return retryFeedbackOnPrimary(body, error)
+    return retryFeedbackOnPrimary(body, feedbackApiUrl, error)
   }
 }
 

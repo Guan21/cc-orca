@@ -268,15 +268,10 @@ export function TerminalErrorToast({
                 'auto.components.terminal.pane.TerminalErrorToast.5c8ce20be6',
                 'If this persists, please'
               )}{' '}
-              <a
-                href="https://github.com/stablyai/orca/issues"
-                style={{ color: 'inherit', textDecoration: 'underline' }}
-              >
-                {translate(
-                  'auto.components.terminal.pane.TerminalErrorToast.a7e2fd2699',
-                  'file an issue'
-                )}
-              </a>
+              {translate(
+                'auto.components.terminal.pane.TerminalErrorToast.a7e2fd2699',
+                'contact your administrator'
+              )}
               .
             </>
           ) : null}

@@ -8,8 +8,8 @@ export const PLUGIN_MARKETPLACE_CATEGORY_LIMIT = 16
 
 export const OFFICIAL_PLUGIN_PUBLISHER = 'stablyai'
 export const OFFICIAL_PLUGIN_ID_PREFIX = 'orca-'
-export const OFFICIAL_MARKETPLACE_OWNER = 'stablyai'
-export const OFFICIAL_MARKETPLACE_REPOSITORY = 'orca-plugins'
+export const OFFICIAL_MARKETPLACE_OWNER = ''
+export const OFFICIAL_MARKETPLACE_REPOSITORY = ''
 
 // Why: theme/icon/skill contributions were deferred, so `contributes` now
 // rejects them and any plugin declaring one fails to install wholesale. The
@@ -114,11 +114,7 @@ export type PluginMarketplaceEntry = z.infer<typeof pluginMarketplaceEntrySchema
 export type PluginMarketplaceGitSource = z.infer<typeof pluginMarketplaceGitSourceSchema>
 export type PluginMarketplaceTrustMetadata = z.infer<typeof pluginMarketplaceTrustMetadataSchema>
 
-export const OFFICIAL_MARKETPLACE_GIT_SOURCE: PluginMarketplaceGitSource = {
-  kind: 'git',
-  url: 'https://github.com/stablyai/orca-plugins.git',
-  ref: 'main'
-}
+export const OFFICIAL_MARKETPLACE_GIT_SOURCE: PluginMarketplaceGitSource | null = null
 
 export function splitQualifiedPluginKey(pluginKey: string): {
   publisher: string
@@ -198,6 +194,9 @@ export function isOfficialOrganizationGitSource(url: string): boolean {
 }
 
 export function isOfficialMarketplaceGitSource(url: string): boolean {
+  if (!OFFICIAL_MARKETPLACE_OWNER || !OFFICIAL_MARKETPLACE_REPOSITORY) {
+    return false
+  }
   const source = parseGitRepositoryIdentity(url)
   return (
     source?.host === 'github.com' &&

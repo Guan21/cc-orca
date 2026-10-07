@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   buildAgentFeatureSkillInstallArgs,
   buildAgentFeatureSkillInstallCommand,
@@ -14,27 +14,37 @@ import {
   ORCHESTRATION_SKILL_UPDATE_COMMAND
 } from './agent-feature-install-commands'
 
+const SKILLS_REPOSITORY_URL = 'https://skills.example.test/devcrew-skills.git'
+
 describe('agent feature skill commands', () => {
+  beforeEach(() => {
+    process.env.ORCA_SKILLS_REPOSITORY_URL = SKILLS_REPOSITORY_URL
+  })
+
+  afterEach(() => {
+    delete process.env.ORCA_SKILLS_REPOSITORY_URL
+  })
+
   it('builds a global install command by default', () => {
     expect(buildAgentFeatureSkillInstallCommand(['orca-cli'])).toBe(
-      'npx skills add https://github.com/stablyai/orca --skill orca-cli --global'
+      `npx skills add ${SKILLS_REPOSITORY_URL} --skill orca-cli --global`
     )
   })
 
   it('drops --global when installing locally', () => {
     expect(buildAgentFeatureSkillInstallCommand(['orca-cli'], { global: false })).toBe(
-      'npx skills add https://github.com/stablyai/orca --skill orca-cli'
+      `npx skills add ${SKILLS_REPOSITORY_URL} --skill orca-cli`
     )
   })
 
   it('repeats --skill per name for multi-skill installs', () => {
     expect(buildAgentFeatureSkillInstallCommand(['orca-cli', 'orchestration'])).toBe(
-      'npx skills add https://github.com/stablyai/orca --skill orca-cli --skill orchestration --global'
+      `npx skills add ${SKILLS_REPOSITORY_URL} --skill orca-cli --skill orchestration --global`
     )
     expect(buildAgentFeatureSkillInstallArgs(['orca-cli', 'orchestration'])).toEqual([
       'skills',
       'add',
-      'https://github.com/stablyai/orca',
+      SKILLS_REPOSITORY_URL,
       '--skill',
       'orca-cli',
       '--skill',
@@ -76,7 +86,7 @@ describe('agent feature skill commands', () => {
     expect(
       buildAgentFeatureSkillInstallCommand(['orca-cli'], { yes: true, agents: ['universal'] })
     ).toBe(
-      'npx skills add https://github.com/stablyai/orca --skill orca-cli --global --agent universal -y'
+      `npx skills add ${SKILLS_REPOSITORY_URL} --skill orca-cli --global --agent universal -y`
     )
     expect(buildAgentFeatureSkillUpdateCommand(['orca-cli'], { global: false, yes: true })).toBe(
       'npx skills update orca-cli --project -y'
@@ -125,8 +135,6 @@ describe('agent feature skill commands', () => {
     )
     expect(ORCA_LINEAR_SKILL_UPDATE_COMMAND).toBe('npx skills update orca-linear --global')
     expect(LINEAR_TICKETS_SKILL_UPDATE_COMMAND).toBe('npx skills update linear-tickets --global')
-    expect(ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND).toBe(
-      buildAgentFeatureSkillInstallCommand(['orca-cli', 'orchestration'])
-    )
+    expect(ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND).toBe('')
   })
 })

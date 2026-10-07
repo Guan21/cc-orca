@@ -13,6 +13,7 @@ import type {
   RemoteServerUpdateSupport
 } from '../../shared/remote-server-update'
 import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
+import { resolveCorporateConfiguredEndpoint } from '../../shared/network/corporate-network-contract'
 import { getLinuxPackageType } from '../linux-update-package-type'
 import { createUpdaterDiagnosticLogger } from '../linux-package-install-diagnostic'
 import { registerAutoUpdaterHandlers } from '../updater-events'
@@ -36,6 +37,15 @@ export type UpdaterSetupOptions = {
 
 function isAutoUpdateDisabledForBuildProfile(): boolean {
   return getOrcaBuildProfile() === 'corporate'
+}
+
+function getConfiguredLatestReleaseFeedUrl(): string | null {
+  const resolution = resolveCorporateConfiguredEndpoint({
+    capability: 'release-latest-feed',
+    configuredEndpoint: process.env.ORCA_RELEASE_LATEST_FEED_URL,
+    source: 'updater-release-feed'
+  })
+  return resolution.status === 'allowed' ? resolution.endpoint : null
 }
 
 /** Initializes electron-updater and attaches lifecycle/event bridges. */
@@ -177,10 +187,13 @@ export class UpdaterSetup extends UpdaterDownloadInstall {
 
     // Security: never re-add a verifyUpdateCodeSignature override — a no-op disables electron-updater's built-in Authenticode check and accepts any installer.
     if (this.activeUpdateSource === 'release') {
-      autoUpdater.setFeedURL({
-        provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
-      })
+      const releaseFeedUrl = getConfiguredLatestReleaseFeedUrl()
+      if (releaseFeedUrl) {
+        autoUpdater.setFeedURL({
+          provider: 'generic',
+          url: releaseFeedUrl
+        })
+      }
     }
     if (this.autoUpdaterInitialized) {
       return

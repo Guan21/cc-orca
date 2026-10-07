@@ -12,7 +12,10 @@ import { isWslShellName } from '../../../../shared/local-windows-terminal-runtim
 import { resolveWindowsShellStartupFamily } from '../../../../shared/windows-terminal-shell'
 import { getProjectAgentSkillTerminalShellOverride } from '@/lib/project-skill-runtime'
 import { useAppStore } from '@/store'
-import { buildAgentFeatureSkillInstallCommand } from '../../../../shared/agent-feature-install-commands'
+import {
+  buildAgentFeatureSkillInstallCommand,
+  getAgentFeatureSkillsRepositoryUrl
+} from '../../../../shared/agent-feature-install-commands'
 import { toast } from 'sonner'
 import type { CliInstallStatus } from '../../../../shared/cli-install-types'
 import {
@@ -114,9 +117,12 @@ function normalizeWindowsSkillUpdateCommand(
     return command
   }
 
-  // Why: the `skills update` subcommand is currently unreliable on native
-  // Windows, while reinstalling from the same repo source is idempotent and
-  // keeps the setup affordance working.
+  // Windows, while reinstalling from the same repo source is idempotent when an
+  // explicit source exists. #90 removes the implicit public repository fallback,
+  // so an unconfigured build must not throw while rendering Settings.
+  if (!getAgentFeatureSkillsRepositoryUrl()) {
+    return command
+  }
   return buildAgentFeatureSkillInstallCommand([updateMatch[1]])
 }
 
