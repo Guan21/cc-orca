@@ -3,6 +3,7 @@ import path from 'node:path'
 import type { ElectronApplication, Page, TestInfo } from '@stablyai/playwright-test'
 import { test, expect } from './helpers/orca-app'
 import { attachRepoAndOpenTerminal, createRestartSession } from './helpers/orca-restart'
+import { retryTransientMainEvaluate } from './helpers/electron-main-evaluate-retry'
 import {
   GOLDEN_STUB_READY_MARKER,
   getGoldenStubAgentLaunchEnv
@@ -35,16 +36,24 @@ test.describe('Corporate runtime egress gate', () => {
     try {
 
       await setScenario(runtime.app, 'focus')
-      await runtime.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.focus())
+      await retryTransientMainEvaluate(() =>
+        runtime.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.focus())
+      )
 
       await setScenario(runtime.app, 'hide')
-      await runtime.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.hide())
+      await retryTransientMainEvaluate(() =>
+        runtime.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.hide())
+      )
 
       await setScenario(runtime.app, 'show')
-      await runtime.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.show())
+      await retryTransientMainEvaluate(() =>
+        runtime.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.show())
+      )
 
       await setScenario(runtime.app, 'restore')
-      await runtime.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.restore())
+      await retryTransientMainEvaluate(() =>
+        runtime.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.restore())
+      )
 
       await setScenario(runtime.app, 'open-settings')
       await runtime.page.evaluate(() => window.__store?.getState().openSettingsPage())
@@ -179,9 +188,11 @@ async function launchCorporateEgressApp(
 }
 
 async function setScenario(app: ElectronApplication, scenario: string): Promise<void> {
-  await app.evaluate((_, value) => {
-    globalThis.__orcaCorporateRuntimeEgressSetScenario?.(value)
-  }, scenario)
+  await retryTransientMainEvaluate(() =>
+    app.evaluate((_, value) => {
+      globalThis.__orcaCorporateRuntimeEgressSetScenario?.(value)
+    }, scenario)
+  )
 }
 
 async function activeView(page: Page): Promise<string | null> {
