@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { useState } from 'react'
 import { LinearApiKeyDialog } from '@/components/linear-api-key-dialog'
 import { Button } from '@/components/ui/button'
@@ -18,7 +19,20 @@ type TaskSourceLinearSetupProps = {
 }
 
 // Keep connection, skill install, and visibility in the same guided flow.
-export function TaskSourceLinearSetup({
+export function TaskSourceLinearSetup(props: TaskSourceLinearSetupProps): React.JSX.Element {
+  return getOrcaBuildProfile() === 'corporate' ? (
+    <p className="text-xs text-muted-foreground">
+      {translate(
+        'corporate.integrations.authorization',
+        'Jira and Linear require administrator authorization in DevCrew Corporate. Existing credentials are preserved; connection actions are unavailable.'
+      )}
+    </p>
+  ) : (
+    <AvailableTaskSourceLinearSetup {...props} />
+  )
+}
+
+function AvailableTaskSourceLinearSetup({
   connected,
   checking,
   visible,

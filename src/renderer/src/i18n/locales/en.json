@@ -18073,5 +18073,14 @@
     "productTitle": "{{productName}} keeps failing to load",
     "stalledMessage": "The app window stopped responding while reloading after a crash.",
     "crashLoopMessage": "The app window crashed repeatedly and stopped reloading automatically."
-  }
+  },
+  "corporate.integrations.authorization": "Jira and Linear require administrator authorization in DevCrew Corporate. Existing credentials are preserved; connection actions are unavailable.",
+  "corporate.skills.localNotice": "Local skills can be discovered and inspected. Trusted bundled skills can be installed in Settings. Remote downloads, sharing, and marketplace access require administrator authorization.",
+  "corporate.skills.restricted": "This skill requires an external service or download that is unavailable without administrator authorization.",
+  "corporate.cli.registrationPrompt": "DevCrew needs to register its CLI on PATH.",
+  "corporate.cli.registered": "DevCrew CLI registered in PATH.",
+  "corporate.cli.registrationPromptDescription": "Approve the system prompt so skill setup can use the DevCrew CLI command.",
+  "corporate.skills.bundled": "Install trusted bundled skills on this device without downloading packages. WSL and SSH installation is unavailable. Existing skill names are retained for compatibility.",
+  "corporate.config.compatibility": "DevCrew project configuration uses orca.yaml for compatibility. Existing configuration files and workspaces stay in place.",
+  "corporate.cli.compatibility": "The DevCrew desktop CLI retains the orca command (orca-ide on Linux) for compatibility with existing scripts and agent instructions. Use the command and path shown here."
 }

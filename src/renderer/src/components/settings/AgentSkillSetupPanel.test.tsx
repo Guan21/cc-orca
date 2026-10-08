@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
     command: string
     description: string
     shellOverride?: string
+    forceHostRuntime?: boolean
     prepareCommandForShell?: (command: string, shellOverride?: string) => string
     onTerminalExit?: () => void
     onCommandFinished?: (bestEffortExitCode: number | null) => void
@@ -49,6 +50,7 @@ vi.mock('../onboarding/OnboardingInlineCommandTerminal', () => ({
     command: string
     description: string
     shellOverride?: string
+    forceHostRuntime?: boolean
     prepareCommandForShell?: (command: string, shellOverride?: string) => string
     onTerminalExit?: () => void
     onCommandFinished?: (bestEffortExitCode: number | null) => void
@@ -192,7 +194,31 @@ describe('AgentSkillSetupPanel', () => {
     root = null
     container?.remove()
     container = null
+    delete globalThis.__ORCA_BUILD_PROFILE__
     Reflect.deleteProperty(window, 'api')
+  })
+
+  it('blocks Corporate remote setup with a readable policy explanation', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const html = renderPanel()
+    expect(buttonMarkupByLabel(html, 'Install')).toContain('disabled')
+    expect(html).toContain('administrator authorization')
+  })
+
+  it('uses the installed launcher for trusted Corporate bundled skill setup', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    vi.mocked(window.api.cli.getInstallStatus).mockResolvedValue({
+      commandName: 'orca-ide',
+      supported: true,
+      state: 'installed',
+      pathConfigured: true
+    } as never)
+    await renderInteractivePanel({ bundledSkillName: 'orca-cli' })
+    await clickButton('Install')
+    expect(mocks.terminalProps.at(-1)?.command).toBe(
+      'orca-ide skills install --skill orca-cli --agent claude-code,codex'
+    )
+    expect(mocks.freshnessRefresh).not.toHaveBeenCalled()
   })
 
   it('keeps the install action visible after the skill is detected', () => {
@@ -201,6 +227,32 @@ describe('AgentSkillSetupPanel', () => {
     expect(html).toContain('Installed')
     expect(buttonLabels(html)).toContain('Update')
     expect(buttonLabels(html)).toContain('Re-check')
+  })
+
+  it('pins Corporate bundled installation to this device instead of selected WSL callbacks', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const onBeforeOpenTerminal = vi.fn()
+    const getPrerequisiteStatus = vi.fn()
+    vi.mocked(window.api.cli.getInstallStatus).mockResolvedValue({
+      commandName: 'orca',
+      supported: true,
+      state: 'installed',
+      pathConfigured: true
+    } as never)
+    await renderInteractivePanel({
+      bundledSkillName: 'orca-cli',
+      terminalRuntime: { runtime: 'wsl', wslDistro: 'Ubuntu', label: 'WSL Ubuntu' },
+      terminalShellOverride: 'wsl.exe',
+      onBeforeOpenTerminal,
+      getPrerequisiteStatus
+    })
+    await clickButton('Install')
+    expect(onBeforeOpenTerminal).not.toHaveBeenCalled()
+    expect(getPrerequisiteStatus).not.toHaveBeenCalled()
+    expect(mocks.terminalProps.at(-1)).toMatchObject({
+      forceHostRuntime: true,
+      shellOverride: undefined
+    })
   })
 
   it('surfaces skill freshness under hideHeader for guided setup hubs', () => {

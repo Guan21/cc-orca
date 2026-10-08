@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { AccountsPane } from './AccountsPane'
 import { AgentsPane } from './AgentsPane'
 import { ComputerUsePane } from './ComputerUsePane'
@@ -92,7 +93,7 @@ export function renderLinearSettingsSection(
   context: SettingsRenderContext
 ): React.JSX.Element | null {
   const { model, navigation, view } = context
-  return model.linearConnected ? (
+  return getOrcaBuildProfile() !== 'corporate' && model.linearConnected ? (
     <SettingsSection
       id="linear"
       title={translate('auto.components.settings.Settings.linearTitle', 'Linear')}

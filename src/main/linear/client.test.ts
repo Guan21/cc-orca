@@ -146,6 +146,32 @@ function mkdtempLike(prefix: string): string {
 }
 
 describe('Linear client workspace storage', () => {
+  it('blocks Corporate actions before decrypting credentials or constructing the SDK', async () => {
+    vi.stubEnv('ORCA_BUILD_PROFILE', 'corporate')
+    const decryptString = vi.fn(() => 'token-alpha')
+    writeMultiWorkspaceFiles([{ id: 'org-alpha', token: 'token-alpha' }], 'org-alpha')
+    const linear = await loadClientModule({ encryptionAvailable: true, decryptString })
+    try {
+      await expect(linear.connect('token-alpha')).resolves.toMatchObject({
+        ok: false,
+        error: expect.stringContaining('administrator authorization')
+      })
+      await expect(linear.testConnection('org-alpha')).resolves.toMatchObject({
+        ok: false,
+        error: expect.stringContaining('administrator authorization')
+      })
+      expect(() => linear.getClient('org-alpha')).toThrow('administrator authorization')
+      expect(() => linear.getClients('all')).toThrow('administrator authorization')
+      linear.initLinearToken()
+      expect(linear.getStatus()).toMatchObject({ connected: false, workspaces: [] })
+      expect(decryptString).not.toHaveBeenCalled()
+      expect(linearClientMock).not.toHaveBeenCalled()
+      expect(readFileSync(workspaceTokenPath('org-alpha'), 'utf-8')).toBe('token-alpha')
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+
   it('stores multiple workspaces and remembers the selected workspace', async () => {
     const linear = await loadClientModule()
 

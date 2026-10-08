@@ -16,6 +16,7 @@ import {
   type OnboardingFeatureSetupSelection
 } from './onboarding-feature-setup'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 type FeatureSetupInlineTerminalProps = {
   command: string
@@ -78,8 +79,12 @@ export function FeatureSetupInlineTerminal({
     <OnboardingInlineCommandTerminal
       command={copiedCommand}
       prepareCommandForShell={prepareCommandForShell}
-      shellOverride={setupRuntime.terminalShellOverride}
-      forceHostRuntime={Boolean(setupRuntime.installDisabledReason)}
+      shellOverride={
+        getOrcaBuildProfile() === 'corporate' ? undefined : setupRuntime.terminalShellOverride
+      }
+      forceHostRuntime={
+        getOrcaBuildProfile() === 'corporate' || Boolean(setupRuntime.installDisabledReason)
+      }
       title={translate(
         'auto.components.onboarding.FeatureSetupInlineTerminal.c767ab7061',
         'Skill setup'
@@ -88,10 +93,17 @@ export function FeatureSetupInlineTerminal({
         'auto.components.onboarding.FeatureSetupInlineTerminal.47fc6cc6dc',
         'Skill setup command'
       )}
-      description={translate(
-        'auto.components.onboarding.FeatureSetupInlineTerminal.789b59936e',
-        'Press Enter to run the command and confirm npx if asked. You can also set this up later in Settings.'
-      )}
+      description={
+        getOrcaBuildProfile() === 'corporate'
+          ? translate(
+              'corporate.skills.bundled',
+              'Install trusted bundled skills on this device without downloading packages. WSL and SSH installation is unavailable. Existing skill names are retained for compatibility.'
+            )
+          : translate(
+              'auto.components.onboarding.FeatureSetupInlineTerminal.789b59936e',
+              'Press Enter to run the command and confirm npx if asked. You can also set this up later in Settings.'
+            )
+      }
       terminalHeightPx={180}
       terminalTopMarginPx={16}
       autoScrollIntoView={false}

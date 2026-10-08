@@ -12,8 +12,8 @@ vi.mock('./source-control-integration-cards', () => ({
 }))
 
 vi.mock('./task-tracker-integration-cards', () => ({
-  JiraIntegrationCard: () => null,
-  LinearIntegrationCard: () => null
+  JiraIntegrationCard: () => <span>Jira connect action</span>,
+  LinearIntegrationCard: () => <span>Linear connect action</span>
 }))
 
 vi.mock('./use-integration-provider-status-refresh', () => ({
@@ -47,7 +47,9 @@ describe('IntegrationsPane', () => {
     const markup = renderPane()
 
     expect(markup).toContain('source hosts DevCrew can use')
-    expect(markup).toContain('issue trackers DevCrew can use')
+    expect(markup).toContain('require administrator authorization')
+    expect(markup).not.toContain('Linear connect action')
+    expect(markup).not.toContain('Jira connect action')
     expect(markup).not.toContain('source hosts Orca can use')
     expect(markup).not.toContain('issue trackers Orca can use')
   })

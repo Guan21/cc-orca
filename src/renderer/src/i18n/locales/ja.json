@@ -14915,5 +14915,14 @@
       "action": "Agent を試す",
       "hiddenToast": "Agent タブを非表示にしました。設定 → 実験的機能で再度有効にできます。"
     }
-  }
+  },
+  "corporate.integrations.authorization": "DevCrew Corporate で Jira と Linear を利用するには管理者の承認が必要です。既存の認証情報は保持されます。接続操作は利用できません。",
+  "corporate.skills.localNotice": "ローカルのスキルは検出・確認できます。信頼済みの同梱スキルは設定からインストールできます。リモートからのダウンロード、共有、マーケットプレイスへのアクセスには管理者の承認が必要です。",
+  "corporate.skills.restricted": "このスキルには外部サービスまたはダウンロードが必要なため、管理者の承認なしでは利用できません。",
+  "corporate.cli.registrationPrompt": "DevCrew の CLI を PATH に登録する必要があります。",
+  "corporate.cli.registered": "DevCrew の CLI を PATH に登録しました。",
+  "corporate.cli.registrationPromptDescription": "スキルのセットアップで DevCrew の CLI コマンドを使用するため、システムの確認画面で承認してください。",
+  "corporate.skills.bundled": "パッケージをダウンロードせず、信頼済みの同梱スキルをこのデバイスにインストールします。WSL や SSH へのインストールは利用できません。互換性のため既存のスキル名を保持しています。",
+  "corporate.config.compatibility": "DevCrew のプロジェクト設定では、互換性のため orca.yaml を使用します。既存の設定ファイルとワークスペースは移動されません。",
+  "corporate.cli.compatibility": "DevCrew のデスクトップ CLI は、既存のスクリプトや Agent のコマンドとの互換性のため orca コマンド（Linux では orca-ide）を保持しています。ここに表示されたコマンドとパスを使用してください。"
 }

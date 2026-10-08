@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { useState } from 'react'
 import { AlertCircle, CheckCircle2, LoaderCircle, Unlink } from 'lucide-react'
 import { JiraConnectDialog } from '@/components/jira-connect-dialog'
@@ -19,6 +20,19 @@ import { translate } from '@/i18n/i18n'
 type VerificationResult = { state: 'ok' | 'error'; error?: string }
 
 export function JiraIntegrationCard(): React.JSX.Element {
+  return getOrcaBuildProfile() === 'corporate' ? (
+    <p className="text-xs text-muted-foreground">
+      {translate(
+        'corporate.integrations.authorization',
+        'Jira and Linear require administrator authorization in DevCrew Corporate. Existing credentials are preserved; connection actions are unavailable.'
+      )}
+    </p>
+  ) : (
+    <AvailableJiraIntegrationCard />
+  )
+}
+
+function AvailableJiraIntegrationCard(): React.JSX.Element {
   const jiraStatus = useAppStore((s) => s.jiraStatus)
   const jiraStatusChecked = useAppStore((s) => s.jiraStatusChecked)
   const jiraStatusContextKey = useAppStore((s) => s.jiraStatusContextKey)

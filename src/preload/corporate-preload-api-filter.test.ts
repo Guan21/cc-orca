@@ -1,7 +1,35 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { filterPreloadApiForBuildProfile } from './corporate-preload-api-filter'
 
 describe('corporate preload API filter', () => {
+  it('exposes local inspection while preventing cloud and integration bridge calls', async () => {
+    const remote = vi.fn()
+    const api = {
+      skills: {
+        discover: async () => [],
+        freshnessInventory: async () => ({}),
+        deleteSupported: async () => true,
+        listOwnedShares: remote,
+        getPackage: remote,
+        installShare: remote
+      },
+      linear: { connect: remote, status: remote },
+      jira: { connect: remote, status: remote }
+    }
+    const filtered = filterPreloadApiForBuildProfile(api, 'corporate')
+    await expect(filtered.skills.freshnessInventory()).resolves.toEqual({})
+    await expect(filtered.skills.deleteSupported()).resolves.toBe(true)
+    for (const action of [
+      filtered.skills.listOwnedShares,
+      filtered.skills.getPackage,
+      filtered.skills.installShare,
+      filtered.linear.connect,
+      filtered.jira.status
+    ]) {
+      await expect(action()).rejects.toThrow('Capability disabled in corporate build')
+    }
+    expect(remote).not.toHaveBeenCalled()
+  })
   it('keeps the default preload API unchanged', () => {
     const api = {
       app: { getVersion: () => Promise.resolve('1.0.0') },
@@ -22,9 +50,7 @@ describe('corporate preload API filter', () => {
     const filtered = filterPreloadApiForBuildProfile(api, 'corporate')
 
     expect(filtered.app).toBe(api.app)
-    await expect(filtered.skills.discover()).rejects.toThrow(
-      'Capability disabled in corporate build: skills'
-    )
+    await expect(filtered.skills.discover()).resolves.toEqual([])
     await expect(filtered.skills.getUpdateRun()).rejects.toThrow(
       'Capability disabled in corporate build: skills'
     )
@@ -56,9 +82,7 @@ describe('corporate preload API filter', () => {
     expect(filtered.ui).toBe(api.ui)
     expect(filtered.remoteWorkspace).toBe(api.remoteWorkspace)
     expect(filtered.crashReports).toBe(api.crashReports)
-    await expect(filtered.skills.discover()).rejects.toThrow(
-      'Capability disabled in corporate build: skills'
-    )
+    await expect(filtered.skills.discover()).resolves.toEqual([])
     expect(filtered.skills.onChanged()).toBeTypeOf('function')
     await expect(filtered.skills.packages.install()).rejects.toThrow(
       'Capability disabled in corporate build: skills'

@@ -16,12 +16,13 @@ afterEach(() => {
 })
 
 describe('UI slice corporate build profile gates', () => {
-  it('does not open disabled top-level skills surfaces', () => {
+  it('opens local Skills while keeping remote sharing surfaces disabled', () => {
     useCorporateProfile()
     const store = createUIStore()
 
     store.getState().openSkillsPage()
-    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().activeView).toBe('skills')
+    store.setState({ activeView: 'terminal' })
 
     store.getState().openSkillShare('share-1')
     expect(store.getState().activeView).toBe('terminal')

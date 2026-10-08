@@ -5,11 +5,11 @@ export function getCliCommandUsageDetail(commandPath: string): string {
   if (productName === 'Orca') {
     return `Register ${commandPath} to use Orca from Command Prompt or PowerShell.`
   }
-  return `Register ${commandPath} to use the \`orca\` CLI from Command Prompt or PowerShell.`
+  return `Register ${commandPath} to use the ${productName} CLI from Command Prompt or PowerShell. The command name is retained for compatibility.`
 }
 
 export function getCliCommandTerminalUsageDetail(commandPath: string): string {
-  return `Register ${commandPath} to use ${getProductDisplayName()} from the terminal.`
+  return `Register ${commandPath} to use the ${getProductDisplayName()} CLI from the terminal. The command name is retained for compatibility.`
 }
 
 export function getWindowsLauncherPathUnknownDetail(): string {

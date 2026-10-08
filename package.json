@@ -4,6 +4,7 @@
   "description": "Next-gen IDE for parallel agentic development",
   "author": "stablyai",
   "bin": {
+    "devcrew": "./out/cli/index.js",
     "orca": "./out/cli/index.js",
     "orca-dev": "./config/scripts/orca-dev.mjs"
   },

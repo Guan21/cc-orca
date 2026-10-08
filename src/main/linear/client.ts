@@ -1,4 +1,8 @@
 import type { LinearClient } from '@linear/sdk'
+import {
+  assertCorporateIntegrationAllowed,
+  corporateIntegrationFailure
+} from '../../shared/corporate-integration-policy'
 import { loadLinearSdk } from './linear-sdk'
 import { LEGACY_WORKSPACE_ID } from './linear-credential-paths'
 import {
@@ -43,6 +47,7 @@ export const LINEAR_PUBLIC_FILE_URL_EXPIRY_SECONDS = 60 * 60
 // Why: issues/teams modules call this for real Linear actions — at that point
 // decrypting the token and surfacing a keychain prompt is expected.
 export function getClient(workspaceId?: string | null): LinearClient | null {
+  assertCorporateIntegrationAllowed('linear')
   const token = loadToken({
     force: true,
     workspaceId: resolveWorkspaceId(workspaceId) ?? undefined
@@ -56,6 +61,7 @@ export function getClient(workspaceId?: string | null): LinearClient | null {
 export function getClients(
   workspaceId?: LinearWorkspaceSelection | null
 ): LinearClientForWorkspace[] {
+  assertCorporateIntegrationAllowed('linear')
   const state = getWorkspaceState()
   const isAllSelection = workspaceId === 'all'
   const selectedWorkspaces = isAllSelection
@@ -91,6 +97,7 @@ export function getClients(
 }
 
 export function getPublicFileUrlClient(entry: LinearClientForWorkspace): LinearClient {
+  assertCorporateIntegrationAllowed('linear')
   return new (loadLinearSdk().LinearClient)({
     apiKey: entry.apiKey,
     headers: {
@@ -113,6 +120,10 @@ export async function connect(
 ): Promise<
   { ok: true; viewer: LinearViewer; workspace: LinearWorkspace } | { ok: false; error: string }
 > {
+  const failure = corporateIntegrationFailure('linear')
+  if (failure) {
+    return { ok: false, error: failure.message }
+  }
   try {
     const client = new (loadLinearSdk().LinearClient)({ apiKey })
     const me = await client.viewer
@@ -143,6 +154,9 @@ export function disconnect(workspaceId?: string): void {
 }
 
 export function selectWorkspace(workspaceId: LinearWorkspaceSelection): LinearConnectionStatus {
+  if (corporateIntegrationFailure('linear')) {
+    return getStatus()
+  }
   const state = getWorkspaceState()
   if (
     workspaceId !== 'all' &&
@@ -162,6 +176,15 @@ export function selectWorkspace(workspaceId: LinearWorkspaceSelection): LinearCo
 }
 
 export function getStatus(): LinearConnectionStatus {
+  if (corporateIntegrationFailure('linear')) {
+    return {
+      connected: false,
+      viewer: null,
+      workspaces: [],
+      activeWorkspaceId: null,
+      selectedWorkspaceId: null
+    }
+  }
   const state = getWorkspaceState()
   const selectedWorkspace =
     state.selectedWorkspaceId && state.selectedWorkspaceId !== 'all'
@@ -192,6 +215,10 @@ export async function testConnection(
 ): Promise<
   { ok: true; viewer: LinearViewer; workspace: LinearWorkspace } | { ok: false; error: string }
 > {
+  const failure = corporateIntegrationFailure('linear')
+  if (failure) {
+    return { ok: false, error: failure.message }
+  }
   const resolvedWorkspaceId = resolveWorkspaceId(workspaceId)
   if (!resolvedWorkspaceId) {
     return { ok: false, error: 'No API key stored.' }
@@ -231,6 +258,9 @@ export async function testConnection(
 // Why: called at main-process startup. We warm plaintext metadata only; tokens
 // stay encrypted on disk until a user performs an actual Linear action.
 export function initLinearToken(): void {
+  if (corporateIntegrationFailure('linear')) {
+    return
+  }
   getWorkspaceFile()
   getLegacyViewer()
 }

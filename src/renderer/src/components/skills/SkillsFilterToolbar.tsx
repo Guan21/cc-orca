@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { RefreshCw, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -131,7 +132,11 @@ export function SkillsFilterToolbar({
             <ToggleGroupItem value="skills" className="rounded-full px-2.5 text-xs">
               {translate('auto.components.skills.SkillsPage.f43ad6edf3', 'Skills')}
             </ToggleGroupItem>
-            <ToggleGroupItem value="shared" className="rounded-full px-2.5 text-xs">
+            <ToggleGroupItem
+              disabled={getOrcaBuildProfile() === 'corporate'}
+              value="shared"
+              className="rounded-full px-2.5 text-xs"
+            >
               {translate('auto.components.skills.SkillsPage.sharedLinks', 'Shared links')}
             </ToggleGroupItem>
           </ToggleGroup>

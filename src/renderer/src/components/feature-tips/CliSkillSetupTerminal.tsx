@@ -10,20 +10,33 @@ import {
 import { ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND } from '@/lib/agent-feature-install-commands'
 import { useActiveProjectSkillRuntime } from '@/hooks/useActiveProjectSkillRuntime'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
+import { buildCorporateBundledSkillCommand } from '../onboarding/onboarding-feature-setup-runtime'
 
-export function CliSkillSetupTerminal(): React.JSX.Element {
+export function CliSkillSetupTerminal({
+  commandName = 'orca'
+}: { commandName?: string } = {}): React.JSX.Element {
   const activeSkillRuntime = useActiveProjectSkillRuntime()
+  const corporate = getOrcaBuildProfile() === 'corporate'
   // Why: a repair-required runtime resolves to a WSL distro that is missing, so
   // drop back to the host runtime. This terminal auto-pastes with no install
   // gate, and repair-required only happens on Windows, so it still needs the
   // npx preflight.
   const skillCommand = buildSkillCommandForRuntime(
-    ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND,
-    activeSkillRuntime.installDisabledReason ? undefined : activeSkillRuntime.agentRuntime
+    corporate
+      ? buildCorporateBundledSkillCommand(
+          { browserUse: true, orchestration: true, computerUse: false, linearTickets: false },
+          commandName
+        )!
+      : ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND,
+    corporate || activeSkillRuntime.installDisabledReason
+      ? undefined
+      : activeSkillRuntime.agentRuntime
   )
-  const terminalRuntime = activeSkillRuntime.installDisabledReason
-    ? undefined
-    : activeSkillRuntime.agentRuntime
+  const terminalRuntime =
+    corporate || activeSkillRuntime.installDisabledReason
+      ? undefined
+      : activeSkillRuntime.agentRuntime
   const prepareCommandForShell = (command: string, effectiveShell: string | undefined): string =>
     buildSkillSetupTerminalCommand(command, effectiveShell, terminalRuntime)
   const handleCopySkillCommand = async (): Promise<void> => {
@@ -49,6 +62,14 @@ export function CliSkillSetupTerminal(): React.JSX.Element {
 
   return (
     <div className="min-w-0">
+      {corporate ? (
+        <p className="mb-2 text-xs text-muted-foreground">
+          {translate(
+            'corporate.skills.bundled',
+            'Install trusted bundled skills on this device without downloading packages. WSL and SSH installation is unavailable. Existing skill names are retained for compatibility.'
+          )}
+        </p>
+      ) : null}
       <div className="flex min-w-0 items-center gap-2 rounded-md border border-border bg-muted/35 px-3 py-2">
         <code className="scrollbar-sleek min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-xs text-muted-foreground">
           {skillCommand}
@@ -96,8 +117,8 @@ export function CliSkillSetupTerminal(): React.JSX.Element {
         descriptionPaddingClassName="px-4 py-2"
         autoScrollIntoView={false}
         worktreeId="feature-tip-cli-skills-terminal"
-        shellOverride={activeSkillRuntime.terminalShellOverride}
-        forceHostRuntime={Boolean(activeSkillRuntime.installDisabledReason)}
+        shellOverride={corporate ? undefined : activeSkillRuntime.terminalShellOverride}
+        forceHostRuntime={corporate || Boolean(activeSkillRuntime.installDisabledReason)}
       />
     </div>
   )

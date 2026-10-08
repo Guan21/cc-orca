@@ -1,4 +1,5 @@
 import { getSecretStore } from '../../shared/secret-store'
+import { assertCorporateIntegrationAllowed } from '../../shared/corporate-integration-policy'
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
 import {
   LEGACY_WORKSPACE_ID,
@@ -60,6 +61,7 @@ export function saveToken(apiKey: string): void {
 }
 
 export function loadToken(options: { force?: boolean; workspaceId?: string } = {}): string | null {
+  assertCorporateIntegrationAllowed('linear')
   const workspaceId = options.workspaceId ?? resolveWorkspaceId()
   if (!workspaceId) {
     return null

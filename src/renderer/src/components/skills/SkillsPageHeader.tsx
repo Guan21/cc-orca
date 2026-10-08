@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { BookOpen, Download, History, Link2, MoreHorizontal, Share2, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -46,6 +47,14 @@ export function SkillsPageHeader({
 }): React.JSX.Element {
   return (
     <header className="shrink-0 border-b border-border">
+      {getOrcaBuildProfile() === 'corporate' ? (
+        <p className={cn(SKILLS_PAGE_COLUMN, 'pt-3 text-xs text-muted-foreground')}>
+          {translate(
+            'corporate.skills.localNotice',
+            'Local skills can be discovered and inspected. Trusted bundled skills can be installed in Settings. Remote downloads, sharing, and marketplace access require administrator authorization.'
+          )}
+        </p>
+      ) : null}
       <div className={cn(SKILLS_PAGE_COLUMN, 'flex items-center gap-2 py-3')}>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -88,17 +97,21 @@ export function SkillsPageHeader({
             ) : null}
           </div>
         </div>
-        <Button type="button" size="sm" onClick={onStartShare}>
-          <Share2 className="size-3.5" />
-          {translate(
-            'auto.components.skills.SkillShareSelectionControls.01c5a15e02',
-            'Share skills'
-          )}
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={onInstallFromLink}>
-          <Download className="size-3.5" />
-          {translate('auto.components.skills.SkillsPage.aee7b99cc6', 'Install from link')}
-        </Button>
+        {getOrcaBuildProfile() !== 'corporate' ? (
+          <>
+            <Button type="button" size="sm" onClick={onStartShare}>
+              <Share2 className="size-3.5" />
+              {translate(
+                'auto.components.skills.SkillShareSelectionControls.01c5a15e02',
+                'Share skills'
+              )}
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={onInstallFromLink}>
+              <Download className="size-3.5" />
+              {translate('auto.components.skills.SkillsPage.aee7b99cc6', 'Install from link')}
+            </Button>
+          </>
+        ) : null}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -114,14 +127,18 @@ export function SkillsPageHeader({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={onManageInstalls}>
-              <History />
-              {translate('auto.components.skills.SkillsPage.c13b82793c', 'Manage installs')}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={onOpenSharedLinks}>
-              <Link2 />
-              {translate('auto.components.skills.SkillsPage.sharedLinks', 'Shared links')}
-            </DropdownMenuItem>
+            {getOrcaBuildProfile() !== 'corporate' ? (
+              <>
+                <DropdownMenuItem onSelect={onManageInstalls}>
+                  <History />
+                  {translate('auto.components.skills.SkillsPage.c13b82793c', 'Manage installs')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={onOpenSharedLinks}>
+                  <Link2 />
+                  {translate('auto.components.skills.SkillsPage.sharedLinks', 'Shared links')}
+                </DropdownMenuItem>
+              </>
+            ) : null}
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="pointer-events-auto block">

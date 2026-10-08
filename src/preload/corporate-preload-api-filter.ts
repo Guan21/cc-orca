@@ -5,6 +5,7 @@ import {
   type OrcaBuildProfile
 } from '../shared/corporate-build-profile'
 import type { PreloadApi } from './api-types'
+import { isLocalSkillOperation } from '../shared/corporate-skills-policy'
 
 type PreloadApiCapabilityGate = {
   key: keyof PreloadApi
@@ -19,6 +20,8 @@ const CORPORATE_PRELOAD_API_CAPABILITY_GATES = [
   { key: 'mobile', capability: 'mobile', shape: 'namespace' },
   { key: 'nativeChat', capability: 'native-chat', shape: 'namespace' },
   { key: 'plugins', capability: 'plugins', shape: 'namespace' },
+  { key: 'jira', capability: 'jira', shape: 'namespace' },
+  { key: 'linear', capability: 'linear', shape: 'namespace' },
   { key: 'skills', capability: 'skills', shape: 'namespace' },
   { key: 'speech', capability: 'speech', shape: 'namespace' },
   { key: 'ssh', capability: 'ssh-remote', shape: 'namespace' },
@@ -39,9 +42,7 @@ function createDisabledCapabilityFunction(
   key?: string
 ): () => Promise<never> | (() => undefined) {
   return () =>
-    key?.startsWith('on')
-      ? noopUnsubscribe
-      : Promise.reject(disabledCapabilityError(capability))
+    key?.startsWith('on') ? noopUnsubscribe : Promise.reject(disabledCapabilityError(capability))
 }
 
 function isBridgeNamespace(value: unknown): value is Record<string, unknown> {
@@ -102,6 +103,15 @@ export function filterPreloadApiForBuildProfile<T extends object>(
       continue
     }
     filtered[key] = createDisabledCapabilityReplacement(filtered, capability, key, shape)
+    if (key === 'skills' && isBridgeNamespace((api as Record<string, unknown>)[key])) {
+      const original = (api as Record<string, Record<string, unknown>>)[key]
+      const skills = filtered[key] as Record<string, unknown>
+      for (const operation of Object.keys(original)) {
+        if (isLocalSkillOperation(operation)) {
+          skills[operation] = original[operation]
+        }
+      }
+    }
   }
   return filtered as T
 }

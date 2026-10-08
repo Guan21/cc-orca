@@ -30,6 +30,7 @@ import {
 } from './feature-tip-telemetry'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { VoiceDictationTipDialog } from './VoiceDictationTipDialog'
 
 function WorktreePromptTerm({ children }: { children: string }): JSX.Element {
@@ -56,6 +57,7 @@ export default function FeatureTipsModal(): JSX.Element | null {
   const setupRequestIdRef = useRef(0)
   const [primaryBusy, setPrimaryBusy] = useState(false)
   const [skillTerminalOpen, setSkillTerminalOpen] = useState(false)
+  const [cliCommandName, setCliCommandName] = useState('orca')
   const isOpen = activeModal === 'feature-tips'
   const currentTip = getFeatureTipForModal({
     cliInstalled: true,
@@ -170,12 +172,8 @@ export default function FeatureTipsModal(): JSX.Element | null {
               return
             }
             enableOrchestrationSkillSetup()
-            toast.success(
-              translate(
-                'auto.components.feature.tips.FeatureTipsModal.ce13a742d0',
-                'Registered `orca` in PATH.'
-              )
-            )
+            setCliCommandName(result.status.commandName)
+            toast.success(translate('corporate.cli.registered', 'DevCrew CLI registered in PATH.'))
             setSkillTerminalOpen(true)
             return
           }
@@ -311,7 +309,15 @@ export default function FeatureTipsModal(): JSX.Element | null {
                   </p>
                 </div>
               </div>
-              {skillTerminalOpen ? <CliSkillSetupTerminal /> : null}
+              {getOrcaBuildProfile() === 'corporate' ? (
+                <p className="text-xs text-muted-foreground">
+                  {translate(
+                    'corporate.cli.compatibility',
+                    'The DevCrew desktop CLI retains the orca command (orca-ide on Linux) for compatibility with existing scripts and agent instructions. Use the command and path shown here.'
+                  )}
+                </p>
+              ) : null}
+              {skillTerminalOpen ? <CliSkillSetupTerminal commandName={cliCommandName} /> : null}
             </DialogHeader>
 
             <DialogFooter className="mt-8 flex sm:justify-stretch">

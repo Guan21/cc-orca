@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import type { CliInstallStatus } from '../../../../shared/cli-install-types'
 import type {
   ComputerUsePermissionSetupResult,
@@ -11,10 +12,14 @@ import {
   buildAgentFeatureSkillInstallCommand
 } from '@/lib/agent-feature-install-commands'
 import { BROWSER_USE_ENABLED_STORAGE_KEY } from '@/lib/browser-use-setup-state'
-import { e2eConfig } from '@/lib/e2e-config'
 import { showOrcaCliRegistrationPromptToast } from '@/lib/agent-skill-cli-prerequisite'
 import type { ProjectAgentSkillRuntime } from '@/lib/project-skill-runtime'
 import type { OnboardingFeatureSetupRuntimeContext } from './onboarding-feature-setup-runtime'
+import {
+  buildCorporateBundledSkillCommand,
+  copyOnboardingSkillCommand,
+  getE2EOnboardingFeatureSetupDeps
+} from './onboarding-feature-setup-runtime'
 import {
   buildSkillCommandForRuntime,
   getWslCliDistroRequest
@@ -36,7 +41,7 @@ export type OnboardingFeatureSetupSelection = Record<OnboardingFeatureSetupId, b
 
 export const DEFAULT_ONBOARDING_FEATURE_SETUP_SELECTION: OnboardingFeatureSetupSelection = {
   browserUse: true,
-  computerUse: true,
+  computerUse: getOrcaBuildProfile() !== 'corporate',
   orchestration: true,
   linearTickets: false
 }
@@ -114,20 +119,26 @@ export function buildOnboardingFeatureSetupClipboardText(
   agentRuntime?: ProjectAgentSkillRuntime
 ): string | null {
   const command = buildOnboardingFeatureSetupSkillCommand(selection)
-  // Keep clipboard and terminal commands on the same runtime (#12103).
   return command === null ? null : buildSkillCommandForRuntime(command, agentRuntime)
 }
 
 export function buildOnboardingFeatureSetupSkillCommand(
   selection: OnboardingFeatureSetupSelection
 ): string | null {
+  if (getOrcaBuildProfile() === 'corporate') {
+    return buildCorporateBundledSkillCommand(selection)
+  }
   const skillNames = selectedOnboardingFeatureSetupIds(selection).map(
     (id) => FEATURE_SKILL_NAMES[id]
   )
   if (skillNames.length === 0) {
     return null
   }
-  try { return buildAgentFeatureSkillInstallCommand(skillNames) } catch { return null }
+  try {
+    return buildAgentFeatureSkillInstallCommand(skillNames)
+  } catch {
+    return null
+  }
 }
 
 export function onboardingFeatureSetupTelemetryFeature(
@@ -144,7 +155,6 @@ export function onboardingFeatureSetupTelemetrySelection(
     computer_use: selection.computerUse,
     linear_tickets: selection.linearTickets,
     orchestration: selection.orchestration,
-    // Why: Linear skill setup is a recommended add-on, not onboarding progress.
     selected_count: selectedOnboardingProgressFeatureSetupIds(selection).length
   }
 }
@@ -177,10 +187,9 @@ export function createOnboardingFeatureSetupDeps(
     return e2eDeps
   }
 
-  // Register `orca` on the same PATH used by the skill install (#12103).
   const wslDistroRequest =
     agentRuntime?.runtime === 'wsl' ? getWslCliDistroRequest(agentRuntime) : undefined
-  const isWsl = agentRuntime?.runtime === 'wsl'
+  const isWsl = agentRuntime?.runtime === 'wsl' && getOrcaBuildProfile() !== 'corporate'
   return {
     getCliStatus: () =>
       isWsl
@@ -198,30 +207,23 @@ export function createOnboardingFeatureSetupDeps(
   }
 }
 
-function getE2EOnboardingFeatureSetupDeps(): OnboardingFeatureSetupDeps | null {
-  if (!e2eConfig.enabled || typeof window === 'undefined') {
-    return null
-  }
-  return (
-    (window as unknown as { __onboardingFeatureSetupDeps?: OnboardingFeatureSetupDeps })
-      .__onboardingFeatureSetupDeps ?? null
-  )
-}
-
 export async function runOnboardingFeatureSetup(
   selection: OnboardingFeatureSetupSelection,
   explicitDeps?: OnboardingFeatureSetupDeps,
   runtimeContext?: OnboardingFeatureSetupRuntimeContext
 ): Promise<OnboardingFeatureSetupResult> {
-  const agentRuntime = runtimeContext?.installDisabledReason
-    ? undefined
-    : runtimeContext?.agentRuntime
+  const corporate = getOrcaBuildProfile() === 'corporate'
+  if (corporate) {
+    selection = { ...selection, computerUse: false, linearTickets: false }
+  }
+  const agentRuntime =
+    corporate || runtimeContext?.installDisabledReason ? undefined : runtimeContext?.agentRuntime
   const deps = explicitDeps ?? createOnboardingFeatureSetupDeps(agentRuntime)
   const selectedIds = selectedOnboardingFeatureSetupIds(selection)
   const warnings: OnboardingFeatureSetupWarning[] = []
   let cliTouched = false
   let skillCommandsCopied = false
-  const skillInstallCommand = buildOnboardingFeatureSetupSkillCommand(selection)
+  let skillInstallCommand = buildOnboardingFeatureSetupSkillCommand(selection)
   let computerUsePermissionsOpened = false
 
   deps.setStorageItem(BROWSER_USE_ENABLED_STORAGE_KEY, selection.browserUse ? '1' : '0')
@@ -243,7 +245,7 @@ export async function runOnboardingFeatureSetup(
   }
 
   try {
-    const status = await deps.getCliStatus()
+    let status = await deps.getCliStatus()
     if (!status.supported) {
       warnings.push({
         featureId: 'cli',
@@ -258,6 +260,7 @@ export async function runOnboardingFeatureSetup(
     } else if (status.state !== 'installed' || status.pathConfigured === false) {
       await deps.showCliRegistrationPrompt?.()
       const next = await deps.installCli()
+      status = next
       cliTouched = true
       if (next.state !== 'installed') {
         warnings.push({
@@ -268,6 +271,9 @@ export async function runOnboardingFeatureSetup(
         warnings.push({ featureId: 'cli', message: next.detail })
       }
     }
+    if (corporate) {
+      skillInstallCommand = buildCorporateBundledSkillCommand(selection, status.commandName)
+    }
   } catch (error) {
     warnings.push({ featureId: 'cli', message: formatFeatureSetupError(error) })
   }
@@ -275,11 +281,7 @@ export async function runOnboardingFeatureSetup(
   if (selection.computerUse) {
     try {
       const status = await deps.getComputerUsePermissionStatus()
-      // Why: when the macOS helper app is missing (e.g. dev builds without
-      // `pnpm build:computer-macos`), the status reports all permissions as
-      // not-granted alongside a helperUnavailableReason. Without this guard we
-      // would call openSetup, which throws an IPC handler error instead of
-      // degrading gracefully.
+      // Missing macOS helpers report permissions as not granted; avoid opening unavailable setup.
       if (status.helperUnavailableReason) {
         warnings.push({
           featureId: 'computerUse',
@@ -302,7 +304,13 @@ export async function runOnboardingFeatureSetup(
     }
   }
 
-  skillCommandsCopied = await copySkillCommands(selection, deps, warnings, agentRuntime)
+  skillCommandsCopied = await copyOnboardingSkillCommand(
+    skillInstallCommand === null
+      ? null
+      : buildSkillCommandForRuntime(skillInstallCommand, agentRuntime),
+    deps,
+    warnings
+  )
 
   return {
     selectedIds,
@@ -316,23 +324,4 @@ export async function runOnboardingFeatureSetup(
 
 function formatFeatureSetupError(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
-}
-
-async function copySkillCommands(
-  selection: OnboardingFeatureSetupSelection,
-  deps: OnboardingFeatureSetupDeps,
-  warnings: OnboardingFeatureSetupWarning[],
-  agentRuntime?: ProjectAgentSkillRuntime
-): Promise<boolean> {
-  const clipboardText = buildOnboardingFeatureSetupClipboardText(selection, agentRuntime)
-  if (!clipboardText) {
-    return false
-  }
-  try {
-    await deps.writeClipboardText(clipboardText)
-    return true
-  } catch (error) {
-    warnings.push({ featureId: 'skills', message: formatFeatureSetupError(error) })
-    return false
-  }
 }

@@ -8,6 +8,7 @@ import {
 import { JiraIntegrationCard, LinearIntegrationCard } from './task-tracker-integration-cards'
 import { useIntegrationProviderStatusRefresh } from './use-integration-provider-status-refresh'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { getProductDisplayName } from '../../../../shared/product-display-name'
 export { getIntegrationsPaneSearchEntries } from './integrations-search'
 
@@ -53,8 +54,19 @@ export function IntegrationsPane(): React.JSX.Element {
           </p>
         </div>
         <div className="space-y-3">
-          <LinearIntegrationCard />
-          <JiraIntegrationCard />
+          {getOrcaBuildProfile() === 'corporate' ? (
+            <p className="text-xs text-muted-foreground">
+              {translate(
+                'corporate.integrations.authorization',
+                'Jira and Linear require administrator authorization in DevCrew Corporate. Existing credentials are preserved; connection actions are unavailable.'
+              )}
+            </p>
+          ) : (
+            <>
+              <LinearIntegrationCard />
+              <JiraIntegrationCard />
+            </>
+          )}
         </div>
       </section>
     </div>

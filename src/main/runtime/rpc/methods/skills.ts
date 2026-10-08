@@ -1,4 +1,5 @@
-import { defineMethod, type RpcMethod } from '../core'
+import { defineMethod, type RpcMethod, type RpcContext } from '../core'
+import { assertSkillOperationAllowed } from '../../../../shared/corporate-skills-policy'
 import { z } from 'zod'
 import { getAppEnvironment } from '../../../../shared/app-environment'
 import { SkillDeleteRequestSchema } from '../../../../shared/skill-delete-contract'
@@ -194,4 +195,10 @@ export const SKILL_METHODS: RpcMethod[] = [
     params: SkillUploadCommitRequestSchema,
     handler: (params, { runtime }) => runtime.cancelSkillUpload(params.uploadId)
   })
-]
+].map((method) => ({
+  ...method,
+  handler: (params: unknown, context: RpcContext) => {
+    assertSkillOperationAllowed(method.name.replace(/^skills\./, ''))
+    return method.handler(params, context)
+  }
+}))

@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { realpathSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
-import { join, relative } from 'node:path'
+import { join, relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const require = createRequire(import.meta.url)
@@ -21,6 +21,26 @@ async function writeSkillsCliFixture(outDir, handlerSource) {
 }
 
 describe('skills CLI runtime closure', () => {
+  it('verifies Corporate bundled installation and restricted topics without the default profile', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devcrew-corporate-cli-'))
+    try {
+      await writeFile(join(root, 'package.json'), JSON.stringify({ orcaBuildProfile: 'corporate' }))
+      await writeSkillsCliFixture(
+        root,
+        [
+          'const args = process.argv.slice(2)',
+          "if (args[1] === 'list') console.log(JSON.stringify({ topics: [{ name: 'orca-cli' }, { name: 'orchestration' }] }))",
+          "else if (args[1] === 'get' && args[2] !== 'orca-linear') console.log('name: ' + args[2])",
+          "else if (args[1] === 'install') console.log(JSON.stringify({ executed: false, source: 'bundled' }))",
+          "else { console.error('Command unavailable in corporate build'); process.exitCode = 1 }"
+        ].join('\n')
+      )
+      expect(verifySkillsCliRuntime(root)).toMatchObject({ commands: 6 })
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
   it('runs after Electron composes the final output', async () => {
     const packageJson = JSON.parse(
       await readFile(new URL('../../package.json', import.meta.url), 'utf8')
@@ -60,7 +80,7 @@ describe('skills CLI runtime closure', () => {
 
       expect(
         collectRuntimeClosure(root)
-          .map((file) => relative(realpathSync(root), file))
+          .map((file) => relative(realpathSync(root), file).split(sep).join('/'))
           .sort()
       ).toEqual(['cli/handlers/skills.js', 'cli/index.js', 'shared/first.js', 'shared/second.js'])
     } finally {

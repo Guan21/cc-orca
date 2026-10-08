@@ -23,6 +23,7 @@ import {
 } from './agent-capability-setup-status'
 import { FullDiskAccessSetupPrompt } from './FullDiskAccessSetupPrompt'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 
 export function AgentCapabilitiesSetupAction(props: {
   onOrchestrationSkillInstalledChange: (installed: boolean) => void
@@ -116,7 +117,14 @@ export function AgentCapabilitiesSetupAction(props: {
       }
       if (result.skillInstallCommand) {
         setFeatureSetupCommandSelection(featureSetup)
-        setFeatureSetupRuntime(activeSkillRuntime)
+        setFeatureSetupRuntime(
+          getOrcaBuildProfile() === 'corporate'
+            ? {
+                installDisabledReason: null,
+                agentRuntime: { runtime: 'host', label: 'This device' }
+              }
+            : activeSkillRuntime
+        )
         setFeatureSetupCommand(result.skillInstallCommand)
       }
     } finally {
@@ -224,7 +232,7 @@ function AgentCapabilitySetupControls(props: {
         onChange={props.onFeatureSetupChange}
         installStatus={props.installStatus}
       />
-      <FullDiskAccessSetupPrompt />
+      {getOrcaBuildProfile() !== 'corporate' ? <FullDiskAccessSetupPrompt /> : null}
       {showSetupAction ? (
         <div className="mt-6 flex items-center">
           <Button
@@ -266,7 +274,9 @@ function AgentCapabilitySetupChecklist(props: {
   return (
     <section className="mt-6">
       <div className="grid gap-3 md:grid-cols-3">
-        {AGENT_CAPABILITY_SETUP_ROWS.map((row) => {
+        {AGENT_CAPABILITY_SETUP_ROWS.filter(
+          (row) => getOrcaBuildProfile() !== 'corporate' || row.id !== 'computerUse'
+        ).map((row) => {
           const selected = props.value[row.id]
           const installStatus = props.installStatus[row.id]
           return (

@@ -1,4 +1,7 @@
 import { spawn } from 'node:child_process'
+import { homedir } from 'node:os'
+import { resolveCliBuildProfile } from '../packaged-build-profile'
+import { installCorporateBundledSkills } from './corporate-bundled-skill-install'
 import type { CommandHandler } from '../dispatch'
 import { RuntimeClientError } from '../runtime-client'
 import { getRepeatedStringFlag } from '../flags'
@@ -208,7 +211,7 @@ function formatSkillSelectionHelp(verb: SkillMutationVerb, skillNames: string[])
 }
 
 function createSkillMutationHandler(verb: SkillMutationVerb): CommandHandler {
-  return async ({ flags, json }) => {
+  return async ({ flags, json, cwd }) => {
     const guides = await loadCanonicalGuides()
     const skillNames = resolveSelectedSkillNames(flags, guides)
 
@@ -237,6 +240,34 @@ function createSkillMutationHandler(verb: SkillMutationVerb): CommandHandler {
     const global = flags.get('local') !== true
     // Why: install scopes its targets; update only refreshes what is already placed.
     const agents = verb === 'install' ? resolveInstallAgentKeys(flags) : []
+    if (resolveCliBuildProfile() === 'corporate') {
+      if (verb !== 'install') {
+        throw new Error('Remote Skills require Corporate authorization')
+      }
+      const root = global ? homedir() : cwd
+      const selectedGuides = guides.filter((guide) => skillNames.includes(guide.name))
+      const result =
+        flags.get('dry-run') === true
+          ? { written: [], existing: [] }
+          : await installCorporateBundledSkills(selectedGuides, agents, root)
+      writeStdoutLine(
+        json
+          ? JSON.stringify({
+              skills: skillNames,
+              global,
+              destinations: result.written,
+              existing: result.existing,
+              executed: flags.get('dry-run') !== true,
+              source: 'bundled'
+            })
+          : [
+              `Trusted bundled Skills: ${skillNames.join(', ')}`,
+              ...result.written,
+              ...result.existing.map((path) => `Already present; unchanged: ${path}`)
+            ].join('\n')
+      )
+      return
+    }
     const npxArgs = buildNpxSkillsArgs(verb, skillNames, global, agents)
     const command = formatNpxCommand(npxArgs)
     const dryRun = flags.get('dry-run') === true

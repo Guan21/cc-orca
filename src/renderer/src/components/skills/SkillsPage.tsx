@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Share2, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -145,6 +146,9 @@ export default function SkillsPage(): React.JSX.Element {
   }, [loadSkills])
 
   useEffect(() => {
+    if (getOrcaBuildProfile() === 'corporate') {
+      return
+    }
     if (pendingSkillsSharedView) {
       setView('shared')
       setFilters(NO_FILTERS)
@@ -153,6 +157,9 @@ export default function SkillsPage(): React.JSX.Element {
   }, [clearPendingSkillsSharedView, pendingSkillsSharedView])
 
   useEffect(() => {
+    if (getOrcaBuildProfile() === 'corporate') {
+      return
+    }
     if (!pendingSkillShareId) {
       return
     }
@@ -183,6 +190,9 @@ export default function SkillsPage(): React.JSX.Element {
   }, [])
 
   const openSharedLinks = useCallback((): void => {
+    if (getOrcaBuildProfile() === 'corporate') {
+      return
+    }
     setView('shared')
     setFilters(NO_FILTERS)
   }, [])
@@ -218,6 +228,9 @@ export default function SkillsPage(): React.JSX.Element {
       ? addDeletableSkillResults(current, skills, results)
       : addShareableSkillResults(current, skills, results, local)
   const openInstallDialog = (): void => {
+    if (getOrcaBuildProfile() === 'corporate') {
+      return
+    }
     setInstallLink('')
     setInstallOpen(true)
   }
@@ -373,28 +386,32 @@ export default function SkillsPage(): React.JSX.Element {
         </div>
       </section>
 
-      <SkillShareDialog
-        skills={shareSkills}
-        open={shareSkills.length > 0}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) {
-            setShareSkills([])
-            exitSelection()
-          }
-        }}
-      />
-      <SkillInstallDialog
-        key={installLink || 'manual-install'}
-        open={installOpen}
-        initialLink={installLink}
-        onOpenChange={(next) => {
-          setInstallOpen(next)
-          if (!next) {
-            setInstallLink('')
-          }
-        }}
-      />
-      <SkillInstallManagementDialog open={managementOpen} onOpenChange={setManagementOpen} />
+      {getOrcaBuildProfile() !== 'corporate' ? (
+        <>
+          <SkillShareDialog
+            skills={shareSkills}
+            open={shareSkills.length > 0}
+            onOpenChange={(nextOpen) => {
+              if (!nextOpen) {
+                setShareSkills([])
+                exitSelection()
+              }
+            }}
+          />
+          <SkillInstallDialog
+            key={installLink || 'manual-install'}
+            open={installOpen}
+            initialLink={installLink}
+            onOpenChange={(next) => {
+              setInstallOpen(next)
+              if (!next) {
+                setInstallLink('')
+              }
+            }}
+          />
+          <SkillInstallManagementDialog open={managementOpen} onOpenChange={setManagementOpen} />
+        </>
+      ) : null}
     </main>
   )
 }

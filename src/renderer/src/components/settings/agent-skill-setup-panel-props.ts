@@ -8,6 +8,7 @@ type SkillPrerequisiteStatus = Awaited<ReturnType<typeof window.api.cli.getInsta
 export type AgentSkillSetupPanelProps = {
   title: string
   description: ReactNode
+  bundledSkillName?: 'orca-cli' | 'orchestration'
   command: string
   installedCommand?: string
   terminalTitle: string

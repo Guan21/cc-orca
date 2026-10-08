@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { LOCAL_RUNTIME_TARGET } from '@/hooks/installed-agent-skill-discovery'
 import type {
   OnboardingFeatureSetupId,
   OnboardingFeatureSetupSelection
@@ -42,19 +43,29 @@ export type AgentCapabilitySetupStatus = {
 
 export function useAgentCapabilitySetupStatus(): AgentCapabilitySetupStatus {
   const activeSkillRuntime = useActiveProjectSkillRuntime()
+  const corporate = getOrcaBuildProfile() === 'corporate'
+  const runtimeTarget = corporate ? LOCAL_RUNTIME_TARGET : undefined
+  const discoveryTarget = corporate
+    ? { runtime: 'host' as const }
+    : activeSkillRuntime.discoveryTarget
   const browserUseSkill = useInstalledAgentSkill(ORCA_CLI_SKILL_NAME, {
-    discoveryTarget: activeSkillRuntime.discoveryTarget,
+    runtimeTarget,
+    discoveryTarget,
     sourceKinds: GLOBAL_AGENT_SKILL_SOURCE_KINDS
   })
   const computerUseSkill = useInstalledAgentSkill(COMPUTER_USE_SKILL_NAME, {
-    discoveryTarget: activeSkillRuntime.discoveryTarget,
+    runtimeTarget,
+    discoveryTarget,
     sourceKinds: GLOBAL_AGENT_SKILL_SOURCE_KINDS
   })
   const orchestrationSkill = useInstalledAgentSkill(ORCHESTRATION_SKILL_NAME, {
-    discoveryTarget: activeSkillRuntime.discoveryTarget,
+    runtimeTarget,
+    discoveryTarget,
     sourceKinds: GLOBAL_AGENT_SKILL_SOURCE_KINDS
   })
-  const computerUsePermissionStatus = useComputerUsePermissionStatus(computerUseSkill.installed)
+  const computerUsePermissionStatus = useComputerUsePermissionStatus(
+    getOrcaBuildProfile() !== 'corporate' && computerUseSkill.installed
+  )
   const readiness: AgentCapabilityReadiness = useMemo(
     () => ({
       browserUseSkillInstalled: browserUseSkill.installed,
@@ -103,8 +114,9 @@ export function getDefaultAgentCapabilitySetupSelection(
     // Why: Computer Use has OS permission setup in addition to the skill install.
     // Keep it selected when permissions still need action, even if the skill exists.
     computerUse:
-      !readiness.computerUseSkillInstalled ||
-      (!readiness.computerUseReady && !readiness.computerUseUnavailable),
+      getOrcaBuildProfile() !== 'corporate' &&
+      (!readiness.computerUseSkillInstalled ||
+        (!readiness.computerUseReady && !readiness.computerUseUnavailable)),
     orchestration: !readiness.orchestrationSkillInstalled,
     linearTickets: false
   }
@@ -298,3 +310,4 @@ function useComputerUsePermissionStatus(enabled: boolean): {
 
   return status
 }
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'

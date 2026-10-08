@@ -16,6 +16,17 @@ import {
 } from './args'
 
 describe('parseArgs', () => {
+  it.each(['environment', 'pairing-code'])(
+    'rejects Corporate Skills remote target --%s before dispatch',
+    (flag) => {
+      const parsed = parseArgs(['skills', 'list', `--${flag}`, 'remote-target'])
+      expect(() => validateCommandAndFlags(COMMAND_SPECS, parsed, 'corporate')).toThrow(
+        'Remote Skills targets'
+      )
+      expect(() => validateCommandAndFlags(COMMAND_SPECS, parsed, 'default')).not.toThrow()
+    }
+  )
+
   it('keeps an empty string as a flag value', () => {
     const parsed = parseArgs(['computer', 'set-value', '--value', '', '--json'])
 
@@ -308,7 +319,7 @@ describe('validateCommandAndFlags', () => {
   })
 
   it.each([
-    ['skills list', ['skills', 'list']],
+    ['skills update', ['skills', 'update']],
     ['emulator tap', ['emulator', 'tap', '0.5', '0.5']],
     ['computer list-apps', ['computer', 'list-apps']],
     ['serve', ['serve']]
