@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   fileChangedDevelopmentEventFixture,
   agentActionDevelopmentEventFixture,
+  commitDevelopmentEventFixture,
   testCompletedDevelopmentEventFixture,
   reviewDevelopmentEventFixture,
   pullRequestDevelopmentEventFixture
@@ -20,7 +21,6 @@ import {
 } from './activity-graph-query'
 import type { DevelopmentEvent } from '../development-event-types'
 import { projectNormalizedReviewResultToGraphUpdates } from './normalized-review-to-activity-graph'
-import { commitDevelopmentEventFixture } from '../development-event-fixtures'
 
 function graphFor(events: DevelopmentEvent[]) {
   return events.reduce((graph, event) => {
