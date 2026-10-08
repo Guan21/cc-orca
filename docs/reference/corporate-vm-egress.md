@@ -1,7 +1,9 @@
-# Corporate VM runtime egress gate
+# Corporate optional VM active-mode egress gate
 
 The authoritative policy remains [Corporate Network Contract](corporate-network-contract.md).
-#92 requires both the accepted Host Control Plane and a real Ephemeral VM Execution Plane.
+#92 requires the Corporate Host runtime gate, including zero automatic egress when the
+optional VM feature is inactive. Real VM active-mode acceptance is a separate feature/security
+gate tracked by the follow-up issue linked in the [acceptance boundary](corporate-runtime-egress-acceptance-2026-10-08.md).
 Docker/nested-SSH routing and semantic unit tests do not establish real VM acceptance.
 
 Commands:
@@ -13,7 +15,9 @@ pnpm run test:corporate-egress:vm --required
 pnpm run test:corporate-egress:all
 ```
 
-The Host command is unchanged. The aggregate runs Host first, then required real VM acceptance.
+The Host command is unchanged and is the required C5 / #92 gate. The VM command is the
+follow-up feature gate. The aggregate explicitly opts into both: Host first, then required real
+VM acceptance. It is not a prerequisite for #92 or #14 completion.
 Missing VM configuration returns UNAVAILABLE with exit 2 for developer invocation and FAIL
 with exit 1 for required acceptance. Configured provisioning, connection, observation or cleanup
 failures fail acceptance; there is no Docker/mock fallback.
@@ -83,9 +87,11 @@ dedicated self-hosted Windows x64 runner labeled `corporate-ephemeral-vm`. Confi
 variables `CORPORATE_VM_RECIPE_REPO` and `CORPORATE_VM_RECIPE_ID` and stage the provider,
 image, test SSH identity and guest tools there. Dispatch on the exact candidate PR head and
 retain its sanitized evidence. Merely adding the workflow does not make it an automated required
-release check: runner registration and release/branch protection integration remain necessary.
+VM feature release check: runner registration and VM feature release protection integration
+remain necessary for the follow-up, independently of the C5 Host release gate.
 
 Local discovery on 2026-10-08 found no Multipass installation or configured Linux recipe. The
 installed VirtualBox provider contains only a stopped Windows test machine, which was not reused.
 Required real acceptance failed at prerequisite detection, before creating a VM. No real runtime
-ID or egress count exists for this run. #92 and #14 remain open until both planes are accepted.
+ID or egress count exists for this run. Real VM active-mode remains NOT YET ACCEPTED and is
+tracked separately; missing VM infrastructure does not invalidate accepted Host evidence.

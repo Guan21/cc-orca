@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import type { PendingWorktreeCreation } from './pending-worktree-creation'
+import type { PendingWorktreeCreation, WorktreeCreationRequest } from './pending-worktree-creation'
 
 const { prepareTargetMock } = vi.hoisted(() => ({ prepareTargetMock: vi.fn() }))
 
@@ -36,6 +36,29 @@ beforeEach(() => {
     api: { ephemeralVm: { onProvisionEvent: vi.fn(() => vi.fn()) } }
   } as never
 })
+
+it.each(['claude', 'codex'] as const)(
+  'does not activate a VM for a normal %s workspace without a recipe',
+  async (agent) => {
+    const request: WorktreeCreationRequest = {
+      repoId: 'repo-1',
+      name: 'host-workspace',
+      setupDecision: 'inherit',
+      agent,
+      pendingFirstAgentMessageRename: false,
+      note: '',
+      startupPlan: null,
+      quickPrompt: '',
+      quickTelemetry: null
+    }
+
+    expect(await prepareRequestForCreate('creation-1', request)).toBe(request)
+    expect(prepareTargetMock).not.toHaveBeenCalled()
+    expect(window.api.ephemeralVm.onProvisionEvent).not.toHaveBeenCalled()
+    expect(store.setupProjectExistingFolder).not.toHaveBeenCalled()
+    expect(store.updatePendingWorktreeCreation).not.toHaveBeenCalled()
+  }
+)
 
 it('carries the captured provisioned-root ref identity into adoption', async () => {
   prepareTargetMock.mockResolvedValue({
