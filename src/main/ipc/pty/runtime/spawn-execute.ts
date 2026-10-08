@@ -1,4 +1,5 @@
 import type { PtySpawnResult } from '../../../providers/types'
+import { recordRuntimeEgressAttempt } from '../../../network/corporate-runtime-egress-observer'
 import { ptyIncarnationById, deletePtyOwnership } from '../provider/ownership-state'
 import { ptySizes } from '../delivery/visibility-state'
 import { tryGetProviderForAgentSessionOwner } from '../provider/registry'
@@ -186,6 +187,7 @@ export async function executeRuntimePtySpawn(ctx: RuntimePtySpawnState): Promise
         ctx.snapshotKittyFlagsCoverReconciledSeq = false
       }
     }
+    recordRuntimePtyLaunch(ctx)
     ensureWslHookRelayForReattach(ctx.result, args.connectionId)
     ctx.deps.runtime?.preparePtyExecutionContext?.(
       ctx.result.id,
@@ -273,4 +275,38 @@ export async function executeRuntimePtySpawn(ctx: RuntimePtySpawnState): Promise
       ctx.deps.trustedTerminalHandleEnv.delete(args.preAllocatedHandle)
     }
   }
+}
+
+function recordRuntimePtyLaunch(ctx: RuntimePtySpawnState): void {
+  const provider = ctx.result.launchAgent ?? ctx.args.launchAgent
+  if (provider === 'claude' || provider === 'codex') {
+    recordRuntimeEgressAttempt({
+      processKind: 'provider-process',
+      pid: ctx.result.pid ?? undefined,
+      source: 'pty-provider.spawn',
+      category: 'provider-specific-egress',
+      capability: `provider.${provider}.process`,
+      initiatedBy: {
+        kind: 'provider-operation',
+        provider,
+        operation: 'explicit-provider-launch'
+      },
+      provider: {
+        id: provider,
+        allowed: true,
+        enabled: true,
+        operationActive: true
+      }
+    })
+    return
+  }
+
+  recordRuntimeEgressAttempt({
+    processKind: 'child-process',
+    pid: ctx.result.pid ?? undefined,
+    source: 'pty-provider.spawn',
+    category: 'automatic-app-owned-egress',
+    capability: 'pty.process',
+    initiatedBy: { kind: 'child-process' }
+  })
 }

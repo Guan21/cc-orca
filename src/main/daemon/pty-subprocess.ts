@@ -13,6 +13,7 @@ import {
 import { createDaemonPtySubprocessHandle } from './pty-subprocess/subprocess-handle'
 import type { StartupCommandDelivery } from '../../shared/codex-startup-delivery'
 import type { TuiAgent } from '../../shared/tui-agent'
+import { recordRuntimeEgressAttempt } from '../network/corporate-runtime-egress-observer'
 
 const PTY_SPAWN_HEALTH_RETRY_ATTEMPTS = 2
 
@@ -97,6 +98,27 @@ export async function createPtySubprocess(opts: PtySubprocessOptions): Promise<S
       throw formatPtySpawnError(error, launch.shellPath, launch.spawnCwd)
     }
     throw error
+  }
+
+  if (opts.launchAgent === 'claude' || opts.launchAgent === 'codex') {
+    recordRuntimeEgressAttempt({
+      processKind: 'provider-process',
+      pid: spawned.process.pid,
+      source: 'daemon.pty.spawn',
+      category: 'provider-specific-egress',
+      capability: `provider.${opts.launchAgent}.process`,
+      initiatedBy: {
+        kind: 'provider-operation',
+        provider: opts.launchAgent,
+        operation: 'explicit-provider-launch'
+      },
+      provider: {
+        id: opts.launchAgent,
+        allowed: true,
+        enabled: true,
+        operationActive: true
+      }
+    })
   }
 
   return createDaemonPtySubprocessHandle({

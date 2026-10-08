@@ -884,6 +884,11 @@ jobs:
           src/main/ipc/pty-spawn-env-codex-resume-provenance.test.ts
           src/relay/windows-port-scan.win32.test.ts
 
+      - name: Test Windows Corporate runtime egress gate
+        env:
+          ORCA_BACKGROUND_LAUNCH: '1'
+        run: pnpm run test:corporate-egress
+
       # Why the :parallel variant: identical to build:release except the three
       # electron-vite targets overlap instead of running back to back. The Linux package
       # job already packages and smoke-tests an AppImage built that way.

@@ -1,0 +1,38 @@
+name: Corporate real VM acceptance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: corporate-real-vm-acceptance
+  cancel-in-progress: false
+
+jobs:
+  real_vm:
+    name: required real Ephemeral VM egress
+    runs-on: [self-hosted, Windows, X64, corporate-ephemeral-vm]
+    timeout-minutes: 45
+    env:
+      ORCA_BACKGROUND_LAUNCH: '1'
+      ORCA_CORPORATE_VM_REQUIRED: '1'
+      ORCA_CORPORATE_VM_RECIPE_REPO: ${{ vars.CORPORATE_VM_RECIPE_REPO }}
+      ORCA_CORPORATE_VM_RECIPE_ID: ${{ vars.CORPORATE_VM_RECIPE_ID }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/install-node-dependencies
+        with:
+          native-runtime: electron
+      - name: Required real VM acceptance
+        run: pnpm run test:corporate-egress:vm --required
+      - name: Preserve sanitized VM evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: corporate-real-vm-egress-${{ github.sha }}
+          path: test-results/**/vm-egress*.json*
+          if-no-files-found: warn
