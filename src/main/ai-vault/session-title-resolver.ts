@@ -6,6 +6,7 @@ import {
   type AiVaultSessionTitlesResult
 } from '../../shared/ai-vault-session-title'
 import { resolveAiVaultSessionTitlesInBackground } from './session-scanner-background'
+import { assertLocalSessionHistoryScanPaths } from './session-history-local-paths'
 
 const TRANSCRIPT_PATH_MAX_LENGTH = 32_768
 
@@ -30,6 +31,7 @@ export async function resolveLocalAiVaultSessionTitles(
   requests: AiVaultSessionTitleRequest[],
   signal?: AbortSignal
 ): Promise<AiVaultSessionTitlesResult> {
+  assertLocalSessionHistoryScanPaths()
   const deduped = new Map<string, AiVaultSessionTitleRequest>()
   for (const request of requests.slice(0, AI_VAULT_SESSION_TITLE_REQUEST_MAX_COUNT)) {
     const normalized = normalizeRequest(request)

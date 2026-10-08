@@ -10,6 +10,10 @@ import {
 import { resolveLocalAiVaultSessionTitles } from '../ai-vault/session-title-resolver'
 import { parseAiVaultSessionTitlesResult } from '../ai-vault/session-title-result-validation'
 import { requestActiveSshAiVaultSessionTitles } from './ssh'
+import {
+  assertCorporateSessionHistoryHost,
+  assertCorporateSessionHistoryPaths
+} from '../../shared/corporate-session-history-policy'
 
 export type RuntimeAiVaultSessionTitleResolver = (
   environmentId: string,
@@ -20,6 +24,8 @@ export async function resolveAiVaultSessionTitlesByHost(
   args: AiVaultSessionTitlesArgs,
   resolveRuntime?: RuntimeAiVaultSessionTitleResolver
 ): Promise<AiVaultSessionTitlesResult> {
+  assertCorporateSessionHistoryHost(args.executionHostScope)
+  assertCorporateSessionHistoryPaths(args.requests.map((request) => request.transcriptPath))
   const executionHostScope = requestedExecutionHostScope(args.executionHostScope)
   if (executionHostScope === LOCAL_EXECUTION_HOST_ID) {
     return resolveLocalAiVaultSessionTitles(args.requests)

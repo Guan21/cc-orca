@@ -4,9 +4,27 @@ import { prepareAiVaultSessionForResume } from './ai-vault-session-resume-prepar
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
 })
 
 describe('prepareAiVaultSessionForResume', () => {
+  it.each(['claude', 'codex'] as const)(
+    'validates every Corporate %s resume before launch',
+    async (agent) => {
+      vi.stubEnv('ORCA_BUILD_PROFILE', 'corporate')
+      const prepareSessionResume = vi
+        .fn()
+        .mockRejectedValue(
+          new Error('Session transcript is unavailable. Refresh history and retry.')
+        )
+      stubPreparation(prepareSessionResume)
+      await expect(prepareAiVaultSessionForResume(session({ agent }))).rejects.toThrow(
+        'Refresh history'
+      )
+      expect(prepareSessionResume).toHaveBeenCalledOnce()
+    }
+  )
+
   it('returns a real-home launch identity only after targeted materialization succeeds', async () => {
     const prepareSessionResume = vi.fn().mockResolvedValue({ useRealCodexHome: true })
     stubPreparation(prepareSessionResume)

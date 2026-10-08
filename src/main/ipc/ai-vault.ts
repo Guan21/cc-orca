@@ -30,7 +30,6 @@ import { registerAiVaultResumeHandler, type AiVaultResumeHandlerOptions } from '
 import {
   LOCAL_EXECUTION_HOST_ID,
   parseExecutionHostId,
-  requestedExecutionHostScope,
   toRuntimeExecutionHostId,
   toSshExecutionHostId,
   type ExecutionHostScope
@@ -58,6 +57,8 @@ import {
   type RuntimeAiVaultSessionTitleResolver
 } from './ai-vault-session-title-routing'
 import { projectStructuredAiVaultSessions } from '../ai-vault/structured-session-ownership'
+import { sessionHistoryListScopeForBuildProfile } from '../../shared/corporate-session-history-policy'
+import { isCapabilityEnabledForBuildProfile } from '../../shared/corporate-build-profile'
 
 const AI_VAULT_ALL_HOST_RUNTIME_TIMEOUT_MS = 3_000
 // Why: a remote home with many agent roots routinely needs seconds to walk,
@@ -93,7 +94,7 @@ async function listAiVaultSessions(
   args?: AiVaultListArgs,
   options: { signal?: AbortSignal } = {}
 ): Promise<AiVaultListResult> {
-  const executionHostScope = requestedExecutionHostScope(args?.executionHostScope)
+  const executionHostScope = sessionHistoryListScopeForBuildProfile(args?.executionHostScope)
   // Scope paths change the result set, so they must be part of the cache key.
   // A scanner consumes at most 64 paths, so smaller equivalent workspace sets
   // can share a snapshot regardless of which worktree was selected first.
@@ -258,15 +259,7 @@ async function scanLocalAiVaultSessions(
   // Why: the shared cache module owns codex-home/WSL sourcing and the local
   // scan cache, so the desktop IPC path and the runtime RPC method (mobile)
   // share one cache instance and one source of managed-Codex homes.
-  return listCachedLocalAiVaultSessions(
-    {
-      limit: args?.limit,
-      unlimited: args?.unlimited,
-      force: args?.force,
-      scopePaths: args?.scopePaths
-    },
-    { signal }
-  )
+  return listCachedLocalAiVaultSessions(args, { signal })
 }
 
 export function registerAiVaultHandlers(options: AiVaultHandlerOptions = {}): void {
@@ -277,6 +270,7 @@ export function registerAiVaultHandlers(options: AiVaultHandlerOptions = {}): vo
   // (serve-mode reachable); this desktop path supplies the same source.
   configureAiVaultSessionSources(options)
   ipcMain.handle('aiVault:listSessions', async (event, args?: AiVaultListArgs) => {
+    sessionHistoryListScopeForBuildProfile(args?.executionHostScope)
     const requestToken =
       typeof args?.requestToken === 'string' && args.requestToken.length <= 128
         ? args.requestToken
@@ -285,7 +279,10 @@ export function registerAiVaultHandlers(options: AiVaultHandlerOptions = {}): vo
     try {
       await handlerOptions.ensureStructuredSessionOwnership?.()
       const result = await listAiVaultSessions(args, { signal: controller?.signal })
-      return projectStructuredAiVaultSessions(result, true)
+      return projectStructuredAiVaultSessions(
+        result,
+        isCapabilityEnabledForBuildProfile('native-chat')
+      )
     } catch (error) {
       // Why: superseding a scan is normal control flow, but Electron logs every
       // rejected handler — report it as a result so the log stays truthful.

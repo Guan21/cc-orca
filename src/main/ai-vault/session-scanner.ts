@@ -35,6 +35,7 @@ import type {
 import { clampPositiveInteger, errorMessage } from './session-scanner-values'
 import { throwIfAiVaultScanCancelled } from './ai-vault-scan-cancellation'
 import { DEFAULT_AI_VAULT_SCAN_LIMIT } from '../../shared/ai-vault-session-depth'
+import { assertLocalSessionHistoryScanPaths } from './session-history-local-paths'
 
 const SESSION_PARSE_CONCURRENCY = 8
 const SESSION_PARSE_CANDIDATE_MULTIPLIER = 2
@@ -51,6 +52,7 @@ const SESSION_PARSE_CANDIDATE_MULTIPLIER = 2
 export async function scanAiVaultSessions(
   options: AiVaultScanOptions = {}
 ): Promise<AiVaultListResult> {
+  assertLocalSessionHistoryScanPaths(options)
   // The span makes scan cost visible in the local trace file: STA-1278-style
   // "one core pegged" reports need to show whether transcript scanning is the
   // subsystem burning CPU, and how much of each scan the cache absorbed.
