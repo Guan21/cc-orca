@@ -1,0 +1,88 @@
+name: DevCrew Corporate macOS M2 Validation Build
+
+run-name: DevCrew Corporate macOS M2 validation 244767e
+
+on:
+  push:
+    branches:
+      - ci-devcrew-macos-m2-244767e
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 180
+    env:
+      PRODUCT_SHA: 244767ebd1ffdf213cc89ca2648d2ac1c088e1c1
+      NODE_OPTIONS: --max-old-space-size=4096
+      ORCA_BACKGROUND_LAUNCH: '1'
+    steps:
+      - name: Checkout exact latest company-work
+        uses: actions/checkout@v4
+        with:
+          ref: 244767ebd1ffdf213cc89ca2648d2ac1c088e1c1
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PRODUCT_SHA"
+          echo "Building DevCrew Corporate from $PRODUCT_SHA"
+          echo "Runner architecture: $(uname -m)"
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Setup pnpm
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@12.0.0 --activate
+          pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build DevCrew Corporate macOS installers
+        run: pnpm run build:mac:corporate
+
+      - name: Collect M2 installer and evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-artifacts build-evidence
+          arm64_dmg="$(find dist -type f -name 'devcrew-macos-arm64.dmg' | sort | head -n 1)"
+          if [[ -z "$arm64_dmg" || ! -f "$arm64_dmg" ]]; then
+            echo "::error::Missing devcrew-macos-arm64.dmg"
+            find dist -maxdepth 2 -type f -print || true
+            exit 1
+          fi
+          cp "$arm64_dmg" build-artifacts/
+          arm64_zip="$(find dist -maxdepth 1 -type f -name '*arm64*.zip' | sort | head -n 1 || true)"
+          if [[ -n "$arm64_zip" && -f "$arm64_zip" ]]; then
+            cp "$arm64_zip" build-artifacts/
+          fi
+          {
+            echo "source_sha=$PRODUCT_SHA"
+            echo "runner_arch=$(uname -m)"
+            echo "arm64_dmg=$arm64_dmg"
+            echo "arm64_size=$(stat -f%z "$arm64_dmg")"
+            echo "arm64_sha256=$(shasum -a 256 "$arm64_dmg" | awk '{print $1}')"
+          } | tee build-evidence/installers.env
+
+      - name: Upload M2 installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: devcrew-corporate-macos-m2-244767e
+          path: |
+            build-artifacts/*
+            build-evidence/*
+          if-no-files-found: error
+          retention-days: 14
