@@ -12,7 +12,7 @@ export type ProjectTaskRunStatus = 'unknown' | 'started' | 'completed' | 'failed
 export type ProjectTaskRun = {
   runId: string
   status: ProjectTaskRunStatus
-  agentIds: string[]
+  agentNodeIds: string[]
   evidenceRefs: string[]
 }
 
@@ -65,7 +65,7 @@ export function projectActivityGraphState(
   const tasks = getNodesByType(graph, 'task', projectId).sort(byId).map((task) => {
     const context = getTaskGraph(graph, projectId, task.metadata.taskId)
     const runs = getNodesByType(context, 'run').sort(byId).map((run): ProjectTaskRun => {
-      const agentIds = getOutgoingEdges(context, run.id, 'EXECUTED_BY')
+      const agentNodeIds = getOutgoingEdges(context, run.id, 'EXECUTED_BY')
         .map((edge) => getNodeById(context, edge.to))
         .filter((node): node is NonNullable<typeof node> => node !== undefined)
         .filter((node) => node.type === 'agent')
@@ -73,7 +73,7 @@ export function projectActivityGraphState(
       return {
         runId: run.metadata.runId,
         status: run.metadata.status ?? 'unknown',
-        agentIds: unique(agentIds),
+        agentNodeIds: unique(agentNodeIds),
         evidenceRefs: unique(run.evidenceRefs)
       }
     })
