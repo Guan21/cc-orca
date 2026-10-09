@@ -7,6 +7,10 @@ import { deleteAiVaultSessionFile } from '../ai-vault/session-delete'
 import { invalidateSessionParseCacheEntry } from '../ai-vault/session-scanner-parse-cache'
 import { invalidateAiVaultBackgroundCache } from '../ai-vault/session-scanner-background'
 import type { AiVaultAgent } from '../../shared/ai-vault-types'
+import {
+  assertCorporateSessionHistoryHost,
+  assertCorporateSessionHistoryPaths
+} from '../../shared/corporate-session-history-policy'
 import type {
   AiVaultDeleteSessionArgs,
   AiVaultDeleteSessionResult
@@ -33,6 +37,8 @@ export async function deleteAiVaultSession(
   args: AiVaultDeleteSessionArgs | undefined,
   deps: AiVaultDeleteDeps
 ): Promise<AiVaultDeleteSessionResult> {
+  assertCorporateSessionHistoryHost(args?.executionHostId)
+  assertCorporateSessionHistoryPaths([args?.filePath])
   // The validator tolerates a malformed agent/filePath but destructures `args`,
   // so an absent payload is defaulted here to keep the never-throws boundary.
   const wslHomeDirs = await getAiVaultWslHomeDirs()

@@ -30,6 +30,24 @@ describe('corporate preload API filter', () => {
     }
     expect(remote).not.toHaveBeenCalled()
   })
+
+  it('exposes declared local history methods while refusing undeclared remote methods', async () => {
+    const listSessions = vi.fn().mockResolvedValue({ sessions: [], issues: [] })
+    const syncToCloud = vi.fn()
+    const api = {
+      aiVault: { listSessions, onWindowFocused: () => () => undefined, syncToCloud }
+    }
+    const filtered = filterPreloadApiForBuildProfile(api, 'corporate')
+
+    await expect(filtered.aiVault.listSessions()).resolves.toEqual({ sessions: [], issues: [] })
+    expect(listSessions).toHaveBeenCalledOnce()
+    expect(filtered.aiVault.onWindowFocused()).toBeTypeOf('function')
+    await expect(filtered.aiVault.syncToCloud()).rejects.toThrow(
+      'Capability disabled in corporate build: ai-vault'
+    )
+    expect(syncToCloud).not.toHaveBeenCalled()
+  })
+
   it('keeps the default preload API unchanged', () => {
     const api = {
       app: { getVersion: () => Promise.resolve('1.0.0') },

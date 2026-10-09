@@ -10,7 +10,7 @@
 
 ## Status and evidence
 
-Preparation reviewed against #101 head `6b1b4bd64fef0a49bde617b1b1772ba4e9e276b1` and #102's Skills implementation. At preparation time #101 is open and unmerged. **Pending external condition: #101 must be integrated into `company-work` before synchronization and combined regression execution.** Recheck its final merged contents because its head can change.
+Preparation was reviewed against #101 head `6b1b4bd64fef0a49bde617b1b1772ba4e9e276b1` and #102's Skills implementation. #101 subsequently merged as `5422e6ef462e080160b3e8d7650bd269be880157`; that exact updated base has now been merged into the isolated #100 branch. Both preload conflicts were resolved together, and the combined regression below is now implemented and executed.
 
 #101 exports `CORPORATE_LOCAL_SESSION_HISTORY_METHODS` from `src/shared/corporate-session-history-policy.ts`. Its exact declared methods are `listSessions`, `resolveSessionTitles`, `cancelListSessions`, `prepareSessionResume`, `listSubagentSessions`, `getFirstUserPrompt`, `deleteSession`, and `onWindowFocused`. All eight are declared in `src/preload/api/ai-vault-api.ts`.
 
@@ -204,4 +204,4 @@ Inspect each result and fix failures before committing. Review the final diff ag
 
 - [ ] Keep #102 Draft and #100 open until CI and packaged M2 acceptance requirements are satisfied. This document does not authorize merging, removing Draft, closing issues, or treating unavailable packaged tests as passed.
 
-**Execution status:** Combined regression code is prepared but has not been executed against a combined implementation. No synthetic combined implementation was created. Execution remains pending #101's base integration; existing separate-branch test results do not prove the combined behavior.
+**Execution status:** The combined regression now lives in `src/preload/corporate-local-capabilities-integration.test.ts`. It failed against Skills-only restoration before the history exception was added, then passed against the integrated implementation. Both combined cases and the complete targeted set of 11 files / 86 tests passed. All eight local history methods, five local Skills operations, broad capability restrictions, nested/future remote rejection, unsubscribe behavior and default-profile identity are covered. The history backend and policy are inherited unchanged from `5422e6ef`. Packaged M2 acceptance remains separate from these results.

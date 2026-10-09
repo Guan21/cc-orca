@@ -4,6 +4,10 @@ import { listAiVaultSubagentSessionsInBackground } from '../ai-vault/session-sca
 import { claudeProjectsRootDirs, ompSessionsRootDirs } from '../ai-vault/session-scanner-roots'
 import { isPathInsideOrEqual } from '../../shared/cross-platform-path'
 import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
+import {
+  assertCorporateSessionHistoryHost,
+  assertCorporateSessionHistoryPaths
+} from '../../shared/corporate-session-history-policy'
 import type {
   AiVaultSubagentListArgs,
   AiVaultSubagentListResult
@@ -14,6 +18,8 @@ import type {
 export async function listAiVaultSubagentSessions(
   args?: AiVaultSubagentListArgs
 ): Promise<AiVaultSubagentListResult> {
+  assertCorporateSessionHistoryHost(args?.executionHostId)
+  assertCorporateSessionHistoryPaths([args?.parentFilePath])
   // IPC payloads are untyped at runtime; malformed input resolves empty like
   // every other rejected input instead of throwing.
   if (

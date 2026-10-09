@@ -6,6 +6,7 @@ import {
 } from '../shared/corporate-build-profile'
 import type { PreloadApi } from './api-types'
 import { isLocalSkillOperation } from '../shared/corporate-skills-policy'
+import { CORPORATE_LOCAL_SESSION_HISTORY_METHODS } from '../shared/corporate-session-history-policy'
 
 type PreloadApiCapabilityGate = {
   key: keyof PreloadApi
@@ -103,6 +104,18 @@ export function filterPreloadApiForBuildProfile<T extends object>(
       continue
     }
     filtered[key] = createDisabledCapabilityReplacement(filtered, capability, key, shape)
+    const originalHistory = (api as Record<string, unknown>)[key]
+    if (key === 'aiVault' && isBridgeNamespace(originalHistory)) {
+      const localHistory = filtered[key] as Record<string, unknown>
+      for (const method of CORPORATE_LOCAL_SESSION_HISTORY_METHODS) {
+        if (
+          Object.hasOwn(originalHistory, method) &&
+          typeof originalHistory[method] === 'function'
+        ) {
+          localHistory[method] = originalHistory[method]
+        }
+      }
+    }
     if (key === 'skills' && isBridgeNamespace((api as Record<string, unknown>)[key])) {
       const original = (api as Record<string, Record<string, unknown>>)[key]
       const skills = filtered[key] as Record<string, unknown>

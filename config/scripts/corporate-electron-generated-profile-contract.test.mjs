@@ -32,7 +32,16 @@ function ensureCorporateMainChunks() {
 function findCorporateProfileChunk() {
   ensureCorporateMainChunks()
   const candidates = readdirSync(mainChunksDir)
-    .filter((name) => name.endsWith('.js') && name.startsWith('tui-agent-selection-'))
+    .filter(
+      (name) =>
+        name.endsWith('.js') &&
+        (name.startsWith('corporate-build-profile-') || name.startsWith('tui-agent-selection-'))
+    )
+    .sort(
+      (left, right) =>
+        Number(right.startsWith('corporate-build-profile-')) -
+        Number(left.startsWith('corporate-build-profile-'))
+    )
     .map((name) => resolve(mainChunksDir, name))
   if (candidates.length === 0) {
     throw new Error('Missing generated corporate profile chunk in out/main/chunks.')

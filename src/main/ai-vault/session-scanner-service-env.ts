@@ -32,7 +32,7 @@ export const RUNTIME_ENV_ALLOWLIST = [
 
 // Why: the desktop child resolves agent roots from its own environment, so
 // dropping one hides every session of a user who relocated that agent's home.
-const AGENT_ROOT_ENV_ALLOWLIST = [
+export const AGENT_ROOT_ENV_ALLOWLIST = [
   'CODEX_HOME',
   'CLINE_SESSION_DATA_DIR',
   'COPILOT_HOME',
