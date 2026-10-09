@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: devcrew-corporate-m2-99-100
+  group: devcrew-corporate-m2-99-100-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
