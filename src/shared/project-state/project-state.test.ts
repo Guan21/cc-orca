@@ -114,7 +114,7 @@ describe('Project State Engine v1', () => {
       { runId: 'session-a', status: 'completed' },
       { runId: 'session-b', status: 'failed' }
     ])
-    expect(task.runs.every((run) => run.agentIds.length === 1)).toBe(true)
+    expect(task.runs.every((run) => run.agentNodeIds.length === 1)).toBe(true)
     expect(task.testResults).toEqual({ passed: 0, failed: 1, skipped: 0 })
     expect(task.observedSignals).toEqual({
       failedTest: true,
