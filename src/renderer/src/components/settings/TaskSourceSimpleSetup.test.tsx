@@ -18,9 +18,28 @@ vi.mock('@/components/jira-connect-dialog', () => ({
 afterEach(() => {
   cleanup()
   mocks.dialogOpen = []
+  delete globalThis.__ORCA_BUILD_PROFILE__
 })
 
 describe('JiraSetupSteps', () => {
+  it('does not mount credential dialogs or expose connection actions in Corporate', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const rendered = render(
+      <JiraSetupSteps
+        connected={false}
+        checking={false}
+        visible
+        canHide
+        onToggleVisible={vi.fn()}
+        onConnected={vi.fn()}
+        onOpenIntegrations={vi.fn()}
+      />
+    )
+    expect(rendered.queryByRole('button')).toBeNull()
+    expect(rendered.getByText(/administrator authorization/)).toBeDefined()
+    expect(mocks.dialogOpen).toEqual([])
+  })
+
   it('routes connected credential management to Integrations', () => {
     const onOpenIntegrations = vi.fn()
     const rendered = render(

@@ -1,6 +1,6 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Copy, Loader2, RefreshCw, Terminal } from 'lucide-react'
-import { toast } from 'sonner'
+import { Loader2, RefreshCw, Terminal } from 'lucide-react'
 import { IntegrationStatusPill } from '../integration-status-pill'
 import { SkillFreshnessStatusPill } from '../skills/SkillFreshnessStatusPill'
 import { OnboardingInlineCommandTerminal } from '../onboarding/OnboardingInlineCommandTerminal'
@@ -8,18 +8,22 @@ import { AgentSkillSetupFailureNotice } from './AgentSkillSetupFailureNotice'
 import { createTerminalSnapshot, type SkillTerminalSnapshot } from './agent-skill-terminal-snapshot'
 import type { AgentSkillSetupPanelProps } from './agent-skill-setup-panel-props'
 import { Button } from '../ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import { AgentSkillSetupCommandPreview } from './AgentSkillSetupCommandPreview'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import {
   recheckSurfacesAfterAgentSkillTerminal,
   syncSurfacesAfterAgentSkillRecheck
 } from './agent-skill-recheck-surface-sync'
-import { isOrcaCliAvailableOnPath } from '@/lib/agent-skill-cli-prerequisite'
+import {
+  ensureOrcaCliAvailableForAgentSkillTerminal,
+  isOrcaCliAvailableOnPath
+} from '@/lib/agent-skill-cli-prerequisite'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 
 export function AgentSkillSetupPanel({
   title,
+  bundledSkillName,
   description,
   command,
   installedCommand,
@@ -29,7 +33,7 @@ export function AgentSkillSetupPanel({
   installed,
   loading,
   error,
-  installDisabled = false,
+  installDisabled: requestedInstallDisabled = false,
   terminalHeightPx,
   terminalShellOverride: shellOverride,
   terminalRuntime: runtime,
@@ -51,7 +55,7 @@ export function AgentSkillSetupPanel({
   openingHint,
   footer,
   onRecheck,
-  freshnessSkillName
+  freshnessSkillName: requestedFreshnessSkillName
 }: AgentSkillSetupPanelProps): React.JSX.Element {
   const resolvedInstallLabel =
     installLabel ??
@@ -70,20 +74,32 @@ export function AgentSkillSetupPanel({
     Boolean(preInstallNotice && !installed)
   )
   const mountedRef = useMountedRef()
+  const corporate = getOrcaBuildProfile() === 'corporate'
+  const installDisabled = !corporate && requestedInstallDisabled
   const readPrerequisiteStatus = useCallback(
-    () => (getPrerequisiteStatus ?? window.api.cli.getInstallStatus)(),
-    [getPrerequisiteStatus]
+    () =>
+      (corporate
+        ? window.api.cli.getInstallStatus
+        : (getPrerequisiteStatus ?? window.api.cli.getInstallStatus))(),
+    [corporate, getPrerequisiteStatus]
   )
-  const activeCommand = installed ? (installedCommand ?? command) : command
+  const corporateBlocked = corporate && !bundledSkillName
+  const freshnessSkillName = corporate ? undefined : requestedFreshnessSkillName
+  const activeCommand =
+    corporate && bundledSkillName
+      ? `orca skills install --skill ${bundledSkillName} --agent claude-code,codex`
+      : installed
+        ? (installedCommand ?? command)
+        : command
   // Why: the inline terminal auto-inserts when its command changes, so keep the
   // already-open terminal pinned to the command and runtime selected at click.
   const openTerminalCommand = terminalSnapshot?.copiedCommand ?? activeCommand
 
   const openSetupTerminal = (): void => {
-    if (terminalOpening || setupAttemptRunning) {
+    if (corporateBlocked || installDisabled || terminalOpening || setupAttemptRunning) {
       return
     }
-    const nextSnapshot = createTerminalSnapshot(activeCommand, shellOverride, runtime)
+    let setupCommand = activeCommand
     setTerminalOpening(true)
     if (setupCommandFailedCode !== null) {
       setTerminalOpen(false)
@@ -91,7 +107,15 @@ export function AgentSkillSetupPanel({
     void (async () => {
       let shouldOpenTerminal = false
       try {
-        await onBeforeOpenTerminal?.()
+        if (corporate && bundledSkillName) {
+          const status = await ensureOrcaCliAvailableForAgentSkillTerminal()
+          if (!status || !isOrcaCliAvailableOnPath(status)) {
+            return
+          }
+          setupCommand = `${status.commandName} skills install --skill ${bundledSkillName} --agent claude-code,codex`
+        } else {
+          await onBeforeOpenTerminal?.()
+        }
         await refreshPreInstallNotice()
         shouldOpenTerminal = true
       } catch {
@@ -100,7 +124,13 @@ export function AgentSkillSetupPanel({
         if (mountedRef.current) {
           setTerminalOpening(false)
           if (shouldOpenTerminal) {
-            setTerminalSnapshot(nextSnapshot)
+            setTerminalSnapshot(
+              createTerminalSnapshot(
+                setupCommand,
+                corporate ? undefined : shellOverride,
+                corporate ? undefined : runtime
+              )
+            )
             setTerminalAttempt((attempt) => attempt + 1)
             setTerminalOpen(true)
             setupAttemptRunningRef.current = true
@@ -182,33 +212,16 @@ export function AgentSkillSetupPanel({
     }
   }
 
-  const copyActiveCommand = async (): Promise<void> => {
-    try {
-      await window.api.ui.writeClipboardText(openTerminalCommand)
-      toast.success(
-        translate('auto.components.settings.AgentSkillSetupPanel.copiedCommand', 'Copied command.')
-      )
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : translate(
-              'auto.components.settings.AgentSkillSetupPanel.failedToCopyCommand',
-              'Failed to copy command.'
-            )
-      )
-    }
-  }
-
   const actionRow = (
     <div className="mt-3 flex flex-wrap items-center gap-2">
-      {(!installed || showInstallWhenInstalled) && setupCommandFailedCode === null ? (
+      {(!installed || (!corporate && showInstallWhenInstalled)) &&
+      setupCommandFailedCode === null ? (
         <Button
           type="button"
           variant={installVariant}
           size="sm"
           onClick={openSetupTerminal}
-          disabled={terminalOpen || installDisabled || terminalOpening}
+          disabled={corporateBlocked || terminalOpen || installDisabled || terminalOpening}
         >
           {terminalOpening ? (
             <Loader2 className="size-3.5 animate-spin" />
@@ -240,7 +253,7 @@ export function AgentSkillSetupPanel({
           disabled={
             setupCommandFailedCode !== null
               ? installDisabled || terminalOpening || setupAttemptRunning
-              : loading
+              : corporateBlocked || loading
           }
         >
           <RefreshCw className={cn('size-3.5', (loading || terminalOpening) && 'animate-spin')} />
@@ -337,7 +350,17 @@ export function AgentSkillSetupPanel({
           ) : null}
           {actionRow}
           <AgentSkillSetupFailureNotice exitCode={setupCommandFailedCode} />
-          {actionHint ? <div className="mt-2">{actionHint}</div> : null}
+          {corporate ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {translate(
+                corporateBlocked ? 'corporate.skills.restricted' : 'corporate.skills.bundled',
+                corporateBlocked
+                  ? 'This skill requires an external service or download that is unavailable without administrator authorization.'
+                  : 'Install trusted bundled skills on this device without downloading packages. WSL and SSH installation is unavailable. Existing skill names are retained for compatibility.'
+              )}
+            </p>
+          ) : null}
+          {!corporate && actionHint ? <div className="mt-2">{actionHint}</div> : null}
           {!installed && preInstallNotice && preInstallNoticeVisible ? (
             <p className="mt-3 text-[12px] leading-snug text-muted-foreground">
               {preInstallNotice}
@@ -359,38 +382,12 @@ export function AgentSkillSetupPanel({
             variant === 'card' ? 'px-5 pb-5' : 'mt-2'
           )}
         >
-          <div className="flex min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-md border border-border bg-muted/35 px-3 py-2">
-            <code className="scrollbar-sleek min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-xs text-muted-foreground">
-              {openTerminalCommand}
-            </code>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="shrink-0"
-                  aria-label={translate(
-                    'auto.components.settings.AgentSkillSetupPanel.copyCommandAria',
-                    'Copy command'
-                  )}
-                  onClick={() => void copyActiveCommand()}
-                >
-                  <Copy className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top" sideOffset={4}>
-                {translate(
-                  'auto.components.settings.AgentSkillSetupPanel.ed197f59a2',
-                  'Copy command'
-                )}
-              </TooltipContent>
-            </Tooltip>
-          </div>
+          <AgentSkillSetupCommandPreview command={openTerminalCommand} />
           <OnboardingInlineCommandTerminal
             key={terminalAttempt}
             worktreeId={terminalWorktreeId}
             command={openTerminalCommand}
+            forceHostRuntime={corporate}
             prepareCommandForShell={terminalSnapshot.prepareCommandForShell}
             title={terminalTitle}
             description={translate(

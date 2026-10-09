@@ -1,4 +1,6 @@
 import { RuntimeClientError } from '../runtime-client'
+import { resolveCliBuildProfile } from '../packaged-build-profile'
+import { CORPORATE_BUNDLED_SKILL_NAMES } from '../../shared/corporate-skills-policy'
 
 export type BundledSkillGuideReference = {
   name: string
@@ -26,7 +28,11 @@ function canonicalGuides(guides: readonly BundledSkillGuide[]): BundledSkillGuid
  */
 export async function loadCanonicalGuides(): Promise<BundledSkillGuide[]> {
   const { BUNDLED_SKILL_GUIDES } = await import('../bundled-skill-guides.js')
-  return canonicalGuides(BUNDLED_SKILL_GUIDES)
+  return canonicalGuides(BUNDLED_SKILL_GUIDES).filter(
+    (guide) =>
+      resolveCliBuildProfile() !== 'corporate' ||
+      CORPORATE_BUNDLED_SKILL_NAMES.some((name) => name === guide.name)
+  )
 }
 
 export function requireTopic(

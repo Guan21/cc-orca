@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { AlertTriangle } from 'lucide-react'
 import type { OrcaHooks } from '../../../../shared/orca-yaml-hook-types'
 import { Button } from '../ui/button'
@@ -151,6 +152,14 @@ export function RepositoryHooksYamlStatus({
         </p>
         <p className="text-xs text-muted-foreground">{copy.description}</p>
       </div>
+      {getOrcaBuildProfile() === 'corporate' ? (
+        <p className="text-xs text-muted-foreground">
+          {translate(
+            'corporate.config.compatibility',
+            'DevCrew project configuration uses orca.yaml for compatibility. Existing configuration files and workspaces stay in place.'
+          )}
+        </p>
+      ) : null}
       {yamlState === 'loaded' ? (
         <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-lg border border-border/50 bg-muted/30 p-3 font-mono text-[11.5px] leading-5 text-foreground">
           {renderYamlScriptPreview(yamlHooks)}

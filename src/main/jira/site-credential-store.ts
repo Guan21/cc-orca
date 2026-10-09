@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from '
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { getSecretStore } from '../../shared/secret-store'
+import { assertCorporateIntegrationAllowed } from '../../shared/corporate-integration-policy'
 import {
   CredentialDecryptionError,
   credentialFileHasContent,
@@ -166,6 +167,7 @@ function writeEncryptedToken(path: string, apiToken: string): void {
 }
 
 export function readToken(siteId: string): string | null {
+  assertCorporateIntegrationAllowed('jira')
   const cached = cachedTokens.get(siteId)
   if (cached !== undefined) {
     return cached

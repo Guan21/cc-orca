@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { getTrustedUIRendererWebContentsMock, handleMock } = vi.hoisted(() => ({
   getTrustedUIRendererWebContentsMock: vi.fn(),
@@ -13,6 +13,21 @@ vi.mock('./ui', () => ({
 import { handleMainWindowSkillIpc } from './skill-ipc-main-window'
 
 describe('main-window skill IPC', () => {
+  afterEach(() => vi.unstubAllEnvs())
+  it.each(['installShare', 'publishShare', 'startUpdateRun', 'getPackage'])(
+    'blocks corporate %s even from trusted renderer',
+    (operation) => {
+      vi.stubEnv('ORCA_BUILD_PROFILE', 'corporate')
+      const sender = { id: 1 }
+      getTrustedUIRendererWebContentsMock.mockReturnValue(sender)
+      const listener = vi.fn()
+      handleMainWindowSkillIpc(`skills:${operation}`, listener)
+      expect(() => handleMock.mock.calls[0][1]({ sender })).toThrow(
+        'Remote Skills require Corporate authorization'
+      )
+      expect(listener).not.toHaveBeenCalled()
+    }
+  )
   beforeEach(() => {
     handleMock.mockReset()
     getTrustedUIRendererWebContentsMock.mockReset()

@@ -13,7 +13,8 @@ const mocks = vi.hoisted(() => {
       installDisabledReason: 'The selected WSL distro is unavailable.',
       terminalShellOverride: 'powershell.exe'
     },
-    terminalCommand: ''
+    terminalCommand: '',
+    forceHostRuntime: false
   }
 })
 
@@ -25,13 +26,16 @@ vi.mock('@/components/onboarding/OnboardingInlineCommandTerminal', () => ({
   OnboardingInlineCommandTerminal: ({
     command,
     prepareCommandForShell,
-    shellOverride
+    shellOverride,
+    forceHostRuntime
   }: {
     command: string
     prepareCommandForShell?: (command: string, shellOverride?: string) => string
     shellOverride?: string
+    forceHostRuntime?: boolean
   }) => {
     mocks.terminalCommand = prepareCommandForShell?.(command, shellOverride) ?? command
+    mocks.forceHostRuntime = Boolean(forceHostRuntime)
     return null
   }
 }))
@@ -50,6 +54,7 @@ describe('CliSkillSetupTerminal', () => {
   afterEach(() => {
     cleanup()
     Reflect.deleteProperty(window, 'api')
+    delete globalThis.__ORCA_BUILD_PROFILE__
   })
 
   it('runs the Windows host fallback when the selected WSL runtime needs repair', () => {
@@ -61,5 +66,18 @@ describe('CliSkillSetupTerminal', () => {
 
     expect(mocks.terminalCommand).toMatch(/^cmd\.exe \/d \/s \/c /)
     expect(mocks.terminalCommand).not.toContain('wsl.exe')
+  })
+
+  it('uses the installed launcher and bundled skills without npx in Corporate', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    render(
+      <TooltipProvider>
+        <CliSkillSetupTerminal commandName="orca-ide" />
+      </TooltipProvider>
+    )
+    expect(mocks.terminalCommand).toBe(
+      'orca-ide skills install --skill orca-cli --skill orchestration --agent claude-code,codex'
+    )
+    expect(mocks.forceHostRuntime).toBe(true)
   })
 })

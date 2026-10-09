@@ -175,12 +175,17 @@ describe('AgentSkillSetupPanel installed-command call sites', () => {
     expect(source).toContain('writeClipboardText(skillCommand)')
     expect(source).toContain('command={skillCommand}')
     expect(source).toContain('prepareCommandForShell={prepareCommandForShell}')
-    expect(source).toContain('shellOverride={activeSkillRuntime.terminalShellOverride}')
+    expect(source).toContain(
+      'shellOverride={corporate ? undefined : activeSkillRuntime.terminalShellOverride}'
+    )
     expect(source).not.toContain('command={ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND}')
     // This terminal auto-pastes with no install gate, so a repair-required runtime
     // must fall back to the host rather than skip the Windows npx preflight.
     expect(source).toContain(
-      'activeSkillRuntime.installDisabledReason ? undefined : activeSkillRuntime.agentRuntime'
+      'corporate || activeSkillRuntime.installDisabledReason\n      ? undefined\n      : activeSkillRuntime.agentRuntime'
+    )
+    expect(source).toContain(
+      'forceHostRuntime={corporate || Boolean(activeSkillRuntime.installDisabledReason)}'
     )
   })
 

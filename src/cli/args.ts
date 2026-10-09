@@ -265,6 +265,12 @@ export function validateCommandAndFlags(
   const pageAllowed = supportsBrowserPageFlag(spec.path)
   for (const [flag, value] of parsed.flags) {
     const isGlobalFlag = GLOBAL_FLAGS.includes(flag)
+    if (profile === 'corporate' && spec.path[0] === 'skills' && GLOBAL_VALUE_FLAGS.has(flag)) {
+      throw new RuntimeClientError(
+        'invalid_argument',
+        'Remote Skills targets require Corporate authorization. Run Skills on this device without --environment or --pairing-code.'
+      )
+    }
     if (GLOBAL_VALUE_FLAGS.has(flag) && (typeof value !== 'string' || value.length === 0)) {
       throw new RuntimeClientError('invalid_argument', `Flag --${flag} requires a value.`)
     }

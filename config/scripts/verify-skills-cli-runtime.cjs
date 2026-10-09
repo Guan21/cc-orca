@@ -2,6 +2,7 @@ const { existsSync, readFileSync, realpathSync } = require('node:fs')
 const { builtinModules, createRequire, isBuiltin } = require('node:module')
 const { dirname, isAbsolute, join, relative, resolve, sep } = require('node:path')
 const { spawnSync } = require('node:child_process')
+const assert = require('node:assert/strict')
 const ts = require('typescript-api')
 
 const BUILTINS = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]))
@@ -139,6 +140,9 @@ function runCli(outDir, args, timeoutMs = CLI_COMMAND_TIMEOUT_MS) {
   const entry = resolve(outDir, 'cli', 'index.js')
   const env = {
     ...process.env,
+    // Probe the stamped artifact policy without relying on the build shell.
+    ORCA_BUILD_PROFILE: 'default',
+    ORCA_BACKGROUND_LAUNCH: '1',
     NODE_PATH: '',
     // Verification-only explicit config: #90 removed the legacy public Skills repository fallback.
     // Dry-run probes must supply a destination without restoring a production default.
@@ -151,6 +155,7 @@ function runCli(outDir, args, timeoutMs = CLI_COMMAND_TIMEOUT_MS) {
     cwd: dirname(outDir),
     encoding: 'utf8',
     env,
+    windowsHide: true,
     killSignal: 'SIGKILL',
     maxBuffer: 16 * 1024 * 1024,
     timeout: timeoutMs
@@ -185,9 +190,17 @@ function verifySkillsCliRuntime(outDir, artifactRoot = dirname(outDir), options 
   if (options.executeCommands === false) {
     return { closureFiles: closure.length, commands: 0 }
   }
+  const metadataPath = join(absoluteOutDir, 'package.json')
+  const corporate =
+    existsSync(metadataPath) &&
+    JSON.parse(readFileSync(metadataPath, 'utf8')).orcaBuildProfile === 'corporate'
   const list = parseJson('skills list', runCli(absoluteOutDir, ['skills', 'list', '--json']))
   const topicNames = new Set(list.topics?.map((topic) => topic.name))
-  for (const topic of ['orca-cli', 'computer-use']) {
+  const expectedTopics = corporate ? ['orca-cli', 'orchestration'] : ['orca-cli', 'computer-use']
+  if (corporate) {
+    assert.deepEqual([...topicNames].sort(), expectedTopics, 'Unsupported Corporate skill topic')
+  }
+  for (const topic of expectedTopics) {
     if (!topicNames.has(topic)) {
       throw new Error(`[verify-skills-cli-runtime] skills list omitted ${topic}`)
     }
@@ -210,6 +223,20 @@ function verifySkillsCliRuntime(outDir, artifactRoot = dirname(outDir), options 
       '--json'
     ])
   )
+  if (corporate) {
+    assert.equal(install.executed, false)
+    assert.equal(install.source, 'bundled')
+    for (const args of [
+      ['skills', 'get', 'orca-linear'],
+      ['skills', 'update', '--skill', 'orca-cli', '--dry-run', '--json']
+    ]) {
+      assert.throws(
+        () => runCli(absoluteOutDir, args),
+        /Unknown skill|(?:disabled|unavailable) in corporate build/
+      )
+    }
+    return { closureFiles: closure.length, commands: 6 }
+  }
   const update = parseJson(
     'skills update --dry-run',
     runCli(absoluteOutDir, ['skills', 'update', '--skill', 'orca-cli', '--dry-run', '--json'])

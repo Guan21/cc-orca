@@ -651,9 +651,14 @@ jobs:
         with:
           native-runtime: node
 
+      # The Corporate fork has no upstream desktop release tags, even with full history.
+      - name: Verify pinned upstream wire releases
+        run: node config/scripts/prepare-wire-release-refs.mjs
       # A path filter that matches nothing exits 1 ("No test files found"), so this
       # lane cannot report success while running zero tests.
       - name: Old/new client and server compatibility journeys
+        env:
+          ORCA_CROSS_VERSION_BASELINE_REF: v1.4.197
         run: >-
           pnpm exec vitest run --config config/vitest.config.ts
           tests/e2e/cross-version-wire/release-checkout.unit.test.ts

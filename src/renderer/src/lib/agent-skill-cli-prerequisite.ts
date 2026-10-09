@@ -18,7 +18,7 @@ export function getAgentSkillCliPrerequisiteNotice(): string {
     : `Before opening setup, ${productName} may show a system prompt to register the \`orca\` CLI command on PATH.`
 }
 
-export const CLI_PREREQUISITE_REGISTRATION_TOAST = 'Orca needs to register its CLI on PATH.'
+export const CLI_PREREQUISITE_REGISTRATION_TOAST = 'DevCrew needs to register its CLI on PATH.'
 export const CLI_PREREQUISITE_REGISTRATION_TOAST_DESCRIPTION =
   'Approve the system prompt so skill setup can use the DevCrew CLI command.'
 
@@ -69,9 +69,15 @@ export async function ensureOrcaCliAvailableForAgentSkillTerminal({
 }
 
 export async function showOrcaCliRegistrationPromptToast(delayMs = 700): Promise<void> {
-  toast.message(CLI_PREREQUISITE_REGISTRATION_TOAST, {
-    description: CLI_PREREQUISITE_REGISTRATION_TOAST_DESCRIPTION
-  })
+  toast.message(
+    translate('corporate.cli.registrationPrompt', CLI_PREREQUISITE_REGISTRATION_TOAST),
+    {
+      description: translate(
+        'corporate.cli.registrationPromptDescription',
+        CLI_PREREQUISITE_REGISTRATION_TOAST_DESCRIPTION
+      )
+    }
+  )
   await delay(delayMs)
 }
 
@@ -123,7 +129,7 @@ function showCliPrerequisiteWarning(status: CliInstallStatus): void {
     toast.warning(
       translate(
         'auto.lib.agent.skill.cli.prerequisite.windowsPathUnknown',
-        'Orca could not check your Windows user PATH'
+        'DevCrew could not check your Windows user PATH'
       ),
       {
         description:

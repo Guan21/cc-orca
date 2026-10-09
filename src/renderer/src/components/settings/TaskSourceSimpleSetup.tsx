@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { useState } from 'react'
 import { JiraConnectDialog } from '@/components/jira-connect-dialog'
 import { Button } from '@/components/ui/button'
@@ -78,7 +79,7 @@ export function CodeHostSetupSteps(
   )
 }
 
-export function JiraSetupSteps(
+function AvailableJiraSetupSteps(
   props: ConnectStepProps & { onConnected: () => void; onOpenIntegrations: () => void }
 ): React.JSX.Element {
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -121,5 +122,20 @@ export function JiraSetupSteps(
         onConnected={props.onConnected}
       />
     </>
+  )
+}
+
+export function JiraSetupSteps(
+  props: ConnectStepProps & { onConnected: () => void; onOpenIntegrations: () => void }
+): React.JSX.Element {
+  return getOrcaBuildProfile() === 'corporate' ? (
+    <p className="text-xs text-muted-foreground">
+      {translate(
+        'corporate.integrations.authorization',
+        'Jira and Linear require administrator authorization in DevCrew Corporate. Existing credentials are preserved; connection actions are unavailable.'
+      )}
+    </p>
+  ) : (
+    <AvailableJiraSetupSteps {...props} />
   )
 }

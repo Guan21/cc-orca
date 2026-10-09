@@ -172,6 +172,7 @@ describe('OrchestrationPane', () => {
     mocks.skillInstalled = true
     mocks.updateSettings.mockReset()
     delete process.env.ORCA_SKILLS_REPOSITORY_URL
+    delete globalThis.__ORCA_BUILD_PROFILE__
     delete (globalThis as { __ORCA_WEB_CLIENT__?: boolean }).__ORCA_WEB_CLIENT__
   })
 
@@ -195,6 +196,15 @@ describe('OrchestrationPane', () => {
     }
     expect(markup).toMatch(/<button\b[^>]*>[\s\S]*?Update[\s\S]*?<\/button>/)
     expect(markup).toContain('Re-check')
+  })
+
+  it('does not mount the remote install command dialog in Corporate', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    mocks.skillInstalled = false
+    const markup = renderToStaticMarkup(<OrchestrationPane {...getPaneProps()} />)
+    expect(markup).not.toContain('Copy install command')
+    expect(mocks.dialogProps).toEqual([])
+    expect(mocks.panelProps.at(-1)?.bundledSkillName).toBe('orchestration')
   })
 
   it('renders nested worker depth as an unbounded positive whole-number input', () => {

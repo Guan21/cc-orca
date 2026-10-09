@@ -1,4 +1,5 @@
 import { ensureElectronProxyFromEnvironment } from '../network/proxy-settings'
+import { assertCorporateIntegrationAllowed } from '../../shared/corporate-integration-policy'
 import { getMainHttpClient } from '../network/http-client'
 import { withSpan } from '../observability/tracer'
 import type { JiraAuthType, JiraSite } from '../../shared/jira-types'
@@ -54,6 +55,7 @@ function describeErrorCause(error: unknown): string | undefined {
 }
 
 async function jiraFetch(url: string, init: RequestInit): Promise<Response> {
+  assertCorporateIntegrationAllowed('jira')
   return withSpan(
     'jira.request',
     async (span) => {

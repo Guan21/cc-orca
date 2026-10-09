@@ -1,6 +1,9 @@
 import type { UISlice, UISliceGet, UISliceSet } from './ui-slice-contract'
 import { rewindHistoryIndexPastView } from '../worktree-nav-history'
-import { isTopLevelViewEnabledForBuildProfile } from '../../../../../shared/corporate-build-profile'
+import {
+  isCapabilityEnabledForBuildProfile,
+  isTopLevelViewEnabledForBuildProfile
+} from '../../../../../shared/corporate-build-profile'
 
 export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<UISlice> {
   return {
@@ -77,7 +80,7 @@ export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<U
         worktreeNavHistoryIndex: rewindHistoryIndexPastView(state, 'skills')
       })),
     openSkillShare: (shareId) => {
-      if (!isTopLevelViewEnabledForBuildProfile('skills')) {
+      if (!isCapabilityEnabledForBuildProfile('skills')) {
         return
       }
       get().recordViewVisit('skills')
@@ -90,7 +93,7 @@ export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<U
     },
     clearPendingSkillShare: () => set({ pendingSkillShareId: null }),
     openSkillsSharedLinks: () => {
-      if (!isTopLevelViewEnabledForBuildProfile('skills')) {
+      if (!isCapabilityEnabledForBuildProfile('skills')) {
         return
       }
       get().recordViewVisit('skills')

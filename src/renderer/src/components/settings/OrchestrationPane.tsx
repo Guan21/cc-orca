@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
+import { LOCAL_RUNTIME_TARGET } from '@/hooks/installed-agent-skill-discovery'
 import { ArrowRightLeft, GitBranch, ListChecks, Workflow, type LucideIcon } from 'lucide-react'
 import { ORCHESTRATION_SKILL_NAME } from '@/lib/agent-feature-install-commands'
 import type { SkillUsageExample } from '@/lib/skill-usage-example'
@@ -89,7 +91,11 @@ export function OrchestrationPane({
     sources: discoveredSkillSources,
     refresh: refreshOrchestrationSkill
   } = useInstalledAgentSkill(ORCHESTRATION_SKILL_NAME, {
-    discoveryTarget: activeSkillRuntime.discoveryTarget,
+    runtimeTarget: getOrcaBuildProfile() === 'corporate' ? LOCAL_RUNTIME_TARGET : undefined,
+    discoveryTarget:
+      getOrcaBuildProfile() === 'corporate'
+        ? { runtime: 'host' }
+        : activeSkillRuntime.discoveryTarget,
     sourceKinds: GLOBAL_AGENT_SKILL_SOURCE_KINDS
   })
 
@@ -120,6 +126,7 @@ export function OrchestrationPane({
           'auto.components.settings.OrchestrationPane.9bedd2a6e5',
           'Enables agents to hand off context and coordinate work through DevCrew.'
         )}
+        bundledSkillName="orchestration"
         command={orchestrationInstallCommand}
         installedCommand={orchestrationUpdateCommand}
         terminalTitle="Orchestration setup"
@@ -129,7 +136,11 @@ export function OrchestrationPane({
         terminalRuntime={activeSkillRuntime.agentRuntime}
         installed={orchestrationSkillDetected}
         loading={orchestrationSkillLoading}
-        error={activeSkillRuntime.installDisabledReason ?? orchestrationSkillError}
+        error={
+          getOrcaBuildProfile() === 'corporate'
+            ? orchestrationSkillError
+            : (activeSkillRuntime.installDisabledReason ?? orchestrationSkillError)
+        }
         installDisabled={Boolean(activeSkillRuntime.installDisabledReason)}
         icon={<Workflow className="size-5" />}
         preInstallNotice={AGENT_SKILL_CLI_PREREQUISITE_NOTICE}
@@ -148,7 +159,9 @@ export function OrchestrationPane({
         }}
         actionHint={
           // Installed updates stay on the primary panel so there is only one update path.
-          activeSkillRuntime.installDisabledReason || orchestrationSkillDetected ? null : (
+          getOrcaBuildProfile() === 'corporate' ||
+          activeSkillRuntime.installDisabledReason ||
+          orchestrationSkillDetected ? null : (
             <p className="text-[12px] leading-snug text-muted-foreground">
               {translate(
                 'auto.components.settings.OrchestrationPane.832f1f3ee6',
@@ -196,11 +209,13 @@ export function OrchestrationPane({
         />
       ) : null}
 
-      <OrchestrationSkillPromptDialog
-        command={orchestrationInstallCommand}
-        open={skillPromptOpen}
-        onOpenChange={setSkillPromptOpen}
-      />
+      {getOrcaBuildProfile() !== 'corporate' ? (
+        <OrchestrationSkillPromptDialog
+          command={orchestrationInstallCommand}
+          open={skillPromptOpen}
+          onOpenChange={setSkillPromptOpen}
+        />
+      ) : null}
 
       <SkillUsageExamplesSection
         heading={translate(

@@ -151,11 +151,33 @@ afterEach(async () => {
     runtimeEnvironments: [],
     runtimeEnvironmentCatalogSettled: false
   })
+  delete globalThis.__ORCA_BUILD_PROFILE__
   vi.restoreAllMocks()
   Reflect.deleteProperty(window, 'api')
 })
 
 describe('SkillsPage', () => {
+  it('discovers local Corporate skills without querying cloud shares or exposing downloads', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const discover = vi.fn().mockResolvedValue(discoveryResult(['local-skill']))
+    const listOwnedShares = vi.fn()
+    Object.defineProperty(window, 'api', {
+      configurable: true,
+      value: {
+        skills: { ...skillsApi(discover), listOwnedShares },
+        runtimeEnvironments: { call: vi.fn() }
+      }
+    })
+    await renderPage()
+    await flushMicrotasks()
+    expect(discover).toHaveBeenCalled()
+    expect(listOwnedShares).not.toHaveBeenCalled()
+    expect(renderedSkillNames()).toContain('local-skill')
+    expect(container?.textContent).toContain('Local skills')
+    expect(container?.textContent).not.toContain('Install from link')
+    expect(container?.textContent).not.toContain('Share skills')
+  })
+
   it('uses platform-neutral Escape navigation without stealing editable input Escape', async () => {
     const closeSkillsPage = vi.fn()
     const discover = vi.fn().mockResolvedValue(discoveryResult(['alpha']))

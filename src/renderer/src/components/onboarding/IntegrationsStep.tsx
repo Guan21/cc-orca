@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { useEffect, useState } from 'react'
 import { ExternalLink, Github, Terminal } from 'lucide-react'
 import { LinearIcon } from '@/components/icons/LinearIcon'
@@ -137,6 +138,19 @@ export function GitHubRow(props: { compact?: boolean } = {}): React.JSX.Element 
 }
 
 export function LinearRow(props: { compact?: boolean } = {}): React.JSX.Element {
+  return getOrcaBuildProfile() === 'corporate' ? (
+    <p className="text-xs text-muted-foreground">
+      {translate(
+        'corporate.integrations.authorization',
+        'Jira and Linear require administrator authorization in DevCrew Corporate. Existing credentials are preserved; connection actions are unavailable.'
+      )}
+    </p>
+  ) : (
+    <AvailableLinearRow {...props} />
+  )
+}
+
+function AvailableLinearRow(props: { compact?: boolean } = {}): React.JSX.Element {
   const { compact = false } = props
   const linearStatus = useAppStore((s) => s.linearStatus)
   const checkLinearConnection = useAppStore((s) => s.checkLinearConnection)

@@ -22,6 +22,7 @@ import {
 } from './installed-agent-skills-change-event'
 import { useActiveSkillDiscoveryRuntimeTarget } from './use-active-skill-discovery-runtime-target'
 import { useMountedRef } from './useMountedRef'
+import type { RuntimeClientTarget } from '@/runtime/runtime-rpc-client'
 
 /** Placeholder key while the owning runtime is unknown; nothing is cached under it. */
 const UNRESOLVED_RUNTIME_DISCOVERY_KEY = 'runtime:unresolved'
@@ -33,6 +34,7 @@ export const GLOBAL_AGENT_SKILL_SOURCE_KINDS = [
 ] as const satisfies readonly SkillSourceKind[]
 
 type InstalledAgentSkillOptions = {
+  runtimeTarget?: RuntimeClientTarget
   enabled?: boolean
   discoveryTarget?: SkillDiscoveryTarget
   sourceKinds?: readonly SkillSourceKind[]
@@ -138,7 +140,8 @@ export function useInstalledAgentSkillNames(
   const { enabled = true, discoveryTarget, sourceKinds } = options
   const skillNamesKey = skillNames.map(normalizeSkillName).join('\n')
   const candidateSkillNames = useMemo(() => skillNamesKey.split('\n'), [skillNamesKey])
-  const runtimeTarget = useActiveSkillDiscoveryRuntimeTarget()
+  const activeRuntimeTarget = useActiveSkillDiscoveryRuntimeTarget()
+  const runtimeTarget = options.runtimeTarget ?? activeRuntimeTarget
   const discoveryTargetKey = runtimeTarget
     ? getRuntimeScopedSkillDiscoveryKey(runtimeTarget, discoveryTarget)
     : UNRESOLVED_RUNTIME_DISCOVERY_KEY

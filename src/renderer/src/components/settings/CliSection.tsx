@@ -36,7 +36,9 @@ import { WslCliRegistration } from './WslCliRegistration'
 import { useCliRegistrationActions } from './use-cli-registration-actions'
 import { useLocalCliSkillFreshnessName } from './use-local-cli-skill-freshness-name'
 import { translate } from '@/i18n/i18n'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { getProductDisplayName } from '../../../../shared/product-display-name'
+import { LOCAL_RUNTIME_TARGET } from '@/hooks/installed-agent-skill-discovery'
 
 type CliSectionProps = {
   currentPlatform: string
@@ -69,10 +71,6 @@ function getInstallDescription(platform: string): string {
   return 'CLI registration is not yet available on this platform.'
 }
 
-function getFallbackCommandName(platform: string): string {
-  return platform === 'linux' ? 'orca-ide' : 'orca'
-}
-
 export function CliSection({
   currentPlatform,
   settings,
@@ -90,17 +88,17 @@ export function CliSection({
     [settings, wslAvailable, wslCapabilitiesLoading, wslSupportedPlatform]
   )
   const cliSkillFreshnessName = useLocalCliSkillFreshnessName(agentRuntime)
-  const cliSkillDiscoveryTarget = useMemo(
-    () => getSkillDiscoveryTargetForRuntime(agentRuntime),
-    [agentRuntime]
-  )
   const {
     installed: cliSkillDetected,
     loading: cliSkillLoading,
     error: cliSkillError,
     refresh: refreshCliSkill
   } = useInstalledAgentSkill(ORCA_CLI_SKILL_NAME, {
-    discoveryTarget: cliSkillDiscoveryTarget,
+    runtimeTarget: getOrcaBuildProfile() === 'corporate' ? LOCAL_RUNTIME_TARGET : undefined,
+    discoveryTarget:
+      getOrcaBuildProfile() === 'corporate'
+        ? { runtime: 'host' }
+        : getSkillDiscoveryTargetForRuntime(agentRuntime),
     sourceKinds: GLOBAL_AGENT_SKILL_SOURCE_KINDS
   })
   const cliSkillInstallCommand = buildSkillCommandForRuntime(
@@ -134,7 +132,7 @@ export function CliSection({
   )
 
   const closeDialog = useCallback((): void => setDialogOpen(false), [])
-  const commandName = status?.commandName ?? getFallbackCommandName(currentPlatform)
+  const commandName = status?.commandName ?? (currentPlatform === 'linux' ? 'orca-ide' : 'orca')
   const { busyAction, installFailure, clearInstallFailure, install, remove } =
     useCliRegistrationActions({
       commandName,
@@ -389,6 +387,7 @@ export function CliSection({
                     }))
               }}
               onRecheck={refreshCliSkill}
+              bundledSkillName="orca-cli"
               freshnessSkillName={cliSkillFreshnessName}
             />
           </div>
@@ -397,6 +396,14 @@ export function CliSection({
 
       <WslCliRegistration currentPlatform={currentPlatform} />
 
+      {getOrcaBuildProfile() === 'corporate' ? (
+        <p className="text-xs text-muted-foreground">
+          {translate(
+            'corporate.cli.compatibility',
+            'The DevCrew desktop CLI retains the orca command (orca-ide on Linux) for compatibility with existing scripts and agent instructions. Use the command and path shown here.'
+          )}
+        </p>
+      ) : null}
       <CliRegistrationDialog
         busyAction={busyAction}
         commandName={commandName}

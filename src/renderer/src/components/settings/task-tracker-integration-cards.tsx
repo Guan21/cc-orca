@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { useState } from 'react'
 import { AlertCircle, CheckCircle2, LoaderCircle, Unlink } from 'lucide-react'
 import { LinearIcon } from '@/components/icons/LinearIcon'
@@ -17,6 +18,19 @@ import { translate } from '@/i18n/i18n'
 type VerificationResult = { state: 'ok' | 'error'; error?: string }
 
 export function LinearIntegrationCard(): React.JSX.Element {
+  return getOrcaBuildProfile() === 'corporate' ? (
+    <p className="text-xs text-muted-foreground">
+      {translate(
+        'corporate.integrations.authorization',
+        'Jira and Linear require administrator authorization in DevCrew Corporate. Existing credentials are preserved; connection actions are unavailable.'
+      )}
+    </p>
+  ) : (
+    <AvailableLinearIntegrationCard />
+  )
+}
+
+function AvailableLinearIntegrationCard(): React.JSX.Element {
   const linearStatus = useAppStore((s) => s.linearStatus)
   const linearStatusChecked = useAppStore((s) => s.linearStatusChecked)
   const linearStatusContextKey = useAppStore((s) => s.linearStatusContextKey)

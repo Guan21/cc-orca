@@ -1,4 +1,6 @@
 import { useEffect } from 'react'
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
+
 import { getLocalPreflightContext, localPreflightContextKey } from '@/lib/local-preflight-context'
 import { getProviderRuntimeContextKey } from '@/lib/provider-runtime-context'
 import { useAppStore } from '@/store'
@@ -23,6 +25,9 @@ export function useIntegrationProviderStatusRefresh(): void {
   const jiraStatusCurrent = jiraStatusContextKey === providerRuntimeContextKey
 
   useEffect(() => {
+    if (getOrcaBuildProfile() === 'corporate') {
+      return
+    }
     if (!linearStatusCurrent || !linearStatusChecked) {
       void checkLinearConnection()
     }

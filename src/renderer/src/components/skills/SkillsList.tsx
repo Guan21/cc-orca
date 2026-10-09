@@ -1,3 +1,4 @@
+import { getOrcaBuildProfile } from '../../../../shared/corporate-build-profile'
 import { useRef, useState } from 'react'
 import { translate } from '@/i18n/i18n'
 import type { DiscoveredSkill } from '../../../../shared/skills'
@@ -107,7 +108,10 @@ export function SkillsList({
       <SkillDetailDialog
         skill={detailSkill}
         agentByRootPath={agentByRootPath}
-        shareable={detailSkill ? isSkillShareEligible(detailSkill, local) : false}
+        shareable={
+          getOrcaBuildProfile() !== 'corporate' &&
+          (detailSkill ? isSkillShareEligible(detailSkill, local) : false)
+        }
         deletable={detailSkill ? deleteSupported && isSkillDeleteEligible(detailSkill) : false}
         deleteDisabledReason={detailSkill ? deleteReasonFor(detailSkill) : null}
         onOpenChange={(open) => {
@@ -138,7 +142,8 @@ export function SkillsList({
         {skills.map((skill, index) => {
           const duplicateNameSelected =
             !selectedIds.has(skill.id) && selectedNames.has(skill.name.toLocaleLowerCase('en-US'))
-          const shareEligible = isSkillShareEligible(skill, local)
+          const shareEligible =
+            getOrcaBuildProfile() !== 'corporate' && isSkillShareEligible(skill, local)
           const deleteEligible = isSkillDeleteEligible(skill)
           const deleting = selectionMode === 'delete'
           return (

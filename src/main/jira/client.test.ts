@@ -150,6 +150,50 @@ afterEach(() => {
 })
 
 describe('Jira client credential storage', () => {
+  it('blocks Corporate actions before credential decryption, proxy setup and HTTP', async () => {
+    vi.stubEnv('ORCA_BUILD_PROFILE', 'corporate')
+    const decryptString = vi.fn(() => 'token-alpha')
+    writeJiraFiles('site-alpha', 'token-alpha')
+    netFetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ accountId: 'account-alpha', displayName: 'Ada' }), {
+        status: 200
+      })
+    )
+    const jira = await loadClientModule({ encryptionAvailable: true, decryptString })
+    try {
+      await expect(
+        jira.connect({
+          siteUrl: 'example.atlassian.net',
+          email: 'ada@example.com',
+          apiToken: 'token-alpha'
+        })
+      ).resolves.toMatchObject({
+        ok: false,
+        error: expect.stringContaining('administrator authorization')
+      })
+      await expect(jira.testConnection('site-alpha')).resolves.toMatchObject({
+        ok: false,
+        error: expect.stringContaining('administrator authorization')
+      })
+      expect(() => jira.getClients('site-alpha')).toThrow('administrator authorization')
+      await expect(
+        jira.requestWithCredentials(
+          'https://example.atlassian.net',
+          'ada@example.com',
+          'token-alpha',
+          '/rest/api/3/myself'
+        )
+      ).rejects.toThrow('administrator authorization')
+      expect(jira.getStatus()).toMatchObject({ connected: false, sites: [] })
+      expect(decryptString).not.toHaveBeenCalled()
+      expect(resolveProxyMock).not.toHaveBeenCalled()
+      expect(netFetchMock).not.toHaveBeenCalled()
+      expect(readFileSync(tokenPathForSite('site-alpha'), 'utf-8')).toBe('token-alpha')
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+
   it('preserves plaintext fallback and reaches Jira auth header construction', async () => {
     const siteId = 'site-alpha'
     writeJiraFiles(siteId, 'token-alpha')

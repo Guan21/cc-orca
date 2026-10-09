@@ -116,6 +116,7 @@ describe('onboarding feature setup runner', () => {
   afterEach(() => {
     process.env.ORCA_SKILLS_REPOSITORY_URL = TEST_SKILLS_REPOSITORY_URL
     vi.unstubAllGlobals()
+    delete globalThis.__ORCA_BUILD_PROFILE__
   })
 
   it('defaults every setup item on so first-launch setup is ready to run', () => {
@@ -150,6 +151,51 @@ describe('onboarding feature setup runner', () => {
         computerUse: false,
         orchestration: true,
         linearTickets: false
+      })
+    ).toBeNull()
+  })
+
+  it('does not prepare or copy remote skill commands in Corporate even with a repository configured', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const selection = {
+      browserUse: false,
+      computerUse: false,
+      orchestration: true,
+      linearTickets: false
+    }
+    const deps = createDeps({
+      getCliStatus: vi.fn(async () => ({ ...INSTALLED_CLI_STATUS, commandName: 'orca-ide' }))
+    })
+    expect(buildOnboardingFeatureSetupSkillCommand(selection)).toBe(
+      'orca skills install --skill orchestration --agent claude-code,codex'
+    )
+    const result = await runOnboardingFeatureSetup(selection, deps)
+    expect(result.skillInstallCommand).toBe(
+      'orca-ide skills install --skill orchestration --agent claude-code,codex'
+    )
+    expect(result.skillCommandsCopied).toBe(true)
+    expect(deps.clipboardWrites).toEqual([result.skillInstallCommand])
+  })
+
+  it('excludes restricted skills and permissions from Corporate onboarding', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const deps = createDeps()
+    const result = await runOnboardingFeatureSetup(
+      { browserUse: true, orchestration: true, computerUse: true, linearTickets: true },
+      deps
+    )
+    expect(result.skillInstallCommand).toBe(
+      'orca skills install --skill orca-cli --skill orchestration --agent claude-code,codex'
+    )
+    expect(result.selectedIds).toEqual(['browserUse', 'orchestration'])
+    expect(deps.getComputerUsePermissionStatus).not.toHaveBeenCalled()
+    expect(deps.openComputerUsePermissionSetup).not.toHaveBeenCalled()
+    expect(
+      buildOnboardingFeatureSetupSkillCommand({
+        browserUse: false,
+        orchestration: false,
+        computerUse: true,
+        linearTickets: true
       })
     ).toBeNull()
   })
@@ -202,6 +248,28 @@ describe('onboarding feature setup runner', () => {
     expect(installWsl).toHaveBeenCalledWith({ distro: 'Ubuntu' })
     expect(getInstallStatus).not.toHaveBeenCalled()
     expect(install).not.toHaveBeenCalled()
+  })
+
+  it('pins Corporate registration to this device when a WSL runtime is selected', async () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    const getInstallStatus = vi.fn(async () => INSTALLED_CLI_STATUS)
+    const install = vi.fn(async () => INSTALLED_CLI_STATUS)
+    const getWslInstallStatus = vi.fn()
+    const installWsl = vi.fn()
+    vi.stubGlobal('window', {
+      api: { cli: { getInstallStatus, install, getWslInstallStatus, installWsl } }
+    })
+    const deps = createOnboardingFeatureSetupDeps({
+      runtime: 'wsl',
+      wslDistro: 'Ubuntu',
+      label: 'WSL Ubuntu'
+    })
+    await deps.getCliStatus()
+    await deps.installCli()
+    expect(getInstallStatus).toHaveBeenCalledOnce()
+    expect(install).toHaveBeenCalledOnce()
+    expect(getWslInstallStatus).not.toHaveBeenCalled()
+    expect(installWsl).not.toHaveBeenCalled()
   })
 
   it('keeps the runner on the host when the selected WSL runtime needs repair', async () => {

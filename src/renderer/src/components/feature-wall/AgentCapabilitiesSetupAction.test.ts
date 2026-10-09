@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { getDefaultAgentCapabilitySetupSelection } from './agent-capability-setup-status'
 
 const READY_INPUT = {
@@ -14,6 +14,15 @@ const READY_INPUT = {
 }
 
 describe('getDefaultAgentCapabilitySetupSelection', () => {
+  afterEach(() => {
+    delete globalThis.__ORCA_BUILD_PROFILE__
+  })
+  it('excludes unavailable Computer Use from Corporate setup defaults', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    expect(
+      getDefaultAgentCapabilitySetupSelection({ ...READY_INPUT, computerUseSkillInstalled: false })
+    ).toEqual({ browserUse: false, computerUse: false, orchestration: false, linearTickets: false })
+  })
   it('leaves already-ready capabilities unchecked by default', () => {
     expect(getDefaultAgentCapabilitySetupSelection(READY_INPUT)).toEqual({
       browserUse: false,

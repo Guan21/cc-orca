@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RpcContext } from '../core'
 
 vi.mock('electron', () => ({
@@ -10,6 +10,31 @@ vi.mock('../../../skills/skill-discovery-target', () => ({
   discoverSkillsOnTarget: vi.fn(async () => ({ skills: [], sources: [], scannedAt: 1 }))
 }))
 import { SKILL_METHODS } from './skills'
+afterEach(() => vi.unstubAllEnvs())
+
+describe('Corporate Skills RPC security', () => {
+  it.each([
+    'install',
+    'installBundle',
+    'share',
+    'beginUpload',
+    'getInstallProgress',
+    'listManagedInstalls'
+  ])('blocks %s before runtime or network work', (operation) => {
+    vi.stubEnv('ORCA_BUILD_PROFILE', 'corporate')
+    const runtime = new Proxy(
+      {},
+      {
+        get: () => {
+          throw new Error('Runtime accessed before policy')
+        }
+      }
+    )
+    expect(() => method(`skills.${operation}`).handler({}, { runtime } as RpcContext)).toThrow(
+      'Remote Skills require Corporate authorization'
+    )
+  })
+})
 import {
   discoverSkillsOnTarget,
   resolveSkillDiscoveryTarget

@@ -1,5 +1,6 @@
 import type { LinearClient } from '@linear/sdk'
 import { createRequire } from 'node:module'
+import { assertCorporateIntegrationAllowed } from '../../shared/corporate-integration-policy'
 
 // The subset of @linear/sdk that client.ts constructs / type-checks. Declared
 // structurally (not `typeof import('@linear/sdk')`) so this loader never forces
@@ -27,6 +28,7 @@ const requireFromMain = createRequire(__filename)
 let cached: LinearSdkModule | null = null
 
 export function loadLinearSdk(): LinearSdkModule {
+  assertCorporateIntegrationAllowed('linear')
   cached ??= requireFromMain('@linear/sdk') as LinearSdkModule
   return cached
 }

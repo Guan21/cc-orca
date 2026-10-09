@@ -5,6 +5,7 @@ import {
   type OrcaBuildProfile
 } from '../shared/corporate-build-profile'
 import type { PreloadApi } from './api-types'
+import { isLocalSkillOperation } from '../shared/corporate-skills-policy'
 import { CORPORATE_LOCAL_SESSION_HISTORY_METHODS } from '../shared/corporate-session-history-policy'
 
 type PreloadApiCapabilityGate = {
@@ -20,6 +21,8 @@ const CORPORATE_PRELOAD_API_CAPABILITY_GATES = [
   { key: 'mobile', capability: 'mobile', shape: 'namespace' },
   { key: 'nativeChat', capability: 'native-chat', shape: 'namespace' },
   { key: 'plugins', capability: 'plugins', shape: 'namespace' },
+  { key: 'jira', capability: 'jira', shape: 'namespace' },
+  { key: 'linear', capability: 'linear', shape: 'namespace' },
   { key: 'skills', capability: 'skills', shape: 'namespace' },
   { key: 'speech', capability: 'speech', shape: 'namespace' },
   { key: 'ssh', capability: 'ssh-remote', shape: 'namespace' },
@@ -101,11 +104,24 @@ export function filterPreloadApiForBuildProfile<T extends object>(
       continue
     }
     filtered[key] = createDisabledCapabilityReplacement(filtered, capability, key, shape)
-    if (key === 'aiVault' && isBridgeNamespace(api[key])) {
+    const originalHistory = (api as Record<string, unknown>)[key]
+    if (key === 'aiVault' && isBridgeNamespace(originalHistory)) {
       const localHistory = filtered[key] as Record<string, unknown>
       for (const method of CORPORATE_LOCAL_SESSION_HISTORY_METHODS) {
-        if (Object.hasOwn(api[key], method) && typeof api[key][method] === 'function') {
-          localHistory[method] = api[key][method]
+        if (
+          Object.hasOwn(originalHistory, method) &&
+          typeof originalHistory[method] === 'function'
+        ) {
+          localHistory[method] = originalHistory[method]
+        }
+      }
+    }
+    if (key === 'skills' && isBridgeNamespace((api as Record<string, unknown>)[key])) {
+      const original = (api as Record<string, Record<string, unknown>>)[key]
+      const skills = filtered[key] as Record<string, unknown>
+      for (const operation of Object.keys(original)) {
+        if (isLocalSkillOperation(operation)) {
+          skills[operation] = original[operation]
         }
       }
     }

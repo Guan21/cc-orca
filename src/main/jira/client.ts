@@ -1,4 +1,8 @@
 import { CredentialDecryptionError } from '../integration-credential-file'
+import {
+  assertCorporateIntegrationAllowed,
+  corporateIntegrationFailure
+} from '../../shared/corporate-integration-policy'
 import type {
   JiraAuthType,
   JiraConnectArgs,
@@ -29,6 +33,7 @@ import {
 import { getSiteId, normalizeJiraSiteUrl, siteToViewer, toViewer } from './site-identity'
 
 export function getClients(selection?: JiraSiteSelection | null): JiraClientForSite[] {
+  assertCorporateIntegrationAllowed('jira')
   const file = getSiteFile()
   const selected = selection ?? file.selectedSiteId ?? file.activeSiteId
   const isAllSelection = selected === 'all'
@@ -56,6 +61,9 @@ export function getClients(selection?: JiraSiteSelection | null): JiraClientForS
 }
 
 export function getStatus(): JiraConnectionStatus {
+  if (corporateIntegrationFailure('jira')) {
+    return { connected: false, viewer: null, sites: [], activeSiteId: null, selectedSiteId: null }
+  }
   const file = getSiteFile()
   const sites = file.sites.filter((site) => hasStoredToken(site.id))
   const activeSite = sites.find((site) => site.id === file.activeSiteId) ?? sites[0] ?? null
@@ -75,6 +83,10 @@ export function getStatus(): JiraConnectionStatus {
 export async function connect(
   args: JiraConnectArgs
 ): Promise<{ ok: true; viewer: JiraViewer } | { ok: false; error: string }> {
+  const failure = corporateIntegrationFailure('jira')
+  if (failure) {
+    return { ok: false, error: failure.message }
+  }
   let siteUrl: string
   try {
     siteUrl = normalizeJiraSiteUrl(args.siteUrl)
@@ -159,6 +171,9 @@ export function disconnect(siteId?: string): void {
 }
 
 export function selectSite(siteId: JiraSiteSelection): JiraConnectionStatus {
+  if (corporateIntegrationFailure('jira')) {
+    return getStatus()
+  }
   const file = getSiteFile()
   if (siteId !== 'all' && !file.sites.some((site) => site.id === siteId)) {
     return getStatus()

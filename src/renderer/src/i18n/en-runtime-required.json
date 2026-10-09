@@ -1,4 +1,14 @@
 {
+  "corporate": {
+    "cli": {
+      "registrationPrompt": "DevCrew needs to register its CLI on PATH.",
+      "registrationPromptDescription": "Approve the system prompt so skill setup can use the DevCrew CLI command."
+    },
+    "skills": {
+      "bundled": "Install trusted bundled skills on this device without downloading packages. WSL and SSH installation is unavailable. Existing skill names are retained for compatibility.",
+      "restricted": "This skill requires an external service or download that is unavailable without administrator authorization."
+    }
+  },
   "agentsSidebarIntro": {
     "migrated": {
       "action": "Open Agents"
@@ -448,6 +458,9 @@
             "0418f9becc": "open",
             "379d776971": "typing",
             "d20ccf1e61": "done"
+          },
+          "FeatureTipsModal": {
+            "ce13a742d0": "Registered `orca` in PATH."
           }
         },
         "wall": {

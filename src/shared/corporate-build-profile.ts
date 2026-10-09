@@ -19,6 +19,8 @@ export type CorporateBuildCapability =
   | 'mobile'
   | 'native-chat'
   | 'plugins'
+  | 'jira'
+  | 'linear'
   | 'skills'
   | 'speech'
   | 'star-nag'
@@ -87,6 +89,8 @@ const CORPORATE_DISABLED_CAPABILITIES = new Set<CorporateBuildCapability>([
   'mobile',
   'native-chat',
   'plugins',
+  'jira',
+  'linear',
   'skills',
   'speech',
   'star-nag',
@@ -94,13 +98,14 @@ const CORPORATE_DISABLED_CAPABILITIES = new Set<CorporateBuildCapability>([
   'telemetry'
 ])
 
-const CORPORATE_DISABLED_TOP_LEVEL_VIEWS = new Set<TopLevelView>(['skills', 'mobile'])
+const CORPORATE_DISABLED_TOP_LEVEL_VIEWS = new Set<TopLevelView>(['mobile'])
 
 const CORPORATE_CLI_COMMAND_CAPABILITIES = new Map<string, CorporateBuildCapability>([
   ['computer', 'computer-use'],
   ['emulator', 'emulator'],
   ['serve', 'cloud-relay'],
-  ['skills', 'skills']
+  ['jira', 'jira'],
+  ['linear', 'linear']
 ])
 
 export function normalizeOrcaBuildProfile(value: unknown): OrcaBuildProfile {
@@ -290,6 +295,9 @@ export function isCliCommandEnabledForBuildProfile(
   commandPath: readonly string[],
   profile: OrcaBuildProfile = getOrcaBuildProfile()
 ): boolean {
+  if (profile === 'corporate' && commandPath[0] === 'skills') {
+    return ['list', 'get', 'installed', 'install'].includes(commandPath[1] ?? '')
+  }
   const capability = CORPORATE_CLI_COMMAND_CAPABILITIES.get(commandPath[0] ?? '')
   return capability ? isCapabilityEnabledForBuildProfile(capability, profile) : true
 }

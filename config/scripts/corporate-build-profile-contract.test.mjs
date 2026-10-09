@@ -88,7 +88,9 @@ describe('corporate build profile package contract', () => {
     expect(builderConfig).toContain('orcaBuildProfile')
     expect(builderConfig).toContain("process.env.ORCA_BUILD_PROFILE === 'corporate'")
     expect(builderConfig).toContain('stampPackagedCliMetadata')
-    expect(builderConfig).toContain('[verify-skills-cli-runtime] skipped corporate build profile')
+    expect(builderConfig).not.toContain(
+      '[verify-skills-cli-runtime] skipped corporate build profile'
+    )
   })
 
   it('uses DevCrew package identity while keeping default compatibility ids', () => {
