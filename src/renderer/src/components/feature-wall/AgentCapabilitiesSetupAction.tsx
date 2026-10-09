@@ -121,7 +121,13 @@ export function AgentCapabilitiesSetupAction(props: {
           getOrcaBuildProfile() === 'corporate'
             ? {
                 installDisabledReason: null,
-                agentRuntime: { runtime: 'host', label: 'This device' }
+                agentRuntime: {
+                  runtime: 'host',
+                  label: translate(
+                    'auto.components.settings.AccountsPane.9baf45d071',
+                    'This device'
+                  )
+                }
               }
             : activeSkillRuntime
         )

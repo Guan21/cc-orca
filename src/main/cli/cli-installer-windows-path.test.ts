@@ -395,7 +395,7 @@ describe('CliInstaller', () => {
     await expect(installer.getStatus()).resolves.toMatchObject({
       state: 'not_installed',
       commandName: 'orca',
-      detail: `Register ${bundledLauncher} to use the \`orca\` CLI from Command Prompt or PowerShell.`
+      detail: `Register ${bundledLauncher} to use the DevCrew CLI from Command Prompt or PowerShell. The command name is retained for compatibility.`
     })
   })
 })
