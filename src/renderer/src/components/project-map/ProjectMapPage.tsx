@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { AlertTriangle, FolderKanban, Loader2, SearchX } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import type { ProjectStateSnapshot, ProjectTaskState } from '../../../../shared/project-state/project-state'
