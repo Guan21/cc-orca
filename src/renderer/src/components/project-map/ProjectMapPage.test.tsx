@@ -89,7 +89,7 @@ describe('Project Map v1', () => {
       button.textContent?.includes('b')
     )
     expect(other).toBeDefined()
-    await act(async () => fireEvent.click(other!))
+    await act(async () => { fireEvent.click(other!) })
     expect(container?.querySelector('[aria-label="Task evidence"]')?.textContent).toContain('file-b')
     expect(container?.querySelector('[aria-label="Task evidence"]')?.textContent).not.toContain('task-a')
   })
