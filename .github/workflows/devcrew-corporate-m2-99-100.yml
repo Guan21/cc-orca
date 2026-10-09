@@ -1,0 +1,83 @@
+name: DevCrew Corporate M2 ARM64 acceptance DMG
+
+# One-off test build only. The workflow is isolated from PR #102, and the
+# application source is pinned to its CI-green combined #99/#100 commit.
+on:
+  push:
+    branches:
+      - test/devcrew-corporate-m2-99-100-56a2dab
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devcrew-corporate-m2-99-100
+  cancel-in-progress: false
+
+jobs:
+  build-arm64:
+    name: Corporate macOS ARM64 DMG
+    runs-on: macos-15-arm64
+    timeout-minutes: 120
+    env:
+      ORCA_BUILD_PROFILE: corporate
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Checkout exact integrated source (not the workflow commit)
+        uses: actions/checkout@v4
+        with:
+          ref: 56a2dab03d85276dc3f772eebea467041533c0b6
+          persist-credentials: false
+
+      - name: Verify exact source SHA and a clean worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = '56a2dab03d85276dc3f772eebea467041533c0b6'
+          test -z "$(git status --porcelain)"
+          echo 'Validated #99 + #100 source: 56a2dab03d85276dc3f772eebea467041533c0b6'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Install frozen dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build DevCrew Corporate macOS
+        run: pnpm run build:mac:corporate
+
+      - name: Verify ARM64 package and write checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          dmg='dist/devcrew-macos-arm64.dmg'
+          test -s "$dmg"
+          hdiutil imageinfo "$dmg" >/dev/null
+          app='dist/mac-arm64/DevCrew.app'
+          test -d "$app"
+          binary="$app/Contents/MacOS/DevCrew"
+          test -f "$binary"
+          lipo -archs "$binary" | grep -Eq '(^|[[:space:]])arm64($|[[:space:]])'
+          (cd dist && shasum -a 256 devcrew-macos-arm64.dmg > devcrew-macos-arm64.dmg.sha256)
+          cat dist/devcrew-macos-arm64.dmg.sha256
+          echo 'Build is local/ad-hoc validation: not notarized or Developer ID signed.'
+
+      - name: Upload M2 ARM64 DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: devcrew-corporate-m2-99-100-56a2dab
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+          path: |
+            dist/devcrew-macos-arm64.dmg
+            dist/devcrew-macos-arm64.dmg.sha256
