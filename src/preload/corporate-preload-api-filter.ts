@@ -5,6 +5,7 @@ import {
   type OrcaBuildProfile
 } from '../shared/corporate-build-profile'
 import type { PreloadApi } from './api-types'
+import { CORPORATE_LOCAL_SESSION_HISTORY_METHODS } from '../shared/corporate-session-history-policy'
 
 type PreloadApiCapabilityGate = {
   key: keyof PreloadApi
@@ -39,9 +40,7 @@ function createDisabledCapabilityFunction(
   key?: string
 ): () => Promise<never> | (() => undefined) {
   return () =>
-    key?.startsWith('on')
-      ? noopUnsubscribe
-      : Promise.reject(disabledCapabilityError(capability))
+    key?.startsWith('on') ? noopUnsubscribe : Promise.reject(disabledCapabilityError(capability))
 }
 
 function isBridgeNamespace(value: unknown): value is Record<string, unknown> {
@@ -102,6 +101,14 @@ export function filterPreloadApiForBuildProfile<T extends object>(
       continue
     }
     filtered[key] = createDisabledCapabilityReplacement(filtered, capability, key, shape)
+    if (key === 'aiVault' && isBridgeNamespace(api[key])) {
+      const localHistory = filtered[key] as Record<string, unknown>
+      for (const method of CORPORATE_LOCAL_SESSION_HISTORY_METHODS) {
+        if (Object.hasOwn(api[key], method) && typeof api[key][method] === 'function') {
+          localHistory[method] = api[key][method]
+        }
+      }
+    }
   }
   return filtered as T
 }

@@ -3,12 +3,18 @@ import type {
   AiVaultFirstUserPromptResult
 } from '../../shared/ai-vault-types'
 import { readAiVaultFirstUserPromptInBackground } from './session-scanner-background'
+import {
+  assertCorporateSessionHistoryHost,
+  assertCorporateSessionHistoryPaths
+} from '../../shared/corporate-session-history-policy'
 
-export function handleAiVaultGetFirstUserPrompt(
+export async function handleAiVaultGetFirstUserPrompt(
   args?: AiVaultFirstUserPromptArgs
 ): Promise<AiVaultFirstUserPromptResult> {
+  assertCorporateSessionHistoryHost(args?.executionHostId)
+  assertCorporateSessionHistoryPaths([args?.filePath, args?.codexHome])
   if (!args || typeof args.filePath !== 'string' || typeof args.agent !== 'string') {
-    return Promise.resolve({ prompt: null })
+    return { prompt: null }
   }
   return readAiVaultFirstUserPromptInBackground({
     agent: args.agent,

@@ -4,6 +4,7 @@ import {
   isPerAccountManagedCodexHome
 } from '../../../shared/ai-vault-resume-preparation'
 import { LOCAL_EXECUTION_HOST_ID } from '../../../shared/execution-host'
+import { getOrcaBuildProfile } from '../../../shared/corporate-build-profile'
 
 export async function prepareAiVaultSessionForResume(
   session: AiVaultSession
@@ -30,6 +31,9 @@ export async function prepareAiVaultSessionForResume(
 export function aiVaultSessionNeedsResumePreparation(
   session: Pick<AiVaultSession, 'agent' | 'codexHome' | 'executionHostId'>
 ): boolean {
+  if (getOrcaBuildProfile() === 'corporate') {
+    return true
+  }
   if (session.agent !== 'codex') {
     return false
   }
