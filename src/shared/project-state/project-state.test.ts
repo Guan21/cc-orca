@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { ActivityGraph } from '../activity-graph/activity-graph'
-import { applyActivityGraphUpdate, createActivityGraph } from '../activity-graph/activity-graph-reducer'
+import {
+  applyActivityGraphUpdate,
+  createActivityGraph
+} from '../activity-graph/activity-graph-reducer'
 import { projectDevelopmentEventToGraphUpdates } from '../activity-graph/development-event-to-activity-graph'
 import {
   agentActionDevelopmentEventFixture,

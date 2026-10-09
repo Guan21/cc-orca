@@ -2,9 +2,9 @@ import type { ActivityGraph } from '../activity-graph/activity-graph'
 import {
   getNodeById,
   getNodesByType,
-  getOutgoingEdges,
-  getTaskGraph
+  getOutgoingEdges
 } from '../activity-graph/activity-graph-query'
+import { getProjectTaskContext, getTaskLastObservedAt } from './project-task-context'
 
 export type ProjectTaskLifecycle = 'unknown' | 'started' | 'completed'
 export type ProjectTaskRunStatus = 'unknown' | 'started' | 'completed' | 'failed'
@@ -38,20 +38,22 @@ export type ProjectTaskState = {
 export type ProjectStateSnapshot = {
   projectId: string
   tasks: ProjectTaskState[]
-  summary: {
-    total: number
-    unknown: number
-    started: number
-    completed: number
-    withRequestedReviews: number
-    withFailedTests: number
-    withFailedRuns: number
-  }
+  summary: ProjectStateSummary
+}
+
+export type ProjectStateSummary = {
+  total: number
+  unknown: number
+  started: number
+  completed: number
+  withRequestedReviews: number
+  withFailedTests: number
+  withFailedRuns: number
 }
 
 const unique = (values: string[]): string[] => [...new Set(values)].sort()
 const byId = <T extends { id: string }>(left: T, right: T): number =>
-  left.id.localeCompare(right.id)
+  left.id < right.id ? -1 : left.id > right.id ? 1 : 0
 
 /**
  * Read-only, project-scoped selector. An absent relationship remains unknown:
@@ -62,55 +64,56 @@ export function projectActivityGraphState(
   graph: ActivityGraph,
   projectId: string
 ): ProjectStateSnapshot {
-  const tasks = getNodesByType(graph, 'task', projectId).sort(byId).map((task) => {
-    const context = getTaskGraph(graph, projectId, task.metadata.taskId)
-    const runs = getNodesByType(context, 'run').sort(byId).map((run): ProjectTaskRun => {
-      const agentNodeIds = getOutgoingEdges(context, run.id, 'EXECUTED_BY')
-        .map((edge) => getNodeById(context, edge.to))
-        .filter((node): node is NonNullable<typeof node> => node !== undefined)
-        .filter((node) => node.type === 'agent')
-        .map((node) => node.id)
+  const tasks = getNodesByType(graph, 'task', projectId)
+    .sort(byId)
+    .map((task): ProjectTaskState => {
+      const context = getProjectTaskContext(graph, task)
+      const runs = getNodesByType(context, 'run')
+        .sort(byId)
+        .map((run): ProjectTaskRun => {
+          const agentNodeIds = getOutgoingEdges(context, run.id, 'EXECUTED_BY')
+            .map((edge) => getNodeById(context, edge.to))
+            .filter((node): node is NonNullable<typeof node> => node !== undefined)
+            .filter((node) => node.type === 'agent')
+            .map((node) => node.id)
+          return {
+            runId: run.metadata.runId,
+            status: run.metadata.status ?? 'unknown',
+            agentNodeIds: unique(agentNodeIds),
+            evidenceRefs: unique(run.evidenceRefs)
+          }
+        })
+      const changedFiles = unique(getNodesByType(context, 'file').map((file) => file.metadata.path))
+      const results = getNodesByType(context, 'test_result')
+      const packages = getNodesByType(context, 'review_package')
+      const requested = packages.filter((review) => review.metadata.status === 'requested').length
+      const completed = packages.filter((review) => review.metadata.status === 'completed').length
+      const testResults = {
+        passed: results.filter((result) => result.metadata.status === 'passed').length,
+        failed: results.filter((result) => result.metadata.status === 'failed').length,
+        skipped: results.filter((result) => result.metadata.status === 'skipped').length
+      }
       return {
-        runId: run.metadata.runId,
-        status: run.metadata.status ?? 'unknown',
-        agentNodeIds: unique(agentNodeIds),
-        evidenceRefs: unique(run.evidenceRefs)
+        projectId,
+        taskId: task.metadata.taskId,
+        taskNodeId: task.id,
+        lifecycle: task.metadata.status ?? 'unknown',
+        runs,
+        changedFiles,
+        testResults,
+        reviews: { requested, completed },
+        observedSignals: {
+          failedTest: testResults.failed > 0,
+          failedRun: runs.some((run) => run.status === 'failed'),
+          reviewRequested: requested > 0
+        },
+        evidenceRefs: unique([
+          ...context.nodes.flatMap((node) => node.evidenceRefs),
+          ...context.edges.flatMap((edge) => edge.evidenceRefs)
+        ]),
+        lastObservedAt: getTaskLastObservedAt(context, task)
       }
     })
-    const changedFiles = unique(getNodesByType(context, 'file').map((file) => file.metadata.path))
-    const results = getNodesByType(context, 'test_result')
-    const packages = getNodesByType(context, 'review_package')
-    const requested = packages.filter((review) => review.metadata.status === 'requested').length
-    const completed = packages.filter((review) => review.metadata.status === 'completed').length
-    const testResults = {
-      passed: results.filter((result) => result.metadata.status === 'passed').length,
-      failed: results.filter((result) => result.metadata.status === 'failed').length,
-      skipped: results.filter((result) => result.metadata.status === 'skipped').length
-    }
-    return {
-      projectId,
-      taskId: task.metadata.taskId,
-      taskNodeId: task.id,
-      lifecycle: task.metadata.status ?? 'unknown',
-      runs,
-      changedFiles,
-      testResults,
-      reviews: { requested, completed },
-      observedSignals: {
-        failedTest: testResults.failed > 0,
-        failedRun: runs.some((run) => run.status === 'failed'),
-        reviewRequested: requested > 0
-      },
-      evidenceRefs: unique([
-        ...context.nodes.flatMap((node) => node.evidenceRefs),
-        ...context.edges.flatMap((edge) => edge.evidenceRefs)
-      ]),
-      lastObservedAt: context.nodes.reduce(
-        (latest, node) => (node.updatedAt > latest ? node.updatedAt : latest),
-        task.updatedAt
-      )
-    }
-  })
 
   return {
     projectId,
