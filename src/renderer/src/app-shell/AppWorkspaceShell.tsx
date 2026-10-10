@@ -19,6 +19,7 @@ const WorktreeCreationPanel = lazy(
 const TaskPage = lazy(() => import('../components/task-page/TaskPage'))
 const AutomationsPage = lazy(() => import('../components/automations/AutomationsPage'))
 const ProjectPulsePage = lazy(() => import('../components/project-pulse/ProjectPulsePage'))
+const ProjectMapDesktopPage = lazy(() => import('./ProjectMapDesktopPage'))
 const ReviewQueuePage = lazy(() => import('../components/review-queue/ReviewQueuePage'))
 const Settings = lazy(() => import('../components/settings/Settings'))
 const SkillsPage = lazy(() => import('../components/skills/SkillsPage'))
@@ -75,6 +76,7 @@ function ActivePage({ layout }: { layout: AppChromeLayout }): React.JSX.Element 
       {activeView === 'tasks' ? <TaskPage /> : null}
       {activeView === 'automations' ? <AutomationsPage /> : null}
       {activeView === 'activity' ? <ProjectPulsePage /> : null}
+      {activeView === 'project-map' ? <ProjectMapDesktopPage /> : null}
       {activeView === 'review' ? <ReviewQueuePage /> : null}
       {activeView === 'space' ? <WorkspaceSpacePage /> : null}
       {activeView === 'mobile' ? <MobilePage /> : null}

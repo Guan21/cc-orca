@@ -127,6 +127,25 @@ function makeGitLabWorkItem(overrides: Partial<GitLabWorkItem> = {}): GitLabWork
 }
 
 describe('createUISlice settings navigation', () => {
+  it('opens and closes Project Map without changing the active Agent workspace', () => {
+    const store = createUIStore()
+    store.setState({ activeRepoId: 'repo-1', activeWorktreeId: 'wt-1' })
+    store.getState().openProjectMapPage()
+    store.getState().openProjectMapPage()
+    expect(store.getState().activeView).toBe('project-map')
+    expect(store.getState().activeRepoId).toBe('repo-1')
+    expect(store.getState().activeWorktreeId).toBe('wt-1')
+    store.getState().closeProjectMapPage()
+    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().activeWorktreeId).toBe('wt-1')
+  })
+
+  it('restores Project Map through persisted UI hydration', () => {
+    const store = createUIStore()
+    store.getState().hydratePersistedUI(makePersistedUI({ activeView: 'project-map' }), 'startup')
+    expect(store.getState().activeView).toBe('project-map')
+  })
+
   it('accepts a host-qualified setup guide target', () => {
     const store = createUIStore()
     store.getState().openSettingsTarget({ pane: 'setup-guide', repoId: null, hostId: 'ssh:host-1' })
