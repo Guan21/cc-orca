@@ -70,7 +70,7 @@ export function ProjectMapPage({
     message = translate('auto.components.projectMap.loading', 'Loading Project Map...')
   } else if (state === 'error') {
     message =
-      errorMessage ??
+      errorMessage ||
       translate('auto.components.projectMap.error', 'Project Map state could not be loaded.')
   } else if (!snapshot) {
     message = translate(

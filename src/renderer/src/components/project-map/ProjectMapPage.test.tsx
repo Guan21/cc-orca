@@ -27,7 +27,8 @@ async function display(
   snapshot?: ProjectStateSnapshot,
   impactSignals?: readonly ChangeImpactSignal[],
   state?: 'ready' | 'loading' | 'error',
-  projectId?: string
+  projectId?: string,
+  errorMessage?: string
 ) {
   if (!root) {
     container = document.createElement('div')
@@ -41,6 +42,7 @@ async function display(
         impactSignals={impactSignals}
         state={state}
         projectId={projectId}
+        errorMessage={errorMessage}
       />
     )
   })
@@ -83,6 +85,14 @@ afterEach(async () => {
 })
 
 describe('Project Map v1', () => {
+  it('hides prior observations when an error has an empty source message', async () => {
+    const { snapshot } = project()
+    await display(snapshot, undefined, 'error', undefined, '')
+    expect(container?.querySelector('[role="alert"]')?.textContent).toContain('could not be loaded')
+    expect(container?.querySelector('[aria-label="Task evidence"]')).toBeNull()
+    expect(text()).not.toContain('src/auth.ts')
+  })
+
   it('rejects a stale snapshot for a selected project and mixed-project tasks', async () => {
     const { snapshot, signals } = project()
     await display(snapshot, signals, 'ready', 'different-project')
