@@ -17191,6 +17191,27 @@
           "close": "Close DevCrew Project Map",
           "title": "DevCrew Project Map"
         }
+      },
+      "changeImpact": {
+        "lifecycle": {
+          "unknown": "Unknown",
+          "started": "Started (observed)",
+          "completed": "Completed (observed)"
+        },
+        "selected": "Selected change impact",
+        "overlap": "Potential file overlap",
+        "files": "Affected files",
+        "tasks": "Participating tasks and supporting evidence",
+        "task": "Task",
+        "relationships": "CHANGED relationship IDs",
+        "evidence": "Evidence references",
+        "explanation": "Why this candidate was generated",
+        "limits": "Observation limitations",
+        "title": "Change Impact",
+        "historical": "Historical observations; review suggested. Tasks may have completed and observations may be stale.",
+        "candidates": "Overlap candidates",
+        "review": "Review suggested",
+        "empty": "No supported overlap observations are available. This does not establish absence of conflicts."
       }
     },
     "i18n": {
@@ -18137,5 +18158,13 @@
   "corporate.cli.registrationPromptDescription": "Approve the system prompt so skill setup can use the DevCrew CLI command.",
   "corporate.skills.bundled": "Install trusted bundled skills on this device without downloading packages. WSL and SSH installation is unavailable. Existing skill names are retained for compatibility.",
   "corporate.config.compatibility": "DevCrew project configuration uses orca.yaml for compatibility. Existing configuration files and workspaces stay in place.",
-  "corporate.cli.compatibility": "The DevCrew desktop CLI retains the orca command (orca-ide on Linux) for compatibility with existing scripts and agent instructions. Use the command and path shown here."
+  "corporate.cli.compatibility": "The DevCrew desktop CLI retains the orca command (orca-ide on Linux) for compatibility with existing scripts and agent instructions. Use the command and path shown here.",
+  "changeImpact": {
+    "explanation": "{{count}} distinct tasks have evidence-backed CHANGED relationships to the same file. Review suggested.",
+    "limitations": {
+      "historical": "Historical observations may be stale. Tasks may have finished or the file may have changed since observation.",
+      "inference": "Potential file overlap does not establish a merge conflict, dependency, causal impact or concurrent execution.",
+      "falsePositive": "Changes may concern different lines or compatible edits. Supporting evidence does not establish the current file contents."
+    }
+  }
 }
