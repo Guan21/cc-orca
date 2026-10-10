@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   EyeOff,
   Files,
+  FolderKanban,
   Search,
   Smartphone
 } from 'lucide-react'
@@ -73,6 +74,7 @@ const SidebarNav = React.memo(function SidebarNav() {
   useTranslation()
   const worktreePaletteShortcutCombos = useShortcutKeyComboDetails('worktree.palette')
   const openActivityPage = useAppStore((s) => s.openActivityPage)
+  const openProjectMapPage = useAppStore((s) => s.openProjectMapPage)
   const openReviewQueuePage = useAppStore((s) => s.openReviewQueuePage)
   const openAutomationsPage = useAppStore((s) => s.openAutomationsPage)
   const openMobilePage = useAppStore((s) => s.openMobilePage)
@@ -88,6 +90,7 @@ const SidebarNav = React.memo(function SidebarNav() {
   const showSkillsButton = useAppStore((s) => shouldShowSkillsButton(s.settings))
   const automationsActive = activeView === 'automations'
   const activityActive = activeView === 'activity'
+  const projectMapActive = activeView === 'project-map'
   const reviewActive = activeView === 'review'
   const mobileActive = activeView === 'mobile'
   const artifactsActive = activeView === 'artifacts'
@@ -142,6 +145,27 @@ const SidebarNav = React.memo(function SidebarNav() {
       </button>
       <SetupGuideSidebarEntry />
       <SidebarTaskNavButton />
+      <button
+        type="button"
+        onClick={openProjectMapPage}
+        aria-current={projectMapActive ? 'page' : undefined}
+        className={cn(
+          'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight transition-colors',
+          projectMapActive
+            ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
+            : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
+        )}
+      >
+        <FolderKanban
+          className={cn(
+            'size-4 shrink-0',
+            !projectMapActive && 'text-worktree-sidebar-foreground/30'
+          )}
+        />
+        <span className="flex-1">
+          {translate('auto.components.sidebar.SidebarNav.projectMap', 'Project Map')}
+        </span>
+      </button>
       <button
         type="button"
         onClick={openActivityPage}

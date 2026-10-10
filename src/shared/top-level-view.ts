@@ -7,6 +7,7 @@ const TOP_LEVEL_VIEW_LOOKUP: Record<TopLevelView, true> = {
   settings: true,
   tasks: true,
   activity: true,
+  'project-map': true,
   review: true,
   automations: true,
   space: true,

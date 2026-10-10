@@ -108,6 +108,7 @@ export type UiViewHistory =
   | 'settings'
   | 'tasks'
   | 'activity'
+  | 'project-map'
   | 'review'
   | 'automations'
   | 'space'
@@ -144,6 +145,7 @@ export type UISliceCore = {
   previousViewBeforeTasks: Exclude<UiViewHistory, 'tasks'>
   previousViewBeforeSettings: Exclude<UiViewHistory, 'settings'>
   previousViewBeforeActivity: Exclude<UiViewHistory, 'activity'>
+  previousViewBeforeProjectMap: Exclude<UiViewHistory, 'project-map'>
   previousViewBeforeReview: Exclude<UiViewHistory, 'review'>
   previousViewBeforeAutomations: Exclude<UiViewHistory, 'automations'>
   previousViewBeforeSpace: Exclude<UiViewHistory, 'space'>
@@ -166,6 +168,8 @@ export type UISliceCore = {
   closeTaskPage: () => void
   openActivityPage: () => void
   closeActivityPage: () => void
+  openProjectMapPage: () => void
+  closeProjectMapPage: () => void
   openReviewQueuePage: () => void
   closeReviewQueuePage: () => void
   selectedAutomationId: string | null

@@ -1,21 +1,24 @@
 import React, { useMemo, useState } from 'react'
 import { AlertTriangle, FolderKanban, Loader2, SearchX } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { cn } from '@/lib/utils'
+import { ProjectMapTaskDetail, lifecycleLabel } from './ProjectMapTaskDetail'
 import { translate } from '@/i18n/i18n'
-import type { ProjectStateSnapshot, ProjectTaskState } from '../../../../shared/project-state/project-state'
+import type {
+  ProjectStateSnapshot,
+  ProjectTaskState
+} from '../../../../shared/project-state/project-state'
 import type { ChangeImpactSignal } from '../../../../shared/change-impact/change-impact'
 
 type ProjectMapPageProps = {
+  projectId?: string
   snapshot?: ProjectStateSnapshot
   impactSignals?: readonly ChangeImpactSignal[]
   state?: 'ready' | 'loading' | 'error'
   errorMessage?: string
 }
 
-const lifecycleLabels = {
-  unknown: 'Unknown',
-  started: 'Started (observed)',
-  completed: 'Completed (observed)'
-} as const
+const EMPTY_SIGNALS: readonly ChangeImpactSignal[] = []
 
 function taskSelectionKey(task: ProjectTaskState): string {
   return JSON.stringify([task.projectId, task.taskId])
@@ -31,11 +34,18 @@ function Metric({ label, count }: { label: string; count: number }): React.JSX.E
 }
 
 export function ProjectMapPage({
-  snapshot,
-  impactSignals = [],
+  snapshot: suppliedSnapshot,
+  projectId = suppliedSnapshot?.projectId,
+  impactSignals = EMPTY_SIGNALS,
   state = 'ready',
   errorMessage
 }: ProjectMapPageProps): React.JSX.Element {
+  useTranslation()
+  const snapshot =
+    suppliedSnapshot?.projectId === projectId &&
+    suppliedSnapshot?.tasks.every((task) => task.projectId === projectId)
+      ? suppliedSnapshot
+      : undefined
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const tasks = snapshot?.tasks ?? []
   const candidates = useMemo(() => {
@@ -110,8 +120,14 @@ export function ProjectMapPage({
           <p className="mb-3 text-xs text-muted-foreground">
             {translate('auto.components.projectMap.project', 'Project')}: {snapshot?.projectId}
           </p>
-          <section className="mb-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-            <Metric label={translate('auto.components.projectMap.tasks', 'Observed tasks')} count={tasks.length} />
+          <section
+            aria-label={translate('auto.components.projectMap.overview', 'Project overview')}
+            className="mb-4 grid grid-cols-2 gap-2 md:grid-cols-4"
+          >
+            <Metric
+              label={translate('auto.components.projectMap.tasks', 'Observed tasks')}
+              count={snapshot?.summary.total ?? 0}
+            />
             <Metric
               label={translate('auto.components.projectMap.started', 'Started (observed)')}
               count={snapshot?.summary.started ?? 0}
@@ -121,101 +137,97 @@ export function ProjectMapPage({
               count={snapshot?.summary.unknown ?? 0}
             />
             <Metric
-              label={translate('auto.components.projectMap.overlap', 'Historical overlap candidates')}
-              count={candidates.length}
+              label={translate(
+                'auto.components.projectMap.lifecycleCompleted',
+                'Completed (observed)'
+              )}
+              count={snapshot?.summary.completed ?? 0}
+            />
+            <Metric
+              label={translate(
+                'auto.components.projectMap.tasksFailedRuns',
+                'Tasks with observed failed runs'
+              )}
+              count={snapshot?.summary.withFailedRuns ?? 0}
+            />
+            <Metric
+              label={translate(
+                'auto.components.projectMap.tasksFailedTests',
+                'Tasks with observed failed tests'
+              )}
+              count={snapshot?.summary.withFailedTests ?? 0}
+            />
+            <Metric
+              label={translate(
+                'auto.components.projectMap.tasksPendingReviews',
+                'Tasks with pending review observations'
+              )}
+              count={snapshot?.summary.withRequestedReviews ?? 0}
             />
           </section>
           <section className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden rounded-lg border border-border lg:grid-cols-2">
-            <div aria-label="Project tasks" className="min-h-0 overflow-auto border-b border-border lg:border-b-0 lg:border-r">
+            <div
+              aria-label={translate('auto.components.projectMap.taskList', 'Project tasks')}
+              className="min-h-0 overflow-auto scrollbar-sleek border-b border-border lg:border-b-0 lg:border-r"
+            >
               {tasks.map((task) => (
                 <button
                   key={taskSelectionKey(task)}
                   type="button"
                   aria-pressed={selected?.taskNodeId === task.taskNodeId}
+                  data-current={selected?.taskNodeId === task.taskNodeId}
                   onClick={() => setSelectedKey(taskSelectionKey(task))}
-                  className="flex w-full flex-col gap-1 border-b border-border p-4 text-left text-sm hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring"
+                  className={cn(
+                    'flex w-full flex-col gap-1 border-b border-border p-4 text-left text-sm hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring',
+                    selected?.taskNodeId === task.taskNodeId && 'bg-accent'
+                  )}
                 >
                   <span className="font-medium">{task.taskId}</span>
-                  <span className="text-xs text-muted-foreground">{lifecycleLabels[task.lifecycle]}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {lifecycleLabel(task.lifecycle)}
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {translate('auto.components.projectMap.runs', 'Runs')}: {task.runs.length}
                     {' · '}
-                    {translate('auto.components.projectMap.reviewRequested', 'Reviews requested')}: {task.reviews.requested}
+                    {translate(
+                      'auto.components.projectMap.reviewRequested',
+                      'Reviews requested'
+                    )}:{' '}
+                    {task.reviews.requested}
+                    {' · '}
+                    {translate(
+                      'auto.components.projectMap.completedReviews',
+                      'Completed reviews'
+                    )}:{' '}
+                    {task.reviews.completed}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {translate('auto.components.projectMap.tests', 'Test observations')}:{' '}
+                    {task.testResults.passed + task.testResults.failed + task.testResults.skipped}
+                    {' · '}
+                    {translate('auto.components.projectMap.failed', 'Failed')}:{' '}
+                    {task.testResults.failed}
+                  </span>
+                  <span className="break-all text-xs text-muted-foreground">
+                    {translate(
+                      'auto.components.projectMap.lastObserved',
+                      'Last recorded observation'
+                    )}
+                    :{' '}
+                    {task.lastObservedAt ||
+                      translate(
+                        'auto.components.projectMap.noObservation',
+                        'No supported observation'
+                      )}
                   </span>
                 </button>
               ))}
             </div>
-            <div aria-label="Task evidence" className="min-h-0 overflow-auto p-4">
-              {selected ? (
-                <div className="space-y-4 text-sm">
-                  <h2 className="font-semibold">{selected.taskId}</h2>
-                  <p className="text-xs text-muted-foreground">
-                    {translate('auto.components.projectMap.lastObserved', 'Last recorded observation')}:
-                    {' '}{selected.lastObservedAt}
-                  </p>
-                  <p>
-                    {translate('auto.components.projectMap.lifecycle', 'Task lifecycle')}:
-                    {' '}{lifecycleLabels[selected.lifecycle]}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {translate(
-                      'auto.components.projectMap.unknownFields',
-                      'Owner, blockers, module, dependencies and next action: unavailable without authoritative evidence.'
-                    )}
-                  </p>
-                  <div>
-                    <h3 className="font-medium">
-                      {translate('auto.components.projectMap.observations', 'Observed results')}
-                    </h3>
-                    <p>{translate('auto.components.projectMap.failedTests', 'Failed test results')}: {selected.testResults.failed}</p>
-                    <p>{translate('auto.components.projectMap.failedRuns', 'Failed runs')}: {selected.runs.filter((run) => run.status === 'failed').length}</p>
-                    <p>{translate('auto.components.projectMap.completedReviews', 'Completed reviews')}: {selected.reviews.completed}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">
-                      {translate('auto.components.projectMap.files', 'Changed files')}
-                    </h3>
-                    {selected.changedFiles.length ? (
-                      <ul className="list-disc break-all pl-5">
-                        {selected.changedFiles.map((file) => <li key={file}>{file}</li>)}
-                      </ul>
-                    ) : (
-                      <p className="text-muted-foreground">
-                        {translate('auto.components.projectMap.noFiles', 'No attributed file observations')}
-                      </p>
-                    )}
-                  </div>
-                  {candidates.filter((signal) => signal.taskIds.includes(selected.taskId)).map((signal) => (
-                    <div key={signal.signalId} className="rounded-md border border-border p-3">
-                      <h3 className="font-medium">
-                        {translate('auto.components.projectMap.candidate', 'Potential file overlap (historical)')}
-                      </h3>
-                      <p className="break-all text-xs text-muted-foreground">{signal.affectedFiles.join(', ')}</p>
-                      <p className="text-xs">
-                        {translate('auto.components.projectMap.relatedTasks', 'Tasks')}: {signal.taskIds.join(', ')}
-                      </p>
-                      <details className="mt-2">
-                        <summary className="cursor-pointer text-xs">
-                          {translate('auto.components.projectMap.overlapEvidence', 'Per-task relationship evidence')}
-                        </summary>
-                        {signal.taskEvidence.map((entry) => (
-                          <p key={entry.taskNodeId} className="mt-2 break-all text-xs">
-                            {entry.taskId}: {entry.evidenceRefs.join(', ')}
-                          </p>
-                        ))}
-                      </details>
-                    </div>
-                  ))}
-                  <details>
-                    <summary className="cursor-pointer text-xs">
-                      {translate('auto.components.projectMap.evidence', 'Supporting evidence IDs')}
-                    </summary>
-                    <ul className="mt-2 list-disc break-all pl-5 text-xs">
-                      {selected.evidenceRefs.map((id) => <li key={id}>{id}</li>)}
-                    </ul>
-                  </details>
-                </div>
-              ) : null}
+            <div
+              aria-label={translate('auto.components.projectMap.taskEvidence', 'Task evidence')}
+              className="min-h-0 overflow-auto scrollbar-sleek p-4"
+            >
+              {selected ? <ProjectMapTaskDetail task={selected} candidates={candidates} /> : null}
             </div>
           </section>
         </>
