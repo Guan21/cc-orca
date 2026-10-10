@@ -49,6 +49,8 @@ export function ProjectMapPage({
       : undefined
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const tasks = snapshot?.tasks ?? []
+  const selected = tasks.find((task) => taskSelectionKey(task) === selectedKey) ?? tasks[0]
+  const selectedTaskId = selected?.taskId
   const candidates = useMemo(() => {
     if (!snapshot) {
       return []
@@ -60,11 +62,12 @@ export function ProjectMapPage({
           signal.projectId === snapshot.projectId &&
           signal.signalType === 'potential_file_overlap' &&
           signal.taskIds.length >= 2 &&
-          signal.taskIds.every((id) => knownTasks.has(id))
+          signal.taskIds.every((id) => knownTasks.has(id)) &&
+          selectedTaskId !== undefined &&
+          signal.taskIds.includes(selectedTaskId)
       )
       .sort((a, b) => (a.signalId < b.signalId ? -1 : a.signalId > b.signalId ? 1 : 0))
-  }, [snapshot, impactSignals])
-  const selected = tasks.find((task) => taskSelectionKey(task) === selectedKey) ?? tasks[0]
+  }, [snapshot, impactSignals, selectedTaskId])
 
   let message: string | undefined
   if (state === 'loading') {
