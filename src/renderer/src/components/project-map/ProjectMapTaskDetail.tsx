@@ -1,7 +1,6 @@
 import type React from 'react'
 import { translate } from '@/i18n/i18n'
 import type { ProjectTaskState } from '../../../../shared/project-state/project-state'
-import type { ChangeImpactSignal } from '../../../../shared/change-impact/change-impact'
 
 export function lifecycleLabel(lifecycle: ProjectTaskState['lifecycle']): string {
   switch (lifecycle) {
@@ -14,13 +13,7 @@ export function lifecycleLabel(lifecycle: ProjectTaskState['lifecycle']): string
   }
 }
 
-export function ProjectMapTaskDetail({
-  task,
-  candidates
-}: {
-  task: ProjectTaskState
-  candidates: readonly ChangeImpactSignal[]
-}): React.JSX.Element {
+export function ProjectMapTaskDetail({ task }: { task: ProjectTaskState }): React.JSX.Element {
   const tests = task.testResults
   const reviews = task.reviews
   return (
@@ -132,38 +125,6 @@ export function ProjectMapTaskDetail({
           </p>
         )}
       </section>
-      {candidates
-        .filter((signal) => signal.taskIds.includes(task.taskId))
-        .map((signal) => (
-          <div key={signal.signalId} className="rounded-md border border-border p-3">
-            <h3 className="font-medium">
-              {translate(
-                'auto.components.projectMap.candidate',
-                'Potential file overlap (historical)'
-              )}
-            </h3>
-            <p className="break-all text-xs text-muted-foreground">
-              {signal.affectedFiles.join(', ')}
-            </p>
-            <p className="text-xs">
-              {translate('auto.components.projectMap.relatedTasks', 'Tasks')}:{' '}
-              {signal.taskIds.join(', ')}
-            </p>
-            <details className="mt-2">
-              <summary className="cursor-pointer text-xs">
-                {translate(
-                  'auto.components.projectMap.overlapEvidence',
-                  'Per-task relationship evidence'
-                )}
-              </summary>
-              {signal.taskEvidence.map((entry) => (
-                <p key={entry.taskNodeId} className="mt-2 break-all text-xs">
-                  {entry.taskId}: {entry.evidenceRefs.join(', ')}
-                </p>
-              ))}
-            </details>
-          </div>
-        ))}
       <Evidence ids={task.evidenceRefs} />
     </div>
   )
