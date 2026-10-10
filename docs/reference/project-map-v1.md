@@ -11,7 +11,7 @@ Project Map is available from the desktop sidebar beside Activity and Review. It
 - Overview uses the engine summary: total, started, completed, unknown, tasks with failed runs, tasks with failed tests and tasks with pending review observations. The last three count **tasks**, not individual observations or business risk.
 - Task list shows lifecycle, associated run count, requested/completed reviews, test observations and latest supported observation time. Detail shows run IDs/status/agent IDs and run evidence, changed files, passed/failed/skipped tests, requested/completed reviews and supporting evidence IDs.
 - Unknown lifecycle, no supported run/test/review/evidence observation and unavailable source are distinct. Started/completed follow the latest supported lifecycle observation. Started does not establish current online presence.
-- Selected task detail can show historical `potential_file_overlap` candidates, associated task IDs, changed paths and **per-task** evidence references.
+- Project Map composes the independently validated #52-B `ChangeImpactSection` **once** in the task detail pane when supported overlap candidates exist; the previous inline markup is removed. It shows historical `potential_file_overlap` candidates, affected paths and each participant's **independent CHANGED-edge evidence**. A candidate is not a verified conflict, dependency or active-work assertion.
 - Unknown owner, blockers, modules, dependencies and next action stay unavailable. `started` is an event observation, not proof of live agent activity.
 - Project mismatch candidates are excluded; selection keys scope project and task. Selection survives snapshot refresh when the task remains present; otherwise it falls back to the first task. Desktop view changes remount selection; task selection is not persisted to disk. Evidence IDs are inert references, not commands or automatically fetched URLs.
 - Loading/error/empty/unavailable states. When no snapshot is supplied, the page clearly states that no authorized project-state source is connected, rather than showing fabricated demo activity.
@@ -29,7 +29,7 @@ The next source adapter must specify:
 3. Project-switch invalidation and rejection of late responses from the previous project/host.
 4. Loading/failure/unavailable/empty states, and storage/subscription/reconnect/freshness only when implemented and tested separately.
 
-No DevelopmentEvent, Activity Graph or Project State Engine contract changes are needed. The new active-view value is accepted by desktop persistence and the UI schema; older UI RPC peers omit unsupported optional values via existing `tolerateUnknownValues` behavior. #52-B presentation adapter integration remains deferred; the simple historical overlap display does not establish dependency, verified conflict or concurrency.
+No DevelopmentEvent, Activity Graph or Project State Engine contract changes are needed. The new active-view value is accepted by desktop persistence and the UI schema; older UI RPC peers omit unsupported optional values via existing `tolerateUnknownValues` behavior. #52-B reusable presentation is composed in the separate #117 integration slice after #115's domain/presentation review, preserving project authorization/scope checks; it does not establish dependency, verified conflict or concurrency. Do not claim a live source or audited dismiss/ack from a rendered static component.
 
 ## Testing and review
 

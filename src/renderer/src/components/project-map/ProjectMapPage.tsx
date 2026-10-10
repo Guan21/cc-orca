@@ -3,6 +3,7 @@ import { AlertTriangle, FolderKanban, Loader2, SearchX } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { ProjectMapTaskDetail, lifecycleLabel } from './ProjectMapTaskDetail'
+import { ChangeImpactSection } from '../change-impact/ChangeImpactSection'
 import { translate } from '@/i18n/i18n'
 import type {
   ProjectStateSnapshot,
@@ -48,6 +49,8 @@ export function ProjectMapPage({
       : undefined
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const tasks = snapshot?.tasks ?? []
+  const selected = tasks.find((task) => taskSelectionKey(task) === selectedKey) ?? tasks[0]
+  const selectedTaskId = selected?.taskId
   const candidates = useMemo(() => {
     if (!snapshot) {
       return []
@@ -59,11 +62,12 @@ export function ProjectMapPage({
           signal.projectId === snapshot.projectId &&
           signal.signalType === 'potential_file_overlap' &&
           signal.taskIds.length >= 2 &&
-          signal.taskIds.every((id) => knownTasks.has(id))
+          signal.taskIds.every((id) => knownTasks.has(id)) &&
+          selectedTaskId !== undefined &&
+          signal.taskIds.includes(selectedTaskId)
       )
       .sort((a, b) => (a.signalId < b.signalId ? -1 : a.signalId > b.signalId ? 1 : 0))
-  }, [snapshot, impactSignals])
-  const selected = tasks.find((task) => taskSelectionKey(task) === selectedKey) ?? tasks[0]
+  }, [snapshot, impactSignals, selectedTaskId])
 
   let message: string | undefined
   if (state === 'loading') {
@@ -227,7 +231,20 @@ export function ProjectMapPage({
               aria-label={translate('auto.components.projectMap.taskEvidence', 'Task evidence')}
               className="min-h-0 overflow-auto scrollbar-sleek p-4"
             >
-              {selected ? <ProjectMapTaskDetail task={selected} candidates={candidates} /> : null}
+              {selected && snapshot ? (
+                <div className="space-y-6">
+                  <ProjectMapTaskDetail task={selected} />
+                  {candidates.length > 0 ? (
+                    <div className="border-t border-border pt-4">
+                      <ChangeImpactSection
+                        projectId={snapshot.projectId}
+                        snapshot={snapshot}
+                        signals={candidates}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </section>
         </>

@@ -48,7 +48,7 @@ async function display(
   })
 }
 const text = () => container?.textContent ?? ''
-function project() {
+function project(withIndependentOverlap = false) {
   const events = [
     taskLifecycleDevelopmentEventFixture({
       eventId: 'task-a',
@@ -68,6 +68,27 @@ function project() {
       payload: { path: 'src/auth.ts', changeType: 'modified' }
     })
   ]
+  if (withIndependentOverlap) {
+    events.push(
+      fileChangedDevelopmentEventFixture({
+        eventId: 'file-c',
+        taskId: 'c',
+        projectId: 'p',
+        payload: { path: 'src/other.ts', changeType: 'modified' }
+      }),
+      fileChangedDevelopmentEventFixture({
+        eventId: 'file-d',
+        taskId: 'd',
+        projectId: 'p',
+        payload: { path: 'src/other.ts', changeType: 'modified' }
+      }),
+      taskLifecycleDevelopmentEventFixture({
+        eventId: 'task-e',
+        taskId: 'e',
+        projectId: 'p'
+      })
+    )
+  }
   const graph = events.reduce((graph, event) => {
     const update = projectDevelopmentEventToGraphUpdates(event)!
     return applyActivityGraphUpdate(graph, update)
@@ -213,12 +234,17 @@ describe('Project Map v1', () => {
     const { snapshot, signals } = project()
     await display(snapshot, signals)
     expect(text()).toContain('DevCrew Project Map')
-    expect(text()).toContain('Potential file overlap (historical)')
+    expect(text()).toContain('Potential file overlap')
+    expect(container?.querySelectorAll('section[aria-labelledby]')).toHaveLength(1)
+    const impactDetail = container?.querySelector('[aria-label="Selected change impact"]')
+    expect(impactDetail?.textContent).toContain('file-a')
+    expect(impactDetail?.textContent).toContain('file-b')
+    expect(impactDetail?.textContent).not.toContain('task-a')
     expect(text()).toContain('Owner, blockers, module, dependencies and next action: unavailable')
     expect(text()).toContain('task-a')
     const list = container?.querySelector('[aria-label="Project tasks"]')
     expect(list?.querySelectorAll('button')).toHaveLength(2)
-    expect(text()).toContain('Potential file overlap (historical)')
+    expect(text()).toContain('Potential file overlap')
     expect(text()).not.toContain('Confirmed merge conflict')
     const other = [...(list?.querySelectorAll('button') ?? [])].find(
       (button) => button.querySelector('span')?.textContent === 'b'
@@ -233,6 +259,33 @@ describe('Project Map v1', () => {
     expect(container?.querySelector('[aria-label="Task evidence"]')?.textContent).not.toContain(
       'task-a'
     )
+  })
+
+  it('shows only impact involving the selected task and hides unrelated candidates', async () => {
+    const { snapshot, signals } = project(true)
+    expect(signals).toHaveLength(2)
+    await display(snapshot, signals)
+    const detail = () => container?.querySelector('[aria-label="Task evidence"]')?.textContent ?? ''
+    expect(detail()).toContain('src/auth.ts')
+    expect(detail()).not.toContain('src/other.ts')
+    const selectTask = async (id: string) => {
+      const list = container?.querySelector('[aria-label="Project tasks"]')
+      const button = [...(list?.querySelectorAll('button') ?? [])].find(
+        (item) => item.querySelector('span')?.textContent === id
+      )
+      expect(button).toBeDefined()
+      await act(async () => {
+        fireEvent.click(button!)
+      })
+    }
+    await selectTask('c')
+    expect(detail()).toContain('src/other.ts')
+    expect(detail()).not.toContain('src/auth.ts')
+    expect(detail()).toContain('file-c')
+    expect(detail()).toContain('file-d')
+    await selectTask('e')
+    expect(detail()).not.toContain('Potential file overlap')
+    expect(container?.querySelector('[aria-label="Selected change impact"]')).toBeNull()
   })
 
   it('drops foreign-project candidates and resets effective selection after project switches', async () => {
@@ -266,7 +319,7 @@ describe('Project Map v1', () => {
     }
     await display(otherProject, signals)
     expect(text()).toContain('No task observations are available for this project')
-    expect(text()).not.toContain('Potential file overlap (historical)')
+    expect(text()).not.toContain('Potential file overlap')
   })
 
   it('does not declare unknown state as success or active presence', async () => {
