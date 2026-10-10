@@ -17182,9 +17182,6 @@
         "noReviews": "No supported review observation",
         "files": "Changed files",
         "noFiles": "No attributed file observations",
-        "candidate": "Potential file overlap (historical)",
-        "relatedTasks": "Tasks",
-        "overlapEvidence": "Per-task relationship evidence",
         "evidence": "Supporting evidence IDs",
         "noEvidence": "No supported evidence reference",
         "titlebar": {
