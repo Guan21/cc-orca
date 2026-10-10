@@ -53,6 +53,13 @@ describe('ActiveViewPreference', () => {
     })
   })
 
+  it('persists and restores the Project Map desktop view', () => {
+    const preference = new ActiveViewPreference(dataFile, 'terminal')
+    expect(preference.set('project-map')).toBe(true)
+    preference.flushOrThrow()
+    expect(new ActiveViewPreference(dataFile, 'terminal').get()).toBe('project-map')
+  })
+
   it('flushes synchronously for an immediate graceful exit', () => {
     vi.useFakeTimers()
     const preference = new ActiveViewPreference(dataFile, 'terminal')

@@ -76,6 +76,7 @@ export function useAppChromeLayout() {
   const showSidebar =
     activeView !== 'settings' &&
     activeView !== 'activity' &&
+    activeView !== 'project-map' &&
     activeView !== 'review' &&
     activeView !== 'space'
   // Tasks/Landing show the full titlebar only when the sidebar is collapsed; open, they mirror workspace view (creation suppresses it).

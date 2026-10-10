@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { TOGGLE_TERMINAL_PANE_EXPAND_EVENT } from '@/constants/terminal'
 import { ActivityTitlebarControls } from '../components/activity/ActivityTitlebarControls'
 import { ReviewQueueTitlebarControls } from '../components/review-queue/ReviewQueueTitlebarControls'
+import { ProjectMapTitlebarControls } from './ProjectMapTitlebarControls'
 import { useShortcutLabel } from '../hooks/useShortcutLabel'
 import { useAppStore } from '../store'
 import { hasCustomTitleBar } from './app-window-chrome'
@@ -51,6 +52,8 @@ export function TitlebarMainStrip({ layout }: { layout: AppChromeLayout }): Reac
         <ActivityTitlebarControls />
       ) : layout.activeView === 'review' ? (
         <ReviewQueueTitlebarControls />
+      ) : layout.activeView === 'project-map' ? (
+        <ProjectMapTitlebarControls />
       ) : layout.creationLayoutActive ? null : (
         <div
           id="titlebar-tabs"

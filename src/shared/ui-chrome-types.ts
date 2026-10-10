@@ -115,6 +115,7 @@ export type TopLevelView =
   | 'settings'
   | 'tasks'
   | 'activity'
+  | 'project-map'
   | 'review'
   | 'automations'
   | 'space'

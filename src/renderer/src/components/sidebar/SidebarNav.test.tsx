@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
   openTaskPage: vi.fn(),
   openAutomationsPage: vi.fn(),
   openActivityPage: vi.fn(),
+  openProjectMapPage: vi.fn(),
   openReviewQueuePage: vi.fn(),
   openMobilePage: vi.fn(),
   openArtifactsPage: vi.fn(),
@@ -132,6 +133,7 @@ function setSidebarState({
     openTaskPage: mocks.openTaskPage,
     openAutomationsPage: mocks.openAutomationsPage,
     openActivityPage: mocks.openActivityPage,
+    openProjectMapPage: mocks.openProjectMapPage,
     openReviewQueuePage: mocks.openReviewQueuePage,
     openMobilePage: mocks.openMobilePage,
     openArtifactsPage: mocks.openArtifactsPage,
@@ -317,6 +319,17 @@ describe('SidebarNav', () => {
     await clickButton(reviewButton)
 
     expect(mocks.openReviewQueuePage).toHaveBeenCalledOnce()
+  })
+
+  it('opens Project Map from an accessible selected sidebar entry', async () => {
+    mocks.state.activeView = 'project-map'
+    const container = await renderSidebarNav()
+    const button = getButtonByText(container, 'Project Map')
+
+    expect(button.getAttribute('aria-current')).toBe('page')
+    expect(button.type).toBe('button')
+    await clickButton(button)
+    expect(mocks.openProjectMapPage).toHaveBeenCalledOnce()
   })
 
   it('hides Artifacts from its context menu', async () => {

@@ -7,6 +7,14 @@ import {
 
 export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<UISlice> {
   return {
+    openProjectMapPage: () => {
+      set((state) => ({
+        activeView: 'project-map',
+        previousViewBeforeProjectMap:
+          state.activeView === 'project-map' ? state.previousViewBeforeProjectMap : state.activeView
+      }))
+    },
+    closeProjectMapPage: () => set((state) => ({ activeView: state.previousViewBeforeProjectMap })),
     openActivityPage: () => {
       set((state) => ({
         activeView: 'activity',
