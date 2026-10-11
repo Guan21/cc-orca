@@ -925,6 +925,9 @@ jobs:
           ORCA_REUSE_PREPARED_NATIVE_RUNTIME: '1'
         run: pnpm exec electron-builder --config config/electron-builder.config.cjs --dir
 
+      - name: Verify packaged ASAR integrity
+        run: node config/scripts/verify-packaged-asar-integrity.cjs dist/win-unpacked/resources/app.asar
+
       - name: Smoke packaged Windows PTY native capability
         run: pnpm run smoke:windows-pty-native-capability -- --exe=dist/win-unpacked/DevCrew.exe
 

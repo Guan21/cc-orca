@@ -1,4 +1,4 @@
-import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -85,6 +85,42 @@ describe('electron-builder config', () => {
       expect(packs(toolingPath)).toBe(false)
     }
     expect(packs('out/main/index.js')).toBe(true)
+  })
+
+  it('excludes changing acceptance logs and agent state from the packed payload', () => {
+    const matcher = new FileMatcher('/app', '/dest', (value) => value, electronBuilderConfig.files)
+    matcher.prependPattern('**/*')
+    const isPacked = matcher.createFilter()
+    for (const file of [
+      'acceptance/issue-119/typecheck.log',
+      'acceptance/guest-private.png',
+      '.omx/logs/build.log'
+    ]) {
+      expect(isPacked(join('/app', file), { isDirectory: () => false })).toBe(false)
+    }
+    expect(isPacked(join('/app', 'out/main/index.js'), { isDirectory: () => false })).toBe(true)
+  })
+
+  it('rejects an invalid Corporate archive before installer preparation', async () => {
+    const appOutDir = await mkdtemp(join(tmpdir(), 'devcrew-asar-hook-'))
+    try {
+      await mkdir(join(appOutDir, 'resources'))
+      await writeFile(join(appOutDir, 'resources', 'app.asar'), 'truncated')
+      const corporateConfig = withElectronBuilderEnv(
+        { ORCA_BUILD_PROFILE: 'corporate' },
+        (config) => config
+      )
+      await expect(
+        corporateConfig.afterPack({
+          appOutDir,
+          electronPlatformName: 'win32',
+          arch: 1,
+          packager: { appInfo: { version: '1.4.197' } }
+        })
+      ).rejects.toThrow('Packaged ASAR integrity')
+    } finally {
+      await rm(appOutDir, { recursive: true, force: true })
+    }
   })
 
   // Why: `files` is an all-negation list, so electron-builder's default `**/*` packs
