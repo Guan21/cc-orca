@@ -6,16 +6,25 @@ const workflow = parse(readFileSync('.github/workflows/pr.yml', 'utf8'))
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'))
 
 describe('packaged Windows PTY native capability routing', () => {
-  it('runs the packaged executable immediately after the unpacked app is built', () => {
+  it('verifies the packaged ASAR before immediately smoking the Windows PTY executable', () => {
     const job = workflow.jobs.package_windows
     const packageIndex = job.steps.findIndex((step) => step.name === 'Package unpacked app')
+    const integrityIndex = job.steps.findIndex((step) => step.name === 'Verify packaged ASAR integrity')
     const smokeIndex = job.steps.findIndex(
       (step) => step.name === 'Smoke packaged Windows PTY native capability'
     )
+    const integrity = job.steps[integrityIndex]
     const smoke = job.steps[smokeIndex]
 
     expect(job['runs-on']).toBe('windows-2022')
-    expect(smokeIndex).toBe(packageIndex + 1)
+    expect(packageIndex).toBeGreaterThanOrEqual(0)
+    expect(integrityIndex).toBe(packageIndex + 1)
+    expect(smokeIndex).toBe(integrityIndex + 1)
+    expect(integrity.run).toBe(
+      'node config/scripts/verify-packaged-asar-integrity.cjs dist/win-unpacked/resources/app.asar'
+    )
+    expect(integrity.if).toBeUndefined()
+    expect(integrity['continue-on-error']).toBeUndefined()
     expect(smoke.run).toBe(
       'pnpm run smoke:windows-pty-native-capability -- --exe=dist/win-unpacked/DevCrew.exe'
     )

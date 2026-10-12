@@ -18,6 +18,7 @@ const {
   verifyPackagedNodePtyJobOwnership
 } = require('./scripts/verify-packaged-node-pty-job-ownership.cjs')
 const { verifySkillsCliRuntime } = require('./scripts/verify-skills-cli-runtime.cjs')
+const { verifyPackagedAsarIntegrity } = require('./scripts/verify-packaged-asar-integrity.cjs')
 const { verifyStaticAppImagePackage } = require('./scripts/static-appimage-package-contract.cjs')
 const { signWindowsUninstallerViaSignPath } = require('./scripts/windows-uninstaller-signing.cjs')
 
@@ -218,6 +219,9 @@ module.exports = {
     // it is gitignored, but exclude it defensively so a stray local capture at
     // package time never bloats app.asar.
     '!pr-evidence{,/**/*}',
+    // Mutable diagnostic logs can grow between ASAR sizing and payload streaming (#121).
+    '!acceptance{,/**/*}',
+    '!.omx{,/**/*}',
     // Why: local agent/tooling directories may contain worktree symlink loops;
     // they are never runtime inputs and must not be traversed by electron-builder.
     '!{.claude,.grok,.agents,.codex}{,/**/*}',
@@ -334,6 +338,7 @@ module.exports = {
     if (!existsSync(resourcesDir)) {
       throw new Error(`Missing packaged resources directory: ${resourcesDir}`)
     }
+    verifyPackagedAsarIntegrity(join(resourcesDir, 'app.asar'))
     // FpmTarget replaces this with deb/rpm while building those artifacts from the shared app tree.
     if (context.electronPlatformName === 'linux') {
       writeFileSync(join(resourcesDir, 'package-type'), 'AppImage')
@@ -421,6 +426,9 @@ module.exports = {
         context.packager
       )
     }
+    // Verify again after every post-pack transformation, before installer targets run.
+    const integrity = verifyPackagedAsarIntegrity(join(resourcesDir, 'app.asar'))
+    console.log(`[verify-packaged-asar] OK — verified ${integrity.packedFiles} packed files`)
   },
   win: {
     executableName: productName,
