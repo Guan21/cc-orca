@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { cp, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest'
 const require = createRequire(import.meta.url)
 const projectRoot = resolve(import.meta.dirname, '..', '..')
 const electronBuilderConfig = require('../electron-builder.config.cjs')
+const { AsarPackager } = require('app-builder-lib/out/asar/asarUtil.js')
 const {
   createPackagedRuntimeNodeModuleResources,
   findAsarEntry,
@@ -429,6 +430,34 @@ describe('packaged runtime resources', () => {
           'utf8'
         )
         await writeFile(launcherPath, '#!/usr/bin/env bash\n', { encoding: 'utf8', mode: 0o644 })
+
+        // afterPack verifies the real archive; use the pinned packager to
+        // create a minimal valid ASAR rather than disabling the release gate.
+        const asarSource = join(root, 'asar-source')
+        const packedMainDir = join(asarSource, 'out', 'main')
+        const packedHooksDir = join(packedMainDir, 'agent-hooks')
+        await mkdir(packedHooksDir, { recursive: true })
+        const packedFiles = [
+          [join(asarSource, 'package.json'), JSON.stringify({ main: './out/main/index.js' })],
+          [join(packedMainDir, 'index.js'), 'module.exports = {}\n'],
+          [join(packedHooksDir, 'managed-agent-hook-controls.js'), 'module.exports = {}\n']
+        ]
+        for (const [filename, content] of packedFiles) {
+          await writeFile(filename, content, 'utf8')
+        }
+        const files = packedFiles.map(([filename]) => filename)
+        const metadata = new Map(files.map((filename) => [filename, statSync(filename)]))
+        const asarPackager = new AsarPackager(
+          { info: { getWorkspaceRoot: async () => asarSource } },
+          {
+            resourcePath: resourcesDir,
+            defaultDestination: asarSource,
+            options: { smartUnpack: false }
+          }
+        )
+        await asarPackager.pack([
+          { src: asarSource, destination: asarSource, files, metadata }
+        ])
 
         await electronBuilderConfig.afterPack({
           appOutDir: join(root, 'linux-unpacked'),
