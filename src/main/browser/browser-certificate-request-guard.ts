@@ -2,6 +2,7 @@ import type { Session } from 'electron'
 
 import { toSecureCertificateEndpoint } from '../../shared/browser-url'
 import { getProxySessionApplicationReadiness } from '../network/proxy-settings'
+import { observeCorporateRuntimeEgressRendererRequest } from '../network/corporate-runtime-egress-installation'
 import { MAX_CERTIFICATE_GRANTS, type CertificateTrustGrant } from './browser-certificate-challenge'
 
 type CertificateIdentity = Pick<
@@ -47,9 +48,14 @@ export class BrowserCertificateRequestGuard {
     // Why: Chromium caches certificate continuations at session scope. This
     // request gate restores the narrower per-WebContents approval boundary.
     session.webRequest.onBeforeRequest((details, callback) => {
+      const egressBlocked = observeCorporateRuntimeEgressRendererRequest(details.url)
       const readiness = getProxySessionApplicationReadiness(session)
       const answer = (ready: boolean): void => {
-        callback(!ready || this.shouldBlockRequest(session, details) ? { cancel: true } : {})
+        callback(
+          !ready || egressBlocked || this.shouldBlockRequest(session, details)
+            ? { cancel: true }
+            : {}
+        )
       }
       if (typeof readiness === 'boolean') {
         answer(readiness)

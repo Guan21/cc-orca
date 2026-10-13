@@ -11,20 +11,6 @@ import {
 
 type FetchLike = typeof globalThis.fetch
 
-type WebRequestLike = {
-  onBeforeRequest: (
-    filter: { urls: string[] },
-    listener: (
-      details: { url: string; resourceType?: string; webContentsId?: number },
-      callback: (response: { cancel?: boolean }) => void
-    ) => void
-  ) => void
-}
-
-type SessionLike = {
-  readonly webRequest: WebRequestLike
-}
-
 let fetchInstalled = false
 let shellInstalled = false
 
@@ -37,20 +23,19 @@ export function installCorporateRuntimeEgressObserver(): void {
   installFetchObserver()
 }
 
-export function installCorporateRuntimeEgressSessionObserver(session: SessionLike): void {
-  if (!isObserverEnabled()) {
-    return
+// Electron keeps only the last onBeforeRequest listener; request policy owners compose this hook.
+export function observeCorporateRuntimeEgressRendererRequest(url: string): boolean {
+  if (!isObserverEnabled() || !/^(https?|wss?):\/\//i.test(url)) {
+    return false
   }
-  session.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
-    const attempt = recordRuntimeEgressAttempt({
-      processKind: 'renderer',
-      source: 'electron-session-web-request',
-      category: 'automatic-app-owned-egress',
-      destination: details.url,
-      initiatedBy: { kind: 'app-lifecycle', lifecycleState: getRuntimeEgressLifecycleScenario() }
-    })
-    callback({ cancel: shouldBlockAttempt(attempt) })
+  const attempt = recordRuntimeEgressAttempt({
+    processKind: 'renderer',
+    source: 'electron-session-web-request',
+    category: 'automatic-app-owned-egress',
+    destination: url,
+    initiatedBy: { kind: 'app-lifecycle', lifecycleState: getRuntimeEgressLifecycleScenario() }
   })
+  return shouldBlockAttempt(attempt)
 }
 
 export function installCorporateRuntimeEgressShellObserver(shell: Shell): void {
