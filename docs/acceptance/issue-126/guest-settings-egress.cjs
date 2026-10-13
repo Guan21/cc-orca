@@ -29,18 +29,21 @@ const server = http.createServer((_request, response) => {
   response.end('issue-126-loopback-sentinel')
 })
 async function main() {
+  save('probe-status.json', { phase: 'launching', timeoutMs: 300000 })
   app = await electron.launch({
     executablePath,
     args: [],
     chromiumSandbox: true,
-    timeout: 180000,
+    timeout: 300000,
     env: {
       ...cleanEnv,
       ORCA_BACKGROUND_LAUNCH: '1',
       NODE_ENV: 'production',
+      ORCA_STARTUP_DIAGNOSTICS: '1',
       ORCA_CORPORATE_RUNTIME_EGRESS_LOG_PATH: log
     }
   })
+  save('probe-status.json', { phase: 'connected' })
   page = await app.firstWindow({ timeout: 180000 })
   const cdp = await page.context().newCDPSession(page)
   await cdp.send('Network.enable')
@@ -62,6 +65,18 @@ async function main() {
   cdp.on('Network.loadingFailed', (event) =>
     failures.push({ requestId: event.requestId, error: event.errorText })
   )
+  cdp.on('Network.webSocketCreated', (event) => {
+    const url = new URL(event.url)
+    requests.push({
+      scenario,
+      requestId: event.requestId,
+      scheme: url.protocol.slice(0, -1),
+      hostname: url.hostname,
+      port: Number(url.port || (url.protocol === 'wss:' ? 443 : 80)),
+      resourceType: 'WebSocket',
+      loopback: ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)
+    })
+  })
   await page.waitForFunction(() => document.body?.innerText.trim().length > 30, undefined, {
     timeout: 180000
   })
@@ -69,11 +84,26 @@ async function main() {
     packaged: app.isPackaged,
     visibleWindows: BrowserWindow.getAllWindows().filter((win) => win.isVisible()).length,
     observerActive: typeof globalThis.__orcaCorporateRuntimeEgressRecord === 'function',
-    background: process.env.ORCA_BACKGROUND_LAUNCH
+    background: process.env.ORCA_BACKGROUND_LAUNCH,
+    security: BrowserWindow.getAllWindows().map((win) => {
+      const preferences = win.webContents.getLastWebPreferences()
+      return {
+        sandbox: preferences.sandbox,
+        contextIsolation: preferences.contextIsolation,
+        nodeIntegration: preferences.nodeIntegration
+      }
+    })
   }))
   save('launch.json', windows)
   if (!windows.packaged || windows.visibleWindows || !windows.observerActive) {
     throw new Error('Installed hidden observer launch prerequisite failed')
+  }
+  if (
+    windows.security.some(
+      (settings) => !settings.sandbox || !settings.contextIsolation || settings.nodeIntegration
+    )
+  ) {
+    throw new Error('Corporate renderer security preferences changed')
   }
   async function snapshot(label) {
     save(
@@ -91,21 +121,50 @@ async function main() {
           .map((img) => new URL(img.currentSrc || img.src).hostname)
       }))
     )
-    await page.screenshot({
-      path: path.join(output, `${label}.png`),
-      mask: [
-        page.locator('.xterm-screen'),
-        page.locator('.editor-header-path'),
-        page.getByText(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|[A-Z]:[\\/]Users[\\/]/)
-      ]
-    })
+    const snapshotData = JSON.parse(fs.readFileSync(path.join(output, `${label}.json`), 'utf8'))
+    if (snapshotData.externalImages.length) {
+      throw new Error('Remote image resource present in renderer snapshot')
+    }
+    await page
+      .screenshot({
+        path: path.join(output, `${label}.png`),
+        timeout: 15000,
+        mask: [
+          page.locator('.xterm-screen'),
+          page.locator('.editor-header-path'),
+          page.getByText(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|[A-Z]:[\\/]Users[\\/]/)
+        ]
+      })
+      .catch((error) => {
+        const timedOut = error.name === 'TimeoutError'
+        save(`${label}-screenshot-status.json`, {
+          status: timedOut ? 'BLOCKED' : 'FAIL',
+          reason: timedOut
+            ? 'Hidden renderer screenshot timed out; DOM and request observation continue'
+            : 'Hidden renderer screenshot failed'
+        })
+        if (!timedOut) {
+          throw error
+        }
+      })
   }
   await snapshot('startup')
+  const closeProjectMap = page.getByRole('button', {
+    name: 'Close DevCrew Project Map',
+    exact: true
+  })
+  if (await closeProjectMap.count()) {
+    await closeProjectMap.click({ timeout: 30000 })
+  }
+  const backToApp = page.getByRole('button', { name: 'Back to app', exact: true })
+  if (await backToApp.count()) {
+    await backToApp.click({ timeout: 30000 })
+  }
   const scopeStarted = Date.now()
   for (let cycle = 1; cycle <= 2; cycle++) {
     scenario = `settings-${cycle}`
     await app.evaluate(() => globalThis.__orcaCorporateRuntimeEgressSetScenario?.('open-settings'))
-    await page.keyboard.press('Control+,')
+    await page.getByRole('button', { name: 'Settings', exact: true }).click({ timeout: 30000 })
     await page
       .getByRole('button', { name: 'General', exact: true })
       .first()
@@ -123,7 +182,7 @@ async function main() {
       await page.getByRole('button', { name: 'Add app', exact: true }).click()
       const presets = await page.getByRole('menuitem').allTextContents()
       const glyphs = await page.getByRole('menuitem').locator('svg').count()
-      save('preset-menu.json', { entries: presets, glyphs })
+      save('preset-menu-icons.json', { entries: presets, glyphs })
       if (!presets.some((label) => label.includes('VS Code')) || glyphs < presets.length) {
         throw new Error('Preset icon menu not exercised')
       }
@@ -178,11 +237,19 @@ async function main() {
   scenario = 'controlled-loopback'
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
   const port = server.address().port
-  await page.evaluate(async (port) => {
-    await fetch(`http://127.0.0.1:${port}/issue-126-controlled`, {
-      mode: 'no-cors',
-      cache: 'no-store'
-    })
+  const transfer = await page.evaluate(async (port) => {
+    try {
+      await fetch(
+        `http://127.0.0.1:${port}/issue-126-controlled?token=issue126-redaction-fixture`,
+        {
+          mode: 'no-cors',
+          cache: 'no-store'
+        }
+      )
+      return { status: 'completed' }
+    } catch (error) {
+      return { status: 'rejected', errorType: error.name }
+    }
   }, port)
   await new Promise((resolve) => setTimeout(resolve, 1000))
   const records = fs
@@ -206,11 +273,15 @@ async function main() {
   )
   save('controlled-observer.json', {
     controlledDestination: { hostname: '127.0.0.1', port },
+    transfer,
     cdpRequests: independent,
     attribution
   })
   if (!independent.length || !attribution.length) {
     throw new Error('Missing independent controlled request or renderer observer attribution')
+  }
+  if (fs.readFileSync(log, 'utf8').includes('issue126-redaction-fixture')) {
+    throw new Error('Sensitive query fixture leaked into runtime evidence')
   }
   const policy = await page.evaluate(async () => {
     const results = []
@@ -233,6 +304,23 @@ async function main() {
             : 'FAIL'
         })
       }
+    }
+    try {
+      const spawned = await window.api.pty.spawn({
+        cols: 80,
+        rows: 24,
+        launchAgent: 'cursor',
+        command: 'cursor'
+      })
+      await window.api.pty.kill(spawned.id)
+      results.push({ method: 'pty.spawn.cursor', verdict: 'FAIL' })
+    } catch (error) {
+      results.push({
+        method: 'pty.spawn.cursor',
+        verdict: String(error?.message || error).includes('AGENT_NOT_ALLOWED_BY_ORG_POLICY')
+          ? 'PASS'
+          : 'FAIL'
+      })
     }
     return results
   })
@@ -285,7 +373,13 @@ main()
   .finally(async () => {
     save('all-cdp.json', { requests, failures })
     if (app) {
-      await app.close().catch(() => {})
+      try {
+        await app.close()
+        save('diagnostic-cleanup.json', { gracefulClose: true })
+      } catch {
+        save('diagnostic-cleanup.json', { gracefulClose: false })
+        process.exitCode = 1
+      }
     }
     if (server.listening) {
       await new Promise((resolve) => server.close(resolve))

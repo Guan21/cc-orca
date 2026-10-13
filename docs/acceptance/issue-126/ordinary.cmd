@@ -1,0 +1,2 @@
+@echo off
+powershell.exe -NoLogo -NoProfile -Command "& ([scriptblock]::Create([IO.File]::ReadAllText('%~dp0guest-install-retest.ps1'))) -OrdinaryOnly -OutputDirectory '\\VBOXSVR\DevCrew126Output\ordinary-final'"

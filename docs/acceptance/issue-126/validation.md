@@ -6,19 +6,19 @@ and package inputs have no diff from this source commit.
 
 ## Automated and package outcomes
 
-| Check | Outcome | Evidence |
-| --- | --- | --- |
-| Corporate preset/custom icons, Settings rendering/drafts, external editor launches | PASS | 66 tests; icon regression first failed on remote images/preloads |
-| Renderer observer, proxy/certificate/preview regression suites | PASS | 50 tests; listener replacement and WS/WSS failures first reproduced |
-| Corporate network/build policy, Settings support/update, static scanner and packaging contracts | PASS | 124 tests |
-| Generated Corporate build profile and branding contracts | PASS | 7 tests |
-| Node, CLI, renderer typecheck | PASS | All three projects exited 0; checks serialized/bounded after host memory contention |
-| Lint/format | PASS | Targeted oxlint/oxfmt and actual pre-commit normal/React Doctor lint |
-| Static endpoint scanner | PASS | 12,348 files; zero new forbidden endpoints; no baseline expansion |
-| Native Electron modules | PASS | Patched process ownership/CreationTime probes; process-tree import inspection clean |
-| Corporate NSIS build | PASS | `pnpm run build:win:corporate`, exit 0 |
-| Packaged integrity | PASS | 2,277 ASAR files; patched ConPTY ownership, daemon-entry and plugin-resource checks |
-| Installed Windows 10 VM retest (scoped #126) | **PASS** | Normal install/start/hydration, Settings request/observer checks and VM cleanup verified; [final native record](https://github.com/Guan21/cc-orca/issues/126#issuecomment-6145003669) |
+| Check                                                                                           | Outcome  | Evidence                                                                                                                                                                              |
+| ----------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Corporate preset/custom icons, Settings rendering/drafts, external editor launches              | PASS     | 66 tests; icon regression first failed on remote images/preloads                                                                                                                      |
+| Renderer observer, proxy/certificate/preview regression suites                                  | PASS     | 50 tests; listener replacement and WS/WSS failures first reproduced                                                                                                                   |
+| Corporate network/build policy, Settings support/update, static scanner and packaging contracts | PASS     | 124 tests                                                                                                                                                                             |
+| Generated Corporate build profile and branding contracts                                        | PASS     | 7 tests                                                                                                                                                                               |
+| Node, CLI, renderer typecheck                                                                   | PASS     | All three projects exited 0; checks serialized/bounded after host memory contention                                                                                                   |
+| Lint/format                                                                                     | PASS     | Targeted oxlint/oxfmt and actual pre-commit normal/React Doctor lint                                                                                                                  |
+| Static endpoint scanner                                                                         | PASS     | 12,348 files; zero new forbidden endpoints; no baseline expansion                                                                                                                     |
+| Native Electron modules                                                                         | PASS     | Patched process ownership/CreationTime probes; process-tree import inspection clean                                                                                                   |
+| Corporate NSIS build                                                                            | PASS     | `pnpm run build:win:corporate`, exit 0                                                                                                                                                |
+| Packaged integrity                                                                              | PASS     | 2,277 ASAR files; patched ConPTY ownership, daemon-entry and plugin-resource checks                                                                                                   |
+| Installed Windows 10 VM retest (scoped #126)                                                    | **PASS** | Normal install/start/hydration, Settings request/observer checks and VM cleanup verified; [final native record](https://github.com/Guan21/cc-orca/issues/126#issuecomment-6145003669) |
 
 The full changed-file type-aware audit was cancelled to free memory for the
 headless guest after its normal scan reported zero findings. Required project
@@ -47,17 +47,22 @@ DevCrew 1.4.197 Corporate test installer. Local artifact:
 - **Startup/security:** ordinary installed production startup and renderer hydration PASS. Packaged sandbox and context isolation enabled, Node integration disabled. Corporate telemetry, Linear/Jira preload capabilities denied; an unauthorized Cursor `pty.spawn` was denied.
 - **Settings/UI:** two complete Settings open/close cycles, preset/local SVG icons and an unsaved custom draft PASS. Roughly 153 seconds of scoped interaction and idle observation. **Independent CDP captured zero HTTP(S)/WebSocket requests in this Settings scope**, including zero Google/gstatic images; nine runtime observer records included zero external destinations. A controlled loopback request was independently seen by CDP and attributed by the renderer observer.
 - **Important semantics:** the controlled loopback transfer **completed**. The runtime decision `disabled` with reason `automatic_app_egress_requires_explicit_enablement` is a logging/classification field, **not** evidence of a transport block. Controlled sensitive query strings were absent from 21 emitted JSON/JSONL evidence files.
-- **Screenshot limitations:** startup and second-cycle screenshots timed out, recorded **BLOCKED**. First-cycle/menu/draft screenshots and both-cycle DOM/network evidence support the *scoped* acceptance. No broader full-UI screenshot PASS is asserted.
+- **Screenshot limitations:** startup and second-cycle screenshots timed out, recorded **BLOCKED**. First-cycle/menu/draft screenshots and both-cycle DOM/network evidence support the _scoped_ acceptance. No broader full-UI screenshot PASS is asserted.
 - **Cleanup:** VM normal poweroff verified; only the temporary `DevCrew126Output` share removed after shutdown. Four snapshots and the original read-only share preserved.
 - **Not exercised:** OS-wide and all-process egress, full startup-wide network audit, every provider/Linear/Jira endpoint, SSH, all allowlist combinations and macOS ARM64.
 
 Earlier attempts included account-unlock BLOCKED, diagnostic launch timeout, unsupported keyboard shortcut from restored Project Map, screenshot timeout, and a persisted Settings view. The final privately retained diagnostic is `attempt-5`; a separate ordinary startup is recorded as `ordinary-final`. These limitations and attempts are not discarded.
 
-### Passing harness provenance — follow-up before final approval
+### Passing harness provenance — reconciled
 
-The final PASS was achieved with a **corrected local acceptance harness**: normal Settings-button navigation; restored-view normalization; screenshot failures recorded independently of mandatory DOM/network assertions; loopback request evidence retained on denial; controlled WebSocket observation; privacy/provider checks; and outer-script error propagation. These corrections are stated in the #126 GitHub report; the **exact local passing script bytes have not been independently compared with the tracked versions in this PR**.
-
-Until the sanitized final scripts are committed and checked against the executed `attempt-5`, treat the tracked harness as a historical version, not as proof that `guest-install-retest.ps1` and `guest-settings-egress.cjs` in this branch reproduce the final PASS. This is an evidence/reproducibility review item, **not** evidence that the native app fix failed. Retain private logs, screenshots, account information and machine-local details locally.
+See [harness-reconciliation.md](./harness-reconciliation.md) and
+[harness-provenance.json](./harness-provenance.json) for the retained staged script
+hashes, exact execution chains, private evidence relationship and differences
+from the final tracked harness. Hashes are retrospective, not launch-time attestations.
+The retry wrapper did not propagate failures in the executed copy; probe exit and
+cleanup artifacts independently support the PASS. The tracked retry wrapper now
+propagates failure; screenshot handling now distinguishes timeouts from other errors.
+Those final tightenings were not native-rerun. No production code or package changed.
 
 ## CI and disposition
 
