@@ -4,6 +4,7 @@ import type { OpenInApplication } from '../../../shared/ui-chrome-types'
 import { cn } from './utils'
 import { translate } from '@/i18n/i18n'
 import { createLocalizedCatalog } from '@/i18n/localized-catalog'
+import { getOrcaBuildProfile } from '../../../shared/corporate-build-profile'
 
 export type OpenInAppPreset = {
   id: string
@@ -60,7 +61,7 @@ export function OpenInApplicationIcon({
   size?: number
 }): React.JSX.Element {
   const preset = getOpenInAppPreset(application)
-  if (preset) {
+  if (preset && getOrcaBuildProfile() !== 'corporate') {
     return (
       <img
         src={`https://www.google.com/s2/favicons?domain=${preset.faviconDomain}&sz=64`}

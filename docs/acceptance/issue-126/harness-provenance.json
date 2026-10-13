@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "recordedOnUtc": "2026-10-13",
+  "basis": "https://github.com/Guan21/cc-orca/issues/126#issuecomment-6145003669",
+  "applicationSourceSHA": "fc29ba4b366cbd72e1d8f39442626de6028b18ef",
+  "hashSemantics": "SHA256 of retained staged raw bytes; trackedSourceLfSHA256 hashes tracked source with CRLF converted to LF. Hashes collected retrospectively, not at process launch.",
+  "executionManifestAtLaunch": false,
+  "scripts": [
+    {
+      "file": "guest-settings-egress.cjs",
+      "retainedStagedSHA256": "BCBA0AAEC05E84C208D1FD0FF74D7DD1BE50E498F36D22A329452088DD4A24BE",
+      "trackedSourceLfSHA256": "54EF7CC5BB3B8AD6EC4D9A5C9479CBEA421A9918211DF70FC8BE086571A11B3D",
+      "sourceEqualAfterLfNormalization": false
+    },
+    {
+      "file": "guest-install-retest.ps1",
+      "retainedStagedSHA256": "7B92D02171078134695B01F2F260010F998C18A655B0B6CA4495693947A57BCE",
+      "trackedSourceLfSHA256": "7B92D02171078134695B01F2F260010F998C18A655B0B6CA4495693947A57BCE",
+      "sourceEqualAfterLfNormalization": true
+    },
+    {
+      "file": "guest-retry.ps1",
+      "retainedStagedSHA256": "B3263299F195AAF50AB8303D105D2DD6D82E7A101E68AD296227B5586381FEC5",
+      "trackedSourceLfSHA256": "BF800017F5FB74D53A6BFC875D2961718F40AD8025CC965578D5A545C454D8F4",
+      "sourceEqualAfterLfNormalization": false
+    },
+    {
+      "file": "retry.cmd",
+      "retainedStagedSHA256": "71BB9BAF0D84BEE9C7C92E0C9FBF64356105DFAF933F0C827BE5AB37E71282A2",
+      "trackedSourceLfSHA256": "C3A6C478D992565566FB5D0C2CFD2B9CCB7E085AFB999A12B7D82F9A75CAEBE7",
+      "sourceEqualAfterLfNormalization": true
+    },
+    {
+      "file": "ordinary.cmd",
+      "retainedStagedSHA256": "E1CDDCDD531D690493EE07BE0E50447286AB8F7F1496A34AD7183D887A4A8385",
+      "trackedSourceLfSHA256": "C9509CE8A04B370AF428868F9E1D533A3362EEC895ADD9A6393EB5CD62462796",
+      "sourceEqualAfterLfNormalization": true
+    },
+    {
+      "file": "install.cmd",
+      "retainedStagedSHA256": "1BAB5B7641B959C3C6C8ABFB7ECADB3E79631A3C412F9CABF066530B23AF7D6E",
+      "trackedSourceLfSHA256": "1BAB5B7641B959C3C6C8ABFB7ECADB3E79631A3C412F9CABF066530B23AF7D6E",
+      "sourceEqualAfterLfNormalization": true
+    }
+  ],
+  "dependency": {
+    "name": "playwright-core",
+    "version": "1.59.1",
+    "retainedPackageJsonSHA256": "D4B8727C495FF2632084E922EE1C7F19A608ED23D86E8F3B0BA0FF317EEA58EC",
+    "retainedTreeSHA256": "C9C1ADB7C941A8207B50A7DE7D6D068257565F9B4834E1135E813BBD32E0CF21",
+    "treeAlgorithm": "Sorted relative POSIX paths; UTF-8 lines path + TAB + uppercase file SHA256 + LF. Files only.",
+    "executionHashAtLaunch": false
+  },
+  "attempts": {
+    "attempt-5": {
+      "entrypoint": "retry.cmd",
+      "wrapper": "guest-retry.ps1",
+      "diagnostic": "guest-settings-egress.cjs",
+      "evidence": [
+        "result.json",
+        "probe-exit.json",
+        "diagnostic-cleanup.json",
+        "settings-cdp.json",
+        "controlled-observer.json",
+        "restricted-policy.json"
+      ]
+    },
+    "ordinary-final": {
+      "entrypoint": "ordinary.cmd",
+      "wrapper": "guest-install-retest.ps1",
+      "arguments": ["-OrdinaryOnly", "-OutputDirectory", "<private ordinary-final output>"],
+      "evidence": ["installed-hashes.json", "ordinary-startup.json"]
+    }
+  },
+  "privacy": "Evidence filenames and private attempt IDs only; raw logs, screenshots, account data and host paths remain private."
+}

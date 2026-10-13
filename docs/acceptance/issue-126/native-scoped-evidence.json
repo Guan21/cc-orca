@@ -1,0 +1,137 @@
+{
+  "verdict": "PASS",
+  "scope": "Installed Corporate Settings operations in one renderer",
+  "sourceSHA": "fc29ba4b366cbd72e1d8f39442626de6028b18ef",
+  "installerSHA256": "CD5AB0B5B0E5DBDC2921DBB08173D29F8B732982E28D79418605569EBD8E8AB5",
+  "installedHashes": {
+    "profile": "corporate",
+    "exeSHA256": "BCF7303807570C683979217BA1BE1672B283CF8626F7213E12C02D34507A738A",
+    "asarSHA256": "4D2ACC35A212DDA9B65FE5C2DAC4D48E547B1A2E16D9E7EB775AC77AEFC79BB4"
+  },
+  "installerExitCode": 0,
+  "ordinaryStartup": {
+    "profile": "corporate",
+    "production": true,
+    "alive": true,
+    "rendererLoaded": true,
+    "debugArguments": false,
+    "background": true,
+    "cleanup": "normal Windows shutdown; no forced process termination",
+    "bypassEnvironmentVariables": []
+  },
+  "launch": {
+    "packaged": true,
+    "visibleWindows": 0,
+    "observerActive": true,
+    "background": "1",
+    "security": [
+      {
+        "sandbox": true,
+        "contextIsolation": true,
+        "nodeIntegration": false
+      }
+    ]
+  },
+  "settings": {
+    "verdict": "PASS",
+    "settingsCycles": 2,
+    "scopedIdleSeconds": 90,
+    "unexpectedRequests": 0,
+    "controlledRendererAttribution": 1,
+    "independentControlledRequests": 1,
+    "productionApproval": false
+  },
+  "independentCdp": {
+    "observer": "independent CDP Network.requestWillBeSent",
+    "requests": [],
+    "failures": [],
+    "unexpected": []
+  },
+  "runtimeSettings": {
+    "scopeStarted": 1791886834758,
+    "scopeEnded": 1791886987649,
+    "recordCount": 9,
+    "unexpected": []
+  },
+  "controlledRequest": {
+    "controlledDestination": {
+      "hostname": "127.0.0.1",
+      "port": 49861
+    },
+    "transfer": {
+      "status": "completed"
+    },
+    "cdpRequests": [
+      {
+        "scenario": "controlled-loopback",
+        "requestId": "1892.892",
+        "scheme": "http",
+        "hostname": "127.0.0.1",
+        "port": 49861,
+        "resourceType": "Fetch",
+        "loopback": true
+      }
+    ],
+    "attribution": [
+      {
+        "timestamp": "2026-10-13T10:23:07.746Z",
+        "scenario": "idle",
+        "process": {
+          "kind": "renderer"
+        },
+        "source": "electron-session-web-request",
+        "category": "automatic-app-owned-egress",
+        "destination": {
+          "scheme": "http",
+          "hostname": "127.0.0.1",
+          "port": 49861,
+          "normalized": "http://127.0.0.1:49861",
+          "loopback": true
+        },
+        "initiatedBy": {
+          "kind": "app-lifecycle",
+          "lifecycleState": "idle"
+        },
+        "decision": {
+          "status": "disabled",
+          "reason": "automatic_app_egress_requires_explicit_enablement"
+        }
+      }
+    ]
+  },
+  "presetMenu": {
+    "entries": ["VS CodeAdded", "Cursor", "Zed", "Custom app"],
+    "glyphs": 5
+  },
+  "restrictedPolicy": [
+    {
+      "method": "telemetryGetConsentState",
+      "verdict": "PASS"
+    },
+    {
+      "method": "linear.status",
+      "verdict": "PASS"
+    },
+    {
+      "method": "jira.status",
+      "verdict": "PASS"
+    },
+    {
+      "method": "pty.spawn.cursor",
+      "verdict": "PASS"
+    }
+  ],
+  "diagnosticCleanup": {
+    "gracefulClose": true
+  },
+  "probeExitCode": 0,
+  "redactionArtifactCount": 21,
+  "sensitiveFixtureOccurrences": 0,
+  "screenshotLimitations": ["startup", "settings-2"],
+  "productionApproval": false,
+  "prReview": "Historical native-run status; later COMMENT review requires final harness review",
+  "issue126Disposition": "OPEN pending PR review",
+  "issue119Disposition": "OPEN",
+  "phase2Disposition": "OPEN",
+  "harnessProvenance": "harness-provenance.json"
+}
