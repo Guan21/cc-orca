@@ -11,6 +11,7 @@ import {
 } from '../../../../shared/development-event-fixtures'
 import type { DevelopmentEvent } from '../../../../shared/development-event-types'
 import { ProjectPulsePage } from './ProjectPulsePage'
+import { projectPulseDemoEvents } from './project-pulse-demo-events'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
@@ -76,6 +77,49 @@ afterEach(async () => {
 })
 
 describe('ProjectPulsePage', () => {
+  it('hides previous activity while loading, on error, and when the source is removed', async () => {
+    await renderPage({ events: projectPulseDemoEvents })
+    expect(text()).toContain('Commit abc1234 created')
+    for (const state of ['loading', 'error'] as const) {
+      await act(async () => {
+        root?.render(<ProjectPulsePage events={projectPulseDemoEvents} state={state} />)
+      })
+      expect(text()).not.toContain('Commit abc1234 created')
+      expect(text()).not.toContain('Active agents')
+    }
+    expect(text()).toContain('The project activity source could not be loaded.')
+    await act(async () => {
+      root?.render(<ProjectPulsePage />)
+    })
+    expect(text()).toContain('Project activity unavailable')
+    expect(text()).not.toContain('Active agents')
+    await act(async () => {
+      root?.render(<ProjectPulsePage events={[]} />)
+    })
+    expect(text()).toContain('No recent DevCrew activity')
+    expect(text()).not.toContain('Project activity unavailable')
+  })
+
+  it('shows source unavailable without injecting demo evidence or zero metrics', async () => {
+    await renderPage({})
+    expect(text()).toContain('Project activity unavailable')
+    expect(text()).toContain('No authorized project activity source is connected.')
+    for (const marker of [
+      'Active tasks',
+      'Active agents',
+      'Recent failures',
+      'Completed tasks',
+      'Task #42',
+      'PR #105',
+      'abc1234',
+      'Claude',
+      'Codex'
+    ]) {
+      expect(text()).not.toContain(marker)
+    }
+    expect(container?.querySelectorAll('li, select')).toHaveLength(0)
+  })
+
   it('renders DevCrew pulse counters and a chronological timeline from DevelopmentEvent fixtures', async () => {
     await renderPage({
       events: [

@@ -14563,6 +14563,20 @@
         "description": "在侧边栏中将此工作区嵌套到另一个工作树下。不会更改基础分支。",
         "searchPlaceholder": "搜索工作树...",
         "noMatches": "无匹配项。"
+      },
+      "projectPulse": {
+        "page": {
+          "sourceUnavailable": "项目活动不可用",
+          "noAuthorizedSource": "未连接经过授权的项目活动数据源。",
+          "connectedSourceEmptyHint": "已连接的数据源中没有符合这些筛选条件的活动。",
+          "sourceLoadError": "无法加载项目活动数据源。"
+        }
+      },
+      "reviewQueue": {
+        "page": {
+          "sourceUnavailable": "审查队列数据源不可用",
+          "noAuthorizedSource": "未连接经过授权的项目审查数据源。"
+        }
       }
     },
     "i18n": {

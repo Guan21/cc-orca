@@ -17024,7 +17024,11 @@
           "activityUnavailable": "DevCrew activity is unavailable",
           "fixtureLoadError": "The activity fixture collection could not be loaded.",
           "title": "DevCrew Project Pulse",
-          "subtitle": "Recent project activity projected from DevelopmentEvent v1."
+          "subtitle": "Recent project activity projected from DevelopmentEvent v1.",
+          "sourceUnavailable": "Project activity unavailable",
+          "noAuthorizedSource": "No authorized project activity source is connected.",
+          "connectedSourceEmptyHint": "The connected source has no activity matching these filters.",
+          "sourceLoadError": "The project activity source could not be loaded."
         }
       },
       "reviewQueue": {
@@ -17114,7 +17118,9 @@
           "urgent": "High urgency",
           "blocked": "Blocked",
           "pending": "Pending human",
-          "failedTests": "Failed tests"
+          "failedTests": "Failed tests",
+          "sourceUnavailable": "Review Queue source unavailable",
+          "noAuthorizedSource": "No authorized project review source is connected."
         },
         "titlebar": {
           "close": "Close DevCrew Review Queue",

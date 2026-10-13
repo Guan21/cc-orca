@@ -14,6 +14,8 @@ import {
 import type { DevelopmentEvent } from '../../../../shared/development-event-types'
 import type { DisagreementSignal } from '../../../../shared/disagreement-signal-types'
 import { ReviewQueuePage } from './ReviewQueuePage'
+import { createReviewQueueDemoEvents } from './review-queue-demo-events'
+import { createReviewQueueDemoDisagreementSignals } from './review-queue-demo-reviews'
 
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
@@ -74,6 +76,90 @@ afterEach(async () => {
 })
 
 describe('ReviewQueuePage', () => {
+  it('hides old reviews during source retrieval and replaces details with the next source', async () => {
+    const events = createReviewQueueDemoEvents()
+    await renderPage({ events })
+    clickByText('Document Review Queue rollout')
+    for (const state of ['loading', 'error'] as const) {
+      await act(async () => {
+        root?.render(<ReviewQueuePage events={events} state={state} />)
+      })
+      expect(text()).not.toContain('Document Review Queue rollout')
+      expect(text()).not.toContain('Needs review')
+      expect(container?.querySelector('[data-review-queue-detail]')).toBeNull()
+    }
+    const nextEvents = [
+      pullRequestDevelopmentEventFixture({
+        projectId: 'project-next',
+        eventId: 'next-pr',
+        payload: {
+          provider: 'gitlab',
+          pullRequestId: '200',
+          url: 'https://gitlab.example/project/merge_requests/200',
+          title: 'Next project review'
+        }
+      })
+    ]
+    await act(async () => {
+      root?.render(<ReviewQueuePage events={nextEvents} />)
+    })
+    expect(container?.querySelector('[data-review-queue-detail]')?.textContent).toContain(
+      'Next project review'
+    )
+    expect(text()).not.toContain('Document Review Queue rollout')
+    await act(async () => {
+      root?.render(<ReviewQueuePage events={[]} />)
+    })
+    expect(text()).toContain('Nothing needs review')
+    expect(text()).not.toContain('Next project review')
+    expect(text()).not.toContain('source unavailable')
+  })
+
+  it('shows source unavailable without injecting review evidence or metrics', async () => {
+    await renderPage({})
+    expect(text()).toContain('Review Queue source unavailable')
+    expect(text()).toContain('No authorized project review source is connected.')
+    for (const marker of [
+      'Needs review',
+      'High urgency',
+      'Blocked',
+      'Failed tests',
+      'Reviewer disagreement',
+      'PR #85',
+      'PR #91',
+      'PR #93',
+      'PR #94',
+      'PR #96'
+    ]) {
+      expect(text()).not.toContain(marker)
+    }
+    expect(container?.querySelector('[data-review-queue-detail]')).toBeNull()
+    expect(openUrl).not.toHaveBeenCalled()
+  })
+
+  it('clears selected evidence when the source becomes unavailable or empty', async () => {
+    const events = createReviewQueueDemoEvents()
+    await renderPage({ events })
+    clickByText('Document Review Queue rollout')
+    expect(text()).toContain('Review completed')
+    await act(async () => {
+      root?.render(<ReviewQueuePage />)
+    })
+    expect(text()).toContain('Review Queue source unavailable')
+    expect(text()).not.toContain('Document Review Queue rollout')
+    await act(async () => {
+      root?.render(<ReviewQueuePage events={[]} />)
+    })
+    expect(text()).toContain('Nothing needs review')
+    expect(text()).not.toContain('Review completed')
+    await act(async () => {
+      root?.render(<ReviewQueuePage events={events} />)
+    })
+    expect(container?.querySelector('[data-review-queue-detail]')?.textContent).not.toContain(
+      'Document Review Queue rollout'
+    )
+  })
+
   it('renders prioritized human-review work from DevelopmentEvent input', async () => {
     await renderPage({
       events: [
@@ -262,7 +348,10 @@ describe('ReviewQueuePage', () => {
   })
 
   it('renders explicit reason and reviewed evidence labels from demo DevelopmentEvents', async () => {
-    await renderPage({})
+    await renderPage({
+      events: createReviewQueueDemoEvents(),
+      disagreementSignals: createReviewQueueDemoDisagreementSignals()
+    })
 
     expect(text()).toContain('3Needs review')
     expect(text()).toContain('Agent execution failed')

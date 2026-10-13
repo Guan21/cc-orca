@@ -75,9 +75,9 @@ function ActivePage({ layout }: { layout: AppChromeLayout }): React.JSX.Element 
       {activeView === 'artifacts' ? <ArtifactsPage /> : null}
       {activeView === 'tasks' ? <TaskPage /> : null}
       {activeView === 'automations' ? <AutomationsPage /> : null}
-      {activeView === 'activity' ? <ProjectPulsePage /> : null}
+      {activeView === 'activity' ? <ProjectPulsePage state="unavailable" /> : null}
       {activeView === 'project-map' ? <ProjectMapDesktopPage /> : null}
-      {activeView === 'review' ? <ReviewQueuePage /> : null}
+      {activeView === 'review' ? <ReviewQueuePage state="unavailable" /> : null}
       {activeView === 'space' ? <WorkspaceSpacePage /> : null}
       {activeView === 'mobile' ? <MobilePage /> : null}
       {activeView === 'terminal' && creationLayoutActive && activePendingCreationId ? (

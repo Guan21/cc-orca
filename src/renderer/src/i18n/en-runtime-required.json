@@ -779,6 +779,10 @@
           "testsFailed": "Tests failed",
           "testsPassed": "Tests passed",
           "testsSkipped": "Tests skipped"
+        },
+        "page": {
+          "emptyTimelineHint": "Change the filters or connect producer integrations in a follow-up.",
+          "fixtureLoadError": "The activity fixture collection could not be loaded."
         }
       },
       "reviewQueue": {
