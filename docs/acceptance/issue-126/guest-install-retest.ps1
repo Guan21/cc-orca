@@ -18,6 +18,11 @@ try {
   $profilePath = Join-Path $env:LOCALAPPDATA 'Programs\orca\resources\app.asar.unpacked\out\package.json'
   $profile = Get-Content $profilePath -Raw | ConvertFrom-Json
   if ($profile.orcaBuildProfile -ne 'corporate') { throw 'Installed build profile is not Corporate' }
+  $asar = Join-Path $env:LOCALAPPDATA 'Programs\orca\resources\app.asar'
+  $installedExeSHA256 = (Get-FileHash $exe -Algorithm SHA256).Hash
+  $installedAsarSHA256 = (Get-FileHash $asar -Algorithm SHA256).Hash
+  Save-Result 'installed-hashes' @{exeSHA256=$installedExeSHA256; asarSHA256=$installedAsarSHA256; profile=$profile.orcaBuildProfile}
+  if ($installedExeSHA256 -ne $manifest.exeSHA256 -or $installedAsarSHA256 -ne $manifest.asarSHA256) { throw 'Installed executable or ASAR differs from source-pinned build' }
   $env:ORCA_CORPORATE_RUNTIME_EGRESS_LOG_PATH = Join-Path $output 'ordinary-egress.jsonl'
   $ordinary = Start-Process $exe -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $output 'ordinary-stdout.log') -RedirectStandardError (Join-Path $output 'ordinary-stderr.log')
   Start-Sleep -Seconds 30

@@ -1,0 +1,52 @@
+{
+  "verdict": "BLOCKED",
+  "sourceSHA": "fc29ba4b366cbd72e1d8f39442626de6028b18ef",
+  "installerSHA256": "CD5AB0B5B0E5DBDC2921DBB08173D29F8B732982E28D79418605569EBD8E8AB5",
+  "installerBytes": 180676935,
+  "stagedInstallerHashMatched": true,
+  "expectedInstalledExeSHA256": "BCF7303807570C683979217BA1BE1672B283CF8626F7213E12C02D34507A738A",
+  "expectedInstalledAsarSHA256": "4D2ACC35A212DDA9B65FE5C2DAC4D48E547B1A2E16D9E7EB775AC77AEFC79BB4",
+  "installedNewBuildVerified": false,
+  "vm": {
+    "os": "Windows 10 x64",
+    "provider": "VirtualBox",
+    "display": "headless",
+    "state": "running",
+    "desktop": "locked at normal password sign-in",
+    "existingSnapshotsRetained": 3,
+    "newPreRetestSnapshot": "pre-issue126-fc29ba4-20261013",
+    "newPreRetestSnapshotUUID": "0ef09032-688a-4c42-9758-7e43cee3dcf4"
+  },
+  "checks": {
+    "nativeInstall": "BLOCKED",
+    "ordinaryInstalledStartup": "BLOCKED",
+    "settingsOpenCloseReopenIdle": "BLOCKED",
+    "independentCdpZeroUnexpectedEgress": "BLOCKED",
+    "controlledRendererObserverAttribution": "BLOCKED",
+    "installedRestrictedPolicy": "BLOCKED"
+  },
+  "reason": "Existing guest desktop requires normal unlock. No approved guestcontrol credentials or credential environment channel were found. No password guessing, reset, security-policy changes, or host window activation were performed.",
+  "egressEvidence": "No new installed application was exercised; no zero-egress or observer-accuracy native claim is supported.",
+  "cleanup": {
+    "verdict": "BLOCKED",
+    "normalAcpiShutdownRequested": true,
+    "finalVmState": "running",
+    "forcePowerOffUsed": false,
+    "temporaryOutputShareRemoval": "BLOCKED: VirtualBox rejects machine write lock while session remains running",
+    "temporaryOutputShare": "DevCrew126Output",
+    "temporaryOutputScope": "This run's ignored private evidence directory only",
+    "originalArtifactShareRetained": true,
+    "originalSnapshotUUIDsVerified": [
+      "348dc6db-ee48-428d-b971-e679ad84ee4e",
+      "c16a485c-3392-4689-8cf3-9915ae42ed38",
+      "a71bff44-eca4-4f40-a466-0eb8c0a8ba5c"
+    ],
+    "newSnapshotUUIDVerified": "0ef09032-688a-4c42-9758-7e43cee3dcf4",
+    "stagedInstallerFinalHashMatched": true,
+    "followUp": "Use normal guest shutdown after authorized unlock; remove only DevCrew126Output once VM is powered off. Keep staging and all snapshots."
+  },
+  "toolingGap": "Required electron SKILL.md absent from installed skill locations; existing hidden-renderer Playwright/CDP harness is staged for execution after unlock.",
+  "productionApproval": false,
+  "issue119RemainsOpen": true,
+  "phase2RemainsOpen": true
+}
