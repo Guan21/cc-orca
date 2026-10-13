@@ -18,7 +18,7 @@ and package inputs have no diff from this source commit.
 | Native Electron modules | PASS | Patched process ownership/CreationTime probes; process-tree import inspection clean |
 | Corporate NSIS build | PASS | `pnpm run build:win:corporate`, exit 0 |
 | Packaged integrity | PASS | 2,277 ASAR files; patched ConPTY ownership, daemon-entry and plugin-resource checks |
-| Installed Windows 10 VM retest | BLOCKED | Existing guest account locked at sign-in; staged installer hash verified, new build not installed/exercised |
+| Installed Windows 10 VM retest (scoped #126) | **PASS** | Normal install/start/hydration, Settings request/observer checks and VM cleanup verified; [final native record](https://github.com/Guan21/cc-orca/issues/126#issuecomment-6145003669) |
 
 The full changed-file type-aware audit was cancelled to free memory for the
 headless guest after its normal scan reported zero findings. Required project
@@ -38,44 +38,32 @@ executable, and ASAR SHA256 values. The 180,676,935-byte NSIS is a **NotSigned**
 DevCrew 1.4.197 Corporate test installer. Local artifact:
 `dist/devcrew-windows-setup.exe`. Retain the full build log privately.
 
-## Native gate
+## Native gate — final scoped PASS
 
-See [native-retest.json](./native-retest.json). Normal installed startup,
-Settings open/close/reopen/idle, independent CDP zero unexpected requests,
-controlled renderer observer attribution, and installed restricted policy are
-all **BLOCKED / NOT EXERCISED** for this new package. The previous Google/gstatic
-native failure is not a pass for this fix. Zero records are not zero-egress proof.
+**Superseding result:** [#126 installed Windows native acceptance](https://github.com/Guan21/cc-orca/issues/126#issuecomment-6145003669) is **PASS for the explicitly tested Settings scope**. The earlier VM-lock reports remain valid historical attempts but are no longer the current release-blocking result. See [native-retest.json](./native-retest.json) for a sanitized machine-readable summary.
 
-The existing VM account must be unlocked through its normal access channel to
-resume the staged retest. Earlier snapshots/evidence are retained. No password
-guessing/reset or security-policy changes were used.
+- **Exact built source:** `fc29ba4b366cbd72e1d8f39442626de6028b18ef`. The final pre-reconciliation PR head `78ad1652a222e912322de3b8c0fb190ca06ff2d4` differed only in `docs/acceptance/issue-126/` evidence/harness paths, not production/package inputs.
+- **Installer:** SHA256 `CD5AB0B5B0E5DBDC2921DBB08173D29F8B732982E28D79418605569EBD8E8AB5`, 180,676,935 bytes, Corporate DevCrew 1.4.197, **NotSigned** for local testing. NSIS exit 0; installed EXE SHA256 `BCF7303807570C683979217BA1BE1672B283CF8626F7213E12C02D34507A738A` and installed ASAR SHA256 `4D2ACC35A212DDA9B65FE5C2DAC4D48E547B1A2E16D9E7EB775AC77AEFC79BB4` matched.
+- **Startup/security:** ordinary installed production startup and renderer hydration PASS. Packaged sandbox and context isolation enabled, Node integration disabled. Corporate telemetry, Linear/Jira preload capabilities denied; an unauthorized Cursor `pty.spawn` was denied.
+- **Settings/UI:** two complete Settings open/close cycles, preset/local SVG icons and an unsaved custom draft PASS. Roughly 153 seconds of scoped interaction and idle observation. **Independent CDP captured zero HTTP(S)/WebSocket requests in this Settings scope**, including zero Google/gstatic images; nine runtime observer records included zero external destinations. A controlled loopback request was independently seen by CDP and attributed by the renderer observer.
+- **Important semantics:** the controlled loopback transfer **completed**. The runtime decision `disabled` with reason `automatic_app_egress_requires_explicit_enablement` is a logging/classification field, **not** evidence of a transport block. Controlled sensitive query strings were absent from 21 emitted JSON/JSONL evidence files.
+- **Screenshot limitations:** startup and second-cycle screenshots timed out, recorded **BLOCKED**. First-cycle/menu/draft screenshots and both-cycle DOM/network evidence support the *scoped* acceptance. No broader full-UI screenshot PASS is asserted.
+- **Cleanup:** VM normal poweroff verified; only the temporary `DevCrew126Output` share removed after shutdown. Four snapshots and the original read-only share preserved.
+- **Not exercised:** OS-wide and all-process egress, full startup-wide network audit, every provider/Linear/Jira endpoint, SSH, all allowlist combinations and macOS ARM64.
 
-Cleanup is also blocked: normal ACPI shutdown was requested, but the VM still
-reports running. VirtualBox's active session prevents removing the temporary
-`DevCrew126Output` share. That share is restricted to this run's private output
-directory. The original share and all snapshots remain unchanged. Complete normal
-shutdown and remove only this temporary share after guest access is restored;
-no forced poweroff was used.
+Earlier attempts included account-unlock BLOCKED, diagnostic launch timeout, unsupported keyboard shortcut from restored Project Map, screenshot timeout, and a persisted Settings view. The final privately retained diagnostic is `attempt-5`; a separate ordinary startup is recorded as `ordinary-final`. These limitations and attempts are not discarded.
+
+### Passing harness provenance — follow-up before final approval
+
+The final PASS was achieved with a **corrected local acceptance harness**: normal Settings-button navigation; restored-view normalization; screenshot failures recorded independently of mandatory DOM/network assertions; loopback request evidence retained on denial; controlled WebSocket observation; privacy/provider checks; and outer-script error propagation. These corrections are stated in the #126 GitHub report; the **exact local passing script bytes have not been independently compared with the tracked versions in this PR**.
+
+Until the sanitized final scripts are committed and checked against the executed `attempt-5`, treat the tracked harness as a historical version, not as proof that `guest-install-retest.ps1` and `guest-settings-egress.cjs` in this branch reproduce the final PASS. This is an evidence/reproducibility review item, **not** evidence that the native app fix failed. Retain private logs, screenshots, account information and machine-local details locally.
 
 ## CI and disposition
 
-PR: [#127](https://github.com/Guan21/cc-orca/pull/127), against `company-work`.
-Application changes are narrow: reuse the local glyph and effective request
-guards; remove the competing listener. Changed source files are
-`open-in-app-catalog.tsx` and its new tests, observer installation and its tests,
-proxy/certificate request guards, and ready-foundation startup.
-
-[Code-equivalent revision CI](https://github.com/Guan21/cc-orca/actions/runs/38363807226)
-**PASS**, including the aggregate verify job, root guard, static analysis,
-typecheck, all eight test shards, and Windows/Linux package jobs, on
-`042f60eb83340644cdb024d6e38fafef23e0ecd3`. A later documentation-only evidence
-commit triggers a separate CI run; do not describe the earlier run as validating
-that later SHA. The initial root-folder failure was corrected by relocating the
-harness under `docs/`; the superseded run was cancelled.
-
-[Community-tracking workflow](https://github.com/Guan21/cc-orca/actions/runs/38363597558)
-failed because its GitHub App private-key secret is unavailable. This is an
-external workflow configuration blocker; no credential/policy bypass was added.
-
-Issue #126 remains open pending the native gate and final review. Issue #119 and
-Phase 2 remain **OPEN**. No auto-merge or production release approval.
+- **PASS** at prior reviewed PR HEAD `78ad1652a222e912322de3b8c0fb190ca06ff2d4`: [full PR Checks](https://github.com/Guan21/cc-orca/actions/runs/38365820590), [PR test LoC](https://github.com/Guan21/cc-orca/actions/runs/38365820298), all eight test shards, Windows/Linux packaging, static analysis, typecheck and aggregate verify. Conditional jobs (including CI E2E) skipped.
+- Separate earlier application-equivalent revision `042f60eb83340644cdb024d6e38fafef23e0ecd3` also had [full checks PASS](https://github.com/Guan21/cc-orca/actions/runs/38363807226). Neither set of checks by itself establishes native Windows PASS.
+- The **current documentation reconciliation** on this PR branch is newer than the earlier CI SHA. Wait for new HEAD checks before merge; do not attribute previous CI to this new documentation commit.
+- [Community tracker workflow failure](https://github.com/Guan21/cc-orca/actions/runs/38363597558) concerned a missing third-party GitHub App private-key secret, not the #126 fix. No credential or security-policy bypass.
+- [PR #127](https://github.com/Guan21/cc-orca/pull/127) remains subject to final review and harness version-alignment before merge. [Issue #126](https://github.com/Guan21/cc-orca/issues/126) stays open until the PR review/merge disposition is decided. [#119](https://github.com/Guan21/cc-orca/issues/119) and Phase 2 remain open.
+- Scoped Settings zero-request PASS is **not** a system-wide egress certification, a signing approval or a production release approval.
