@@ -1,23 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, ClipboardCheck, Loader2 } from 'lucide-react'
+import { AlertTriangle, ClipboardCheck, Loader2, SearchX } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import type { DevelopmentEvent } from '../../../../shared/development-event-types'
 import type { DisagreementSignal } from '../../../../shared/disagreement-signal-types'
 import { projectReviewQueue } from '../../../../shared/review-queue-projection'
-import { createReviewQueueDemoEvents } from './review-queue-demo-events'
-import { createReviewQueueDemoDisagreementSignals } from './review-queue-demo-reviews'
+import {
+  developmentEventAvailability,
+  NO_DEVELOPMENT_EVENTS,
+  type DevelopmentEventSourceProps
+} from '@/lib/development-event-availability'
 import { ReviewQueueDetail } from './ReviewQueueDetail'
 import { ReviewQueueList } from './ReviewQueueList'
 import { summarizeReviewQueue } from './review-queue-view-model'
 
-type ReviewQueuePageState = 'ready' | 'loading' | 'error'
-
-type ReviewQueuePageProps = {
-  events?: readonly DevelopmentEvent[]
+type ReviewQueuePageProps = DevelopmentEventSourceProps & {
   disagreementSignals?: readonly DisagreementSignal[]
-  state?: ReviewQueuePageState
-  errorMessage?: string
 }
 
 const EMPTY_DISAGREEMENT_SIGNALS: readonly DisagreementSignal[] = []
@@ -35,33 +33,46 @@ function ReviewQueueState({
   kind,
   errorMessage
 }: {
-  kind: Exclude<ReviewQueuePageState, 'ready'>
+  kind: 'unavailable' | 'loading' | 'error'
   errorMessage?: string
 }): React.JSX.Element {
   const isLoading = kind === 'loading'
+  const isUnavailable = kind === 'unavailable'
   return (
     <main className="flex h-full min-h-0 flex-col bg-background p-6 text-foreground">
       <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
         {isLoading ? (
           <Loader2 className="size-7 animate-spin text-muted-foreground" />
+        ) : isUnavailable ? (
+          <SearchX className="size-7 text-muted-foreground" />
         ) : (
           <AlertTriangle className="size-7 text-destructive" />
         )}
         <h1 className="text-base font-semibold">
           {isLoading
             ? translate('auto.components.reviewQueue.page.loading', 'Loading review queue...')
-            : translate(
-                'auto.components.reviewQueue.page.unavailable',
-                'Review Queue is unavailable'
-              )}
+            : isUnavailable
+              ? translate(
+                  'auto.components.reviewQueue.page.sourceUnavailable',
+                  'Review Queue source unavailable'
+                )
+              : translate(
+                  'auto.components.reviewQueue.page.unavailable',
+                  'Review Queue is unavailable'
+                )}
         </h1>
         {!isLoading ? (
           <p className="max-w-md text-sm text-muted-foreground">
-            {errorMessage ??
-              translate(
-                'auto.components.reviewQueue.page.loadError',
-                'The review event collection could not be loaded.'
-              )}
+            {isUnavailable
+              ? translate(
+                  'auto.components.reviewQueue.page.noAuthorizedSource',
+                  'No authorized project review source is connected.'
+                )
+              : (errorMessage ??
+                translate(
+                  'auto.components.reviewQueue.page.loadError',
+                  'The review event collection could not be loaded.'
+                ))}
           </p>
         ) : null}
       </div>
@@ -69,18 +80,17 @@ function ReviewQueueState({
   )
 }
 
-export function ReviewQueuePage({
-  events,
-  disagreementSignals,
-  state = 'ready',
-  errorMessage
-}: ReviewQueuePageProps): React.JSX.Element {
+export function ReviewQueuePage(props: ReviewQueuePageProps): React.JSX.Element {
+  const { disagreementSignals, errorMessage } = props
   useTranslation()
-  const defaultEvents = useMemo(() => createReviewQueueDemoEvents(), [])
-  const defaultDisagreementSignals = useMemo(() => createReviewQueueDemoDisagreementSignals(), [])
-  const sourceEvents = events ?? defaultEvents
-  const sourceDisagreementSignals =
-    disagreementSignals ?? (events ? EMPTY_DISAGREEMENT_SIGNALS : defaultDisagreementSignals)
+  const availability = developmentEventAvailability(props)
+  const hasSourceData = availability === 'ready' || availability === 'empty'
+  const sourceEvents = hasSourceData
+    ? (props.events ?? NO_DEVELOPMENT_EVENTS)
+    : NO_DEVELOPMENT_EVENTS
+  const sourceDisagreementSignals = hasSourceData
+    ? (disagreementSignals ?? EMPTY_DISAGREEMENT_SIGNALS)
+    : EMPTY_DISAGREEMENT_SIGNALS
   const reviewItems = useMemo(
     () =>
       projectReviewQueue([...sourceEvents], {
@@ -101,8 +111,8 @@ export function ReviewQueuePage({
     }
   }, [reviewItems, selectedItemId])
 
-  if (state !== 'ready') {
-    return <ReviewQueueState kind={state} errorMessage={errorMessage} />
+  if (availability !== 'ready' && availability !== 'empty') {
+    return <ReviewQueueState kind={availability} errorMessage={errorMessage} />
   }
 
   const selectedItem = reviewItems.find((item) => item.id === selectedItemId) ?? null

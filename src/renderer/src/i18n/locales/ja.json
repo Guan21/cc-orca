@@ -14485,6 +14485,20 @@
         "description": "このワークスペースをサイドバー内の別のワークスペースの配下にネストします。ベースブランチは変更されません。",
         "searchPlaceholder": "ワークスペースを検索...",
         "noMatches": "一致する項目がありません。"
+      },
+      "projectPulse": {
+        "page": {
+          "sourceUnavailable": "プロジェクトのアクティビティは利用できません",
+          "noAuthorizedSource": "承認されたプロジェクトのアクティビティソースが接続されていません。",
+          "connectedSourceEmptyHint": "接続されたソースに、このフィルターに一致するアクティビティはありません。",
+          "sourceLoadError": "プロジェクトのアクティビティソースを読み込めませんでした。"
+        }
+      },
+      "reviewQueue": {
+        "page": {
+          "sourceUnavailable": "レビューキューのソースは利用できません",
+          "noAuthorizedSource": "承認されたプロジェクトのレビューソースが接続されていません。"
+        }
       }
     },
     "i18n": {

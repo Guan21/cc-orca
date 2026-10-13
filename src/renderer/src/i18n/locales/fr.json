@@ -15878,6 +15878,20 @@
         "expiredCompact": "Expiré",
         "typeMarkdown": "Markdown",
         "typeHtml": "HTML"
+      },
+      "projectPulse": {
+        "page": {
+          "sourceUnavailable": "Activité du projet indisponible",
+          "noAuthorizedSource": "Aucune source autorisée d’activité du projet n’est connectée.",
+          "connectedSourceEmptyHint": "La source connectée ne contient aucune activité correspondant à ces filtres.",
+          "sourceLoadError": "La source d’activité du projet n’a pas pu être chargée."
+        }
+      },
+      "reviewQueue": {
+        "page": {
+          "sourceUnavailable": "Source de la file de revue indisponible",
+          "noAuthorizedSource": "Aucune source autorisée de revue du projet n’est connectée."
+        }
       }
     },
     "i18n": {

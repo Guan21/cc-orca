@@ -14485,6 +14485,20 @@
         "description": "Anida este espacio de trabajo bajo otro en la barra lateral. No cambia la rama base.",
         "searchPlaceholder": "Buscar espacios de trabajo...",
         "noMatches": "No hay coincidencias."
+      },
+      "projectPulse": {
+        "page": {
+          "sourceUnavailable": "Actividad del proyecto no disponible",
+          "noAuthorizedSource": "No hay ninguna fuente autorizada de actividad del proyecto conectada.",
+          "connectedSourceEmptyHint": "La fuente conectada no contiene actividad que coincida con estos filtros.",
+          "sourceLoadError": "No se pudo cargar la fuente de actividad del proyecto."
+        }
+      },
+      "reviewQueue": {
+        "page": {
+          "sourceUnavailable": "Fuente de la cola de revisión no disponible",
+          "noAuthorizedSource": "No hay ninguna fuente autorizada de revisión del proyecto conectada."
+        }
       }
     },
     "i18n": {

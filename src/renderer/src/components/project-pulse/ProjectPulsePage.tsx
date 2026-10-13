@@ -18,7 +18,11 @@ import { Badge } from '@/components/ui/badge'
 import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
 import type { DevelopmentEvent } from '../../../../shared/development-event-types'
-import { projectPulseDemoEvents } from './project-pulse-demo-events'
+import {
+  developmentEventAvailability,
+  NO_DEVELOPMENT_EVENTS,
+  type DevelopmentEventSourceProps
+} from '@/lib/development-event-availability'
 import {
   filterTimelineItems,
   projectDevelopmentEventsToTimeline,
@@ -30,13 +34,7 @@ import {
   type TimelineTimeWindow
 } from './project-pulse-projection'
 
-type ProjectPulsePageState = 'ready' | 'loading' | 'error'
-
-type ProjectPulsePageProps = {
-  events?: readonly DevelopmentEvent[]
-  state?: ProjectPulsePageState
-  errorMessage?: string
-}
+type ProjectPulsePageProps = DevelopmentEventSourceProps
 
 function categoryOptions(): { value: TimelineItemCategory | 'all'; label: string }[] {
   return [
@@ -271,8 +269,8 @@ function ActivityTimeline({
         </h2>
         <p className="max-w-sm text-xs text-muted-foreground">
           {translate(
-            'auto.components.projectPulse.page.emptyTimelineHint',
-            'Change the filters or connect producer integrations in a follow-up.'
+            'auto.components.projectPulse.page.connectedSourceEmptyHint',
+            'The connected source has no activity matching these filters.'
           )}
         </p>
       </div>
@@ -291,15 +289,18 @@ function ProjectPulseState({
   kind,
   errorMessage
 }: {
-  kind: Exclude<ProjectPulsePageState, 'ready'>
+  kind: 'unavailable' | 'loading' | 'error'
   errorMessage?: string
 }): React.JSX.Element {
   const isLoading = kind === 'loading'
+  const isUnavailable = kind === 'unavailable'
   return (
     <main className="flex h-full min-h-0 flex-col bg-background p-6 text-foreground">
       <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
         {isLoading ? (
           <Loader2 className="size-7 animate-spin text-muted-foreground" />
+        ) : isUnavailable ? (
+          <SearchX className="size-7 text-muted-foreground" />
         ) : (
           <AlertTriangle className="size-7 text-destructive" />
         )}
@@ -309,18 +310,28 @@ function ProjectPulseState({
                 'auto.components.projectPulse.page.loadingActivity',
                 'Loading DevCrew activity'
               )
-            : translate(
-                'auto.components.projectPulse.page.activityUnavailable',
-                'DevCrew activity is unavailable'
-              )}
+            : isUnavailable
+              ? translate(
+                  'auto.components.projectPulse.page.sourceUnavailable',
+                  'Project activity unavailable'
+                )
+              : translate(
+                  'auto.components.projectPulse.page.activityUnavailable',
+                  'DevCrew activity is unavailable'
+                )}
         </h1>
         {!isLoading ? (
           <p className="max-w-md text-sm text-muted-foreground">
-            {errorMessage ??
-              translate(
-                'auto.components.projectPulse.page.fixtureLoadError',
-                'The activity fixture collection could not be loaded.'
-              )}
+            {isUnavailable
+              ? translate(
+                  'auto.components.projectPulse.page.noAuthorizedSource',
+                  'No authorized project activity source is connected.'
+                )
+              : (errorMessage ??
+                translate(
+                  'auto.components.projectPulse.page.sourceLoadError',
+                  'The project activity source could not be loaded.'
+                ))}
           </p>
         ) : null}
       </div>
@@ -328,11 +339,13 @@ function ProjectPulseState({
   )
 }
 
-export function ProjectPulsePage({
-  events = projectPulseDemoEvents,
-  state = 'ready',
-  errorMessage
-}: ProjectPulsePageProps): React.JSX.Element {
+export function ProjectPulsePage(props: ProjectPulsePageProps): React.JSX.Element {
+  const { errorMessage } = props
+  const availability = developmentEventAvailability(props)
+  const events =
+    availability === 'ready' || availability === 'empty'
+      ? (props.events ?? NO_DEVELOPMENT_EVENTS)
+      : NO_DEVELOPMENT_EVENTS
   useTranslation()
   const [filters, setFilters] = useState<TimelineFilters>({ category: 'all', timeWindow: 'all' })
   const timelineItems = useMemo(() => projectDevelopmentEventsToTimeline(events), [events])
@@ -341,8 +354,8 @@ export function ProjectPulsePage({
     [filters, timelineItems]
   )
 
-  if (state !== 'ready') {
-    return <ProjectPulseState kind={state} errorMessage={errorMessage} />
+  if (availability !== 'ready' && availability !== 'empty') {
+    return <ProjectPulseState kind={availability} errorMessage={errorMessage} />
   }
 
   return (
