@@ -5,7 +5,7 @@
   "supersedes": "Earlier guest access BLOCKED reports in #126; not a blanket Corporate release pass.",
   "sourceSHA": "fc29ba4b366cbd72e1d8f39442626de6028b18ef",
   "reviewedPRHeadAtAcceptance": "78ad1652a222e912322de3b8c0fb190ca06ff2d4",
-  "exactSourceNote": "Between installed-build sourceSHA and reviewed PR HEAD, only acceptance docs/harness changed; application/package inputs were unchanged.",
+  "exactSourceNote": "Between installed-build sourceSHA and reviewed PR HEAD, only acceptance docs/harness changed, including relocation from the retired root acceptance directory; application/package inputs were unchanged.",
   "installerSHA256": "CD5AB0B5B0E5DBDC2921DBB08173D29F8B732982E28D79418605569EBD8E8AB5",
   "installerBytes": 180676935,
   "signingStatus": "NotSigned \u2014 local test installer only",
