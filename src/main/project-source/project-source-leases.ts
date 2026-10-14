@@ -38,6 +38,8 @@ type CapturedOperation = {
 
 export class ProjectSourceLeases {
   private readonly tickets = new Map<OperationTicket, CapturedOperation>()
+  private readonly acceptedLeaseIds = new Map<ProducerHandle, Set<string>>()
+  private associationCount = 0
   private lastTime = 0
   private clockFailed = false
 
@@ -53,6 +55,8 @@ export class ProjectSourceLeases {
     }
     this.options = Object.freeze({ ...options })
     registry.onInvalidation((handle) => {
+      this.associationCount -= this.acceptedLeaseIds.get(handle)?.size ?? 0
+      this.acceptedLeaseIds.delete(handle)
       for (const [ticket, operation] of this.tickets) {
         if (operation.registration.handle === handle) {
           this.tickets.delete(ticket)
@@ -135,6 +139,15 @@ export class ProjectSourceLeases {
     if (!lease || !this.registry.resolve(producer, scope)) {
       return null
     }
+    const ids = this.acceptedLeaseIds.get(producer) ?? new Set<string>()
+    if (!ids.has(lease.id)) {
+      if (this.associationCount >= this.options.maxOperations) {
+        return null
+      }
+      ids.add(lease.id)
+      this.associationCount += 1
+      this.acceptedLeaseIds.set(producer, ids)
+    }
     const ticket = Symbol('Main operation')
     this.tickets.set(ticket, Object.freeze({ lease, registration, permission }))
     return ticket
@@ -167,7 +180,13 @@ export class ProjectSourceLeases {
       : null
   }
 
+  /** Authority must notify before yielding after withdrawal; silent removal is detected on access. */
   revoke(leaseId: string): void {
+    for (const [handle, ids] of this.acceptedLeaseIds) {
+      if (ids.has(leaseId)) {
+        this.registry.invalidate(handle)
+      }
+    }
     for (const lease of this.options.trustedLeaseRecords()) {
       if (lease.id !== leaseId) {
         continue

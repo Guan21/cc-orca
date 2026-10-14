@@ -29,6 +29,7 @@ function admissionFixture(overrides: Partial<SourceAdmissionLimits> = {}) {
   })
   const capture = (permission: 'ingest-event' | 'read-snapshot') =>
     trusted.leases.capture(trusted.producer, trusted.principal, trusted.scope, permission)!
+  admission.attachSource(capture('ingest-event'))
   const event = taskLifecycleDevelopmentEventFixture({
     projectId: trusted.scope.projectId,
     source: trusted.binding.eventSourceName
@@ -53,7 +54,7 @@ describe('Main bounded admission and retained state', () => {
     }
     const mismatched = new ProjectSourceAdmission(other.registry, f.leases, limits)
     expect(mismatched.prepare(f.capture('ingest-event'), f.encode())).toBeNull()
-    expect(mismatched.readSnapshot(f.capture('read-snapshot'))).toBeNull()
+    expect(mismatched.readSnapshot(f.capture('read-snapshot'))).toEqual({ status: 'unavailable' })
   })
 
   it('isolates equal event/project IDs in independent installation registry caches', () => {
@@ -64,8 +65,13 @@ describe('Main bounded admission and retained state', () => {
         first.admission.prepare(first.capture('ingest-event'), first.encode())!
       )
     ).toBe(true)
-    expect(second.admission.readSnapshot(second.capture('read-snapshot'))).toEqual([])
-    expect(second.admission.readSnapshot(first.capture('read-snapshot'))).toBeNull()
+    expect(second.admission.readSnapshot(second.capture('read-snapshot'))).toEqual({
+      status: 'loading',
+      scope: second.scope
+    })
+    expect(second.admission.readSnapshot(first.capture('read-snapshot'))).toEqual({
+      status: 'unavailable'
+    })
     expect(second.admission.prepare(first.capture('ingest-event'), first.encode())).toBeNull()
   })
 
@@ -89,23 +95,32 @@ describe('Main bounded admission and retained state', () => {
       f.trusted.scope,
       'read-snapshot'
     )!
-    expect(f.admission.readSnapshot(read)).toEqual([])
+    expect(f.admission.readSnapshot(read)).toEqual({ status: 'unavailable' })
   })
   it('admits exact authorized observations without connecting a projection or EventBus', () => {
     const f = admissionFixture()
     const pending = f.admission.prepare(f.capture('ingest-event'), f.encode())!
-    expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toEqual([])
+    expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toEqual({
+      status: 'loading',
+      scope: f.scope
+    })
     expect(f.admission.commit(pending)).toBe(true)
-    expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toEqual([f.observation().event])
+    expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toEqual({
+      status: 'ready',
+      scope: f.scope,
+      events: [f.observation().event]
+    })
     expect(f.admission.commit(pending)).toBe(false)
   })
 
   it('denies forged tickets and prevents ingest/read permission interchange', () => {
     const f = admissionFixture()
     expect(f.admission.prepare(Symbol('forged') as OperationTicket, f.encode())).toBeNull()
-    expect(f.admission.readSnapshot(Symbol('forged') as OperationTicket)).toBeNull()
+    expect(f.admission.readSnapshot(Symbol('forged') as OperationTicket)).toEqual({
+      status: 'unavailable'
+    })
     expect(f.admission.prepare(f.capture('read-snapshot'), f.encode())).toBeNull()
-    expect(f.admission.readSnapshot(f.capture('ingest-event'))).toBeNull()
+    expect(f.admission.readSnapshot(f.capture('ingest-event'))).toEqual({ status: 'unavailable' })
     expect(f.admission.commit(Symbol('forged') as PendingSourceBatch)).toBe(false)
   })
 
@@ -125,7 +140,10 @@ describe('Main bounded admission and retained state', () => {
     expect(f.admission.commit(f.admission.prepare(ingest, f.encode([f.observation(2)]))!)).toBe(
       true
     )
-    expect(f.admission.readSnapshot(read)).toHaveLength(2)
+    expect(f.admission.readSnapshot(read)).toMatchObject({
+      status: 'ready',
+      events: [f.observation().event, f.observation(2).event]
+    })
   })
 
   it.each(['project', 'source', 'incarnation', 'sequence', 'invalid'] as const)(
@@ -146,7 +164,10 @@ describe('Main bounded admission and retained state', () => {
       expect(
         f.admission.prepare(f.capture('ingest-event'), JSON.stringify([f.observation(), bad]))
       ).toBeNull()
-      expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toEqual([])
+      expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toEqual({
+        status: 'loading',
+        scope: f.scope
+      })
       expect(f.admission.commit(f.admission.prepare(f.capture('ingest-event'), f.encode())!)).toBe(
         true
       )
@@ -164,7 +185,10 @@ describe('Main bounded admission and retained state', () => {
     for (const item of bad) {
       expect(f.admission.prepare(ingest, JSON.stringify([item]))).toBeNull()
     }
-    expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toHaveLength(1)
+    expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toMatchObject({
+      status: 'ready',
+      events: [f.observation().event]
+    })
   })
 
   it('bounds pending batches and queued observations without consuming sequence after overflow', () => {
@@ -185,10 +209,16 @@ describe('Main bounded admission and retained state', () => {
     expect(f.admission.commit(first)).toBe(true)
     expect(f.admission.commit(raced)).toBe(false)
     expect(f.admission.prepare(ingest, f.encode([f.observation(2)]))).toBeNull()
-    expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toHaveLength(1)
+    expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toMatchObject({
+      status: 'ready',
+      events: [f.observation().event]
+    })
     const tiny = admissionFixture({ maxRetainedBytes: 1 })
     expect(tiny.admission.prepare(tiny.capture('ingest-event'), tiny.encode())).toBeNull()
-    expect(tiny.admission.readSnapshot(tiny.capture('read-snapshot'))).toEqual([])
+    expect(tiny.admission.readSnapshot(tiny.capture('read-snapshot'))).toEqual({
+      status: 'loading',
+      scope: tiny.scope
+    })
   })
 
   it.each(['revoke', 'reissue', 'restart', 'session', 'policy', 'expiry'] as const)(
@@ -210,7 +240,7 @@ describe('Main bounded admission and retained state', () => {
           projection()
         }
         const snapshot = f.admission.readSnapshot(read)
-        if (snapshot) {
+        if (snapshot.status === 'ready' || snapshot.status === 'empty') {
           delivery(snapshot)
         }
       })()
@@ -255,18 +285,22 @@ describe('Main bounded admission and retained state', () => {
       f.trusted.scope,
       'read-snapshot'
     )!
-    expect(f.admission.readSnapshot(newRead)).toEqual([])
+    expect(f.admission.readSnapshot(newRead)).toEqual({ status: 'unavailable' })
   })
 
   it('keeps returned event mutations out of retained state', () => {
     const f = admissionFixture()
     f.admission.commit(f.admission.prepare(f.capture('ingest-event'), f.encode())!)
-    const events = f.admission.readSnapshot(f.capture('read-snapshot'))!
-    events[0].projectId = 'changed'
-    expect(f.admission.readSnapshot(f.capture('read-snapshot'))?.[0].projectId).toBe(
-      f.scope.projectId
-    )
+    const snapshot = f.admission.readSnapshot(f.capture('read-snapshot'))
+    if (snapshot.status !== 'ready') {
+      throw new Error('Expected verified observations')
+    }
+    snapshot.events[0].projectId = 'changed'
+    expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toMatchObject({
+      status: 'ready',
+      events: [f.observation().event]
+    })
     f.admission.dispose()
-    expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toBeNull()
+    expect(f.admission.readSnapshot(f.capture('read-snapshot'))).toEqual({ status: 'unavailable' })
   })
 })

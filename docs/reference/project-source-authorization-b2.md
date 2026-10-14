@@ -30,16 +30,32 @@ Each envelope contains exactly `{ incarnation, sequence, event }`. Sequence is a
 
 Overflow rejects without eviction or projection. B2 retains a bounded session window only; it implements no historical completeness claim or persistence. Invalidation purges pending and retained source state. Read requires a distinct read ticket, verifies registry ownership before cache access, clones retained events, and revalidates before return. No graph, snapshot transport or callback is connected. Disposal permanently closes admission and clears state.
 
+## Explicit Main availability and revocation
+
+`readSnapshot` returns a discriminated `ProjectSourceSnapshot`, rather than an event array or nullable fallback. Only `empty` and `ready` carry events. `unavailable` carries neither scope nor events; authorized `loading`, `error`, `stale` and `disconnected` carry the exact immutable scope but no observations/evidence. Registration and read permission alone remain unavailable.
+
+The separate Main-private `attachSource` lifecycle operation requires an ingest ticket from the same registry and enters loading; it is not invoked by any production composition root. Only a successful authorized atomic batch commit after that attachment establishes an observed source. A verified empty batch then yields empty; nonempty retained observations yield ready. An event, renderer flag or read ticket cannot attach a source. All positive attachment cases use trusted test-only fixtures. No producer or issuer is approved or activated.
+
+Lifecycle state is keyed by opaque registration incarnation and bound to its complete scope. Loading/reinitialization, error, stale and disconnected transitions purge retained observations and pending batches. Registry invalidation also clears availability. Pending commits capture lifecycle identity, and `readSnapshotAsync` captures a snapshot then revalidates the ticket and lifecycle after its asynchronous boundary. Every successful commit advances that lifecycle identity, so an earlier asynchronous snapshot cannot deliver an older retained version. A future transport must additionally revalidate immediately before actual delivery; returning a Main-private snapshot is not authorization for indefinite reuse.
+
+Ready means verified observations in the bounded accepted session window, not live presence or complete history. No observation timestamps, heartbeat or wall-clock freshness are asserted. Rejected malformed/conflicting/over-budget input does not mutate accepted state or consume sequence; queue refusal is backpressure, not successful observation. A future producer owner must signal error/stale/disconnected if it cannot retry or loses continuity. Lease expiry remains enforced by the injected monotonic authorization clock, and source freshness/expiry policy needs separate approval before activation.
+
+Leases retain bounded accepted lease-ID-to-registration associations even after operation tickets are released. Explicit `revoke(id)` invalidates remembered registrations before consulting the current authority list, so removed records or a throwing lookup cannot prevent their immediate purge. Registry listeners remove all associated tickets, pending batches, retained observations, availability and remembered IDs. Exhausting the association budget rejects a new capture without invalidating unrelated registrations. Reissuing a scope requires fresh registration/lease generations; old operations never revive.
+
+The authority must synchronously notify revocation as part of withdrawal, before yielding or accepting replacement work, regardless of removal/notification order. Prefer unique lease IDs per issuance; string-only notification conservatively revokes all matching accepted/current associations. Reusing IDs requires serialized revoke-before-reissue and excluding delayed old notifications. Silent external removal has no instantaneous passive detection guarantee: later validation fails closed, and no polling is introduced. See [trusted identity and registration readiness](./project-source-identity-readiness.md) for future runtime proof obligations.
+
 ## Automated evidence
 
-| Contract | Tests |
-| --- | --- |
-| No grant, forged producer/principal, permission separation, expiry and same-scope reissue | `project-source-leases.test.ts` |
-| All binding dimensions, native/WSL/SSH/runtime confusion, unknown worktree, folder absence, Corporate denial, source limits and fresh generations | `project-source-registry.test.ts`; shared `project-source-access.test.ts` |
-| Count/UTF-8 bytes/depth/entry/schema limits; raw-object rejection; missing budget rejection | `project-source-batch.test.ts` |
-| Atomic mixed replay, conflict/dedupe/sequence/incarnation, queue/retention caps, concurrent commits and cloned reads | `project-source-admission.test.ts` |
-| Deferred revoke/reissue/restart/session/policy/expiry completion does not reach projection/delivery callbacks | `project-source-admission.test.ts`; `project-source-leases.test.ts` |
-| Cross-registry ticket rejection and independent caches despite identical project/event IDs | `project-source-admission.test.ts` |
+| Contract                                                                                                                                                           | Tests                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| No grant, forged producer/principal, permission separation, expiry and same-scope reissue                                                                          | `project-source-leases.test.ts`                                           |
+| All binding dimensions, native/WSL/SSH/runtime confusion, unknown worktree, folder absence, Corporate denial, source limits and fresh generations                  | `project-source-registry.test.ts`; shared `project-source-access.test.ts` |
+| Count/UTF-8 bytes/depth/entry/schema limits; raw-object rejection; missing budget rejection                                                                        | `project-source-batch.test.ts`                                            |
+| Atomic mixed replay, conflict/dedupe/sequence/incarnation, queue/retention caps, concurrent commits and cloned reads                                               | `project-source-admission.test.ts`                                        |
+| Deferred revoke/reissue/restart/session/policy/expiry completion does not reach projection/delivery callbacks                                                      | `project-source-admission.test.ts`; `project-source-leases.test.ts`       |
+| Cross-registry ticket rejection and independent caches despite identical project/event IDs                                                                         | `project-source-admission.test.ts`                                        |
+| Unavailable vs loading/authorized empty/ready, attachment separation, stale/disconnected purge, exact-scope switches and asynchronous lifecycle/authorization loss | `project-source-availability.test.ts`                                     |
+| Removed-record notification, released tickets, throwing authority lookup, multiple deferred batches/cloned reads, unrelated sources and bounded association memory | `project-source-revocation.test.ts`                                       |
 
 Existing DevelopmentEvent, Activity Graph and Project State tests run alongside this suite. PR reports pin counts and CI to final SHAs; documentation-only skipped jobs are not test passes.
 
