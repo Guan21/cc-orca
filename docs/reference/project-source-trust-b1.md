@@ -1,7 +1,7 @@
 # #116-B1: Trusted local source and Main authorization design
 
 Status: **proposed; first source NOT APPROVED; no production adapter enabled**.
-Parent: [#116](https://github.com/Guan21/cc-orca/issues/116). Contract prerequisite: [Draft PR #129](https://github.com/Guan21/cc-orca/pull/129), reviewed at `2811bfb0527e2b0977032e6d449219d05f0d8bc3`. Repository evidence below is from `company-work` at `879ffe46dca1d41c4bfb1e7c6640b2f4c6857516` (2026-10-14). #129 is separate and unmerged; its pure helpers are not present on this base. This document neither approves that PR nor supplies an authorization authority.
+Parent: [#116](https://github.com/Guan21/cc-orca/issues/116). Reconciled contract prerequisite: [Draft PR #129](https://github.com/Guan21/cc-orca/pull/129), at `00a710c278deb642f7af88569200784d312a6c4e` (52 focused contract tests; [final-head CI](https://github.com/Guan21/cc-orca/actions/runs/38549491438) passed typecheck, static analysis and eight unit-test shards). Repository evidence below is from `company-work` at `879ffe46dca1d41c4bfb1e7c6640b2f4c6857516` (2026-10-14). #129 is separate and unmerged; its pure helpers are not present on this base. Passing fixture tests neither approves a producer nor supplies an authorization authority.
 
 ## Decision and scope
 
@@ -152,6 +152,6 @@ Unresolved approvals, each with a fail-closed default:
 | Security owner and personal consent owner | Approve the narrow exclusive-create producer, consent UX, session principal and proposed lease/budget values. | Candidate NOT APPROVED; no observer activation. |
 | Main/runtime maintainers | Prove unambiguous project/setup/repo/workspace linkage and stable native-local root/realm at observation time, including folder workspaces and UNC/mount/reparse rejection. | No inferred registration; ambiguous/locality-unverifiable scope unavailable. |
 | Security owner / IPC maintainers | Review the proposed two-channel inventory, exact sender/frame lifecycle and Main-owned request generation; decide whether consent needs any additional channel. | No new production bridge. |
-| Contract reviewers | Complete #129 security review, particularly unbounded replay/metadata, explicit-null semantics and host normalization. Integrate approved contract separately. | B2 cannot claim those helpers enforce installed authorization. |
+| Contract reviewers | Review the reconciled discriminated scopes and complete identity in #129; B2 must bound replay before the recursive v1 parser and establish trusted Main ownership. | Pure helpers and passing fixtures do not establish installed authorization or approve a source. |
 
 There is no approved producer today. **B2 activation cannot safely begin yet**; deny-only tests/registry enforcement can be developed as a separate focused draft. The [B2 plan and acceptance matrix](../superpowers/plans/2026-10-14-project-source-b2-boundaries.md) make approval gates explicit. Read-model UI wiring belongs to #116-C; durable/team/realtime/remote sources belong to later separately approved work. Follow [SSH execution boundaries](ssh-execution-boundary.md) and [remote wire compatibility](remote-wire-compatibility.md) if that scope is ever proposed.
