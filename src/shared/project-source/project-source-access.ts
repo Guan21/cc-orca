@@ -81,20 +81,25 @@ function validId(value: unknown): value is string {
 function validScope(scope: ProjectSourceScope | null | undefined): boolean {
   return Boolean(
     scope &&
-      validId(scope.projectId) &&
-      validId(scope.repositoryId) &&
-      validId(scope.workspaceId) &&
-      ((scope.kind === 'git-worktree' && validId(scope.worktreeId)) ||
-        (scope.kind === 'folder-workspace' && scope.worktreeId === null)) &&
-      validId(scope.installationId) &&
-      validId(scope.sessionId) &&
-      validId(scope.setupId) &&
-      validId(scope.producerIncarnation) &&
-      (scope.executionRealm === 'native' ||
-        (typeof scope.executionRealm === 'string' && scope.executionRealm.startsWith('wsl:') && validId(scope.executionRealm.slice(4)))) &&
-      Number.isSafeInteger(scope.registrationRevision) && scope.registrationRevision > 0 &&
-      Number.isSafeInteger(scope.policyEpoch) && scope.policyEpoch > 0 &&
-      normalizeExecutionHostId(scope.executionHostId) === scope.executionHostId
+    validId(scope.projectId) &&
+    validId(scope.repositoryId) &&
+    validId(scope.workspaceId) &&
+    ((scope.kind === 'git-worktree' && validId(scope.worktreeId)) ||
+      (scope.kind === 'folder-workspace' && scope.worktreeId === null)) &&
+    validId(scope.installationId) &&
+    validId(scope.sessionId) &&
+    validId(scope.setupId) &&
+    validId(scope.producerIncarnation) &&
+    (scope.executionRealm === 'native' ||
+      (typeof scope.executionRealm === 'string' &&
+        scope.executionRealm.startsWith('wsl:') &&
+        validId(scope.executionRealm.slice(4)))) &&
+    Number.isSafeInteger(scope.registrationRevision) &&
+    scope.registrationRevision > 0 &&
+    Number.isSafeInteger(scope.policyEpoch) &&
+    scope.policyEpoch > 0 &&
+    validId(scope.executionHostId) &&
+    normalizeExecutionHostId(scope.executionHostId) === scope.executionHostId
   )
 }
 
@@ -118,7 +123,8 @@ function equalScope(left: ProjectSourceScope, right: ProjectSourceScope): boolea
 
 function validAccessRequest(request: ProjectSourceAccessRequest): boolean {
   return (
-    Boolean(request) && validId(request.principalId) &&
+    Boolean(request) &&
+    validId(request.principalId) &&
     validId(request.producerId) &&
     validId(request.sourceId) &&
     validId(request.eventSourceName) &&

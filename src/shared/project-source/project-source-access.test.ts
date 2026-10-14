@@ -76,7 +76,7 @@ describe('#116 source access policy', () => {
     [{ registrationRevision: 2 }, 'replacement registration'],
     [{ policyEpoch: 2 }, 'changed policy'],
     [{ executionHostId: 'ssh:host-b' }, 'same IDs on SSH'],
-    [{ executionHostId: 'runtime:env-b' }, 'same IDs on runtime host'],
+    [{ executionHostId: 'runtime:env-b' }, 'same IDs on runtime host']
   ] as const)('rejects %s (%s) without matching exact scope grant', (patch, _description) => {
     const changed = { ...request, scope: { ...scope, ...patch } } as ProjectSourceAccessRequest
     expect(decideProjectSourceAccess(changed, [grant])).toEqual({
@@ -89,9 +89,10 @@ describe('#116 source access policy', () => {
     const remoteScope = { ...scope, executionHostId: 'ssh:target-a' as const }
     const remoteGrant: ProjectSourceGrant = { ...grant, scope: remoteScope }
     expect(
-      decideProjectSourceAccess({ ...request, scope: { ...remoteScope, executionHostId: 'local' } }, [
-        remoteGrant
-      ])
+      decideProjectSourceAccess(
+        { ...request, scope: { ...remoteScope, executionHostId: 'local' } },
+        [remoteGrant]
+      )
     ).toEqual({ allowed: false, reason: 'not_authorized' })
   })
 
@@ -106,6 +107,15 @@ describe('#116 source access policy', () => {
     { kind: 'all' },
     { worktreeId: '*' },
     { executionHostId: 'all' },
+    { executionHostId: null },
+    { installationId: undefined },
+    { sessionId: '*' },
+    { setupId: '' },
+    { executionRealm: undefined },
+    { executionRealm: 'wsl:' },
+    { producerIncarnation: '' },
+    { registrationRevision: 0 },
+    { policyEpoch: -1 },
     { executionHostId: 'ssh:' },
     { executionHostId: 'unexpected' }
   ])('fails closed on incomplete or ambiguous identities: %s', (patch) => {
@@ -125,18 +135,24 @@ describe('#116 source access policy', () => {
       allowed: false,
       reason: 'not_authorized'
     })
-    expect(decideProjectSourceAccess(request, [{ ...grant, permissions: ['admin' as never] }])).toEqual(
-      { allowed: false, reason: 'not_authorized' }
-    )
+    expect(
+      decideProjectSourceAccess(request, [{ ...grant, permissions: ['admin' as never] }])
+    ).toEqual({ allowed: false, reason: 'not_authorized' })
   })
 
   it('allows an exact folder workspace without granting a Git worktree', () => {
     const folder = { ...scope, kind: 'folder-workspace' as const, worktreeId: null }
     const folderGrant: ProjectSourceGrant = { ...grant, scope: folder }
-    expect(decideProjectSourceAccess({ ...request, scope: folder }, [folderGrant])).toEqual({ allowed: true })
+    expect(decideProjectSourceAccess({ ...request, scope: folder }, [folderGrant])).toEqual({
+      allowed: true
+    })
     expect(decideProjectSourceAccess(request, [folderGrant]).allowed).toBe(false)
     expect(decideProjectSourceAccess({ ...request, scope: folder }, [grant]).allowed).toBe(false)
-    expect(decideProjectSourceAccess({ ...request, scope: { ...folder, workspaceId: 'other' } }, [folderGrant]).allowed).toBe(false)
+    expect(
+      decideProjectSourceAccess({ ...request, scope: { ...folder, workspaceId: 'other' } }, [
+        folderGrant
+      ]).allowed
+    ).toBe(false)
   })
 
   it('does not revive legacy null or ambiguous folder grants even when both sides match', () => {
@@ -148,7 +164,9 @@ describe('#116 source access policy', () => {
       { workspaceId: null, worktreeId: null }
     ]) {
       const invalid = { ...scope, ...patch } as ProjectSourceAccessRequest['scope']
-      expect(decideProjectSourceAccess({ ...request, scope: invalid }, [{ ...grant, scope: invalid }])).toEqual({ allowed: false, reason: 'invalid_identity' })
+      expect(
+        decideProjectSourceAccess({ ...request, scope: invalid }, [{ ...grant, scope: invalid }])
+      ).toEqual({ allowed: false, reason: 'invalid_identity' })
     }
   })
 
@@ -203,7 +221,9 @@ describe('#116 replay admission boundary', () => {
   })
 
   it('does not project a partially invalid replay', () => {
-    expect(admitProjectSourceReplay([event, { projectId: 'project-a' }], ingestionIdentity, [grant])).toEqual({
+    expect(
+      admitProjectSourceReplay([event, { projectId: 'project-a' }], ingestionIdentity, [grant])
+    ).toEqual({
       allowed: false,
       reason: 'invalid_events'
     })
