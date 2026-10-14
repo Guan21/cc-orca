@@ -47,7 +47,7 @@ describe('#116 source access policy', () => {
     [{ sourceId: 'other-source' }, 'different registered source'],
     [{ eventSourceName: 'untrusted.fixture' }, 'different event source label'],
     [{ permission: 'ingest-event' as const }, 'operation denied by read-only grant']
-  ] as const)('rejects %s (%s)', (patch) => {
+  ] as const)('rejects %s (%s)', (patch, _description) => {
     const readOnlyGrant: ProjectSourceGrant = { ...grant, permissions: ['read-snapshot'] }
     expect(decideProjectSourceAccess({ ...request, ...patch }, [readOnlyGrant])).toEqual({
       allowed: false,
@@ -64,7 +64,7 @@ describe('#116 source access policy', () => {
     [{ executionHostId: 'runtime:env-b' }, 'same IDs on runtime host'],
     [{ workspaceId: null }, 'explicit repo-wide scope'],
     [{ worktreeId: null }, 'explicit all-worktrees scope']
-  ] as const)('rejects %s (%s) without matching exact scope grant', (patch) => {
+  ] as const)('rejects %s (%s) without matching exact scope grant', (patch, _description) => {
     const changed = { ...request, scope: { ...scope, ...patch } } as ProjectSourceAccessRequest
     expect(decideProjectSourceAccess(changed, [grant])).toEqual({
       allowed: false,
