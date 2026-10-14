@@ -12,7 +12,7 @@
 
 B1 found a verifiable native exclusive-create operation, **not an approved DevelopmentEvent producer**. No production adapter is designed as approved or implemented here. Tasks 1–3 can be developed/tested with internal synthetic test receipts and no bridge/source activation. Tasks 4–6 require producer, personal consent, identity/locality and IPC approval; failing any prerequisite leaves source unavailable. Corporate authority is absent and Corporate activation is outside this plan.
 
-Base B2 on `company-work` plus the separately reviewed/approved #129 contract; do not merge #129 automatically. Keep #128 independent. Record the exact approved contract/source commits and named decision owners in the B2 PR before activation. Do not mark this plan executed based on B1 documentation review.
+Reconcile and verify #129 first. While it remains unmerged, stack the separate B2 Draft PR on `feature/116a-project-source-authz-contract`; rebase onto `company-work` only after prerequisites merge. Do not merge #129 automatically. Keep #128 independent. Record final prerequisite SHAs and CI evidence. No producer approval follows from infrastructure tests.
 
 ## Proposed file ownership
 
@@ -31,7 +31,7 @@ Inspect existing utilities and composition wiring before introducing these modul
 
 ### Task 1: Registry and exact binding (deny-only)
 
-- [ ] Add failing tests for forged producer handles, unknown registration and complete tuple equality, including explicit folder `worktreeId: null` versus missing fields.
+- [ ] Add failing tests for forged producer handles, unknown registration and complete tuple equality. `git-worktree` requires a known registered ID; `folder-workspace` requires exact folder/repository ownership and explicit null only for absence of Git. Reject missing discriminant, legacy null, wildcard and repo-wide scopes.
 - [ ] Resolve project/setup/repo/workspace from Main-owned records. Require exactly one consistent ready setup and exact host/realm/root revision; never accept payload-provided authority. Unknown legacy records do not auto-migrate to grants.
 - [ ] Implement private registration handles with producer incarnation and registration epoch. Enforce 8-source cap without evicting active authority; binding changes invalidate old handles.
 - [ ] Test same project/repo/worktree IDs across hosts and installations, folder workspace without Git, conflicting owner records, runtime-shaped local routing, malformed host, malformed raw runtime preferences/defaults and WSL preference changes. Normalizer fallback to native never authorizes a scope.
@@ -40,7 +40,7 @@ Inspect existing utilities and composition wiring before introducing these modul
 ### Task 2: Lease owner and revocation (deny-only)
 
 - [ ] Add failing tests for renderer-supplied grants, wrong issuer/principal, producer/read separation, evidence denial and Corporate denial despite personal consent.
-- [ ] Implement process-private 15-minute monotonic leases, separate producer/viewer principals and policy epoch. Renewal requires new explicit consent; tests use injected clock/consent authority, never a production bypass.
+- [ ] Implement process-private monotonic leases with explicitly configurable duration, separate producer/viewer principals and policy epoch. The proposed 15 minutes is not production policy. Test-only trusted grant fixtures may exercise acceptance; implement no personal-consent or enterprise production issuer and no hidden activation flag.
 - [ ] Revoke on all B1 lifecycle triggers, purge scoped state and cancel pending work. Ensure same tuple/new lease cannot revive old requests; lookup does not create grants.
 - [ ] Test expiry without trusting wall clock, suspend/resume, navigation/reload, logout/session termination, opt-out, producer failure/restart and mapping removal. Keep Corporate offline/cache restoration denied.
 - [ ] Run lease tests and commit independently. Document that an OS account and a paired channel are not enterprise principals.
@@ -50,7 +50,7 @@ Inspect existing utilities and composition wiring before introducing these modul
 - [ ] Add failing tests exercising the B1 byte/count/depth/queue/retention limits before invoking recursive v1 parsing or projection. Include limit equality, limit+1, cycles/accessors and malformed batches.
 - [ ] Build only bounded plain events from test receipts admitted by an opaque producer handle. Main supplies labels, system actor, IDs, sequence and timestamps; caller metadata is not copied.
 - [ ] Stage batches atomically; duplicate identical receipts are no-ops, conflicting IDs/sequence/gaps deny with no graph/checkpoint change. Apply #129 policy decisions only to Main-owned identities/leases.
-- [ ] Partition projection/cache/reference state by complete tuple, installation/realm and registration epoch. Rebuild retained-window projections atomically after expected history eviction; signal truncation/completeness. Queue overflow fails closed.
+- [ ] Partition retained/dedupe state by complete scope, source/producer, installation/session namespace, execution realm, ProjectHostSetup, producer incarnation, registration revision and policy epoch. Fence every cache access and delivery. Denied batches and queue/retention overflow leave state unchanged; B2 adds no live projection or EventBus connection.
 - [ ] Test authorized-empty versus unavailable, snapshot-before-lease denial, revoked mid-read/ingest, stale selection/frame response and same-ID cross-scope isolation. Assert no raw evidence/content in output.
 - [ ] Run admission/snapshot tests and existing DevelopmentEvent/graph/state suites. Commit with tested limits and no-source behavior recorded.
 
