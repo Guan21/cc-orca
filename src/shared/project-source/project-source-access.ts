@@ -9,17 +9,28 @@ import type { DevelopmentEvent } from '../development-event-types'
  * A trusted main/backend authority must verify both identities, own the grants and enforce
  * decisions BEFORE reading a source and BEFORE publishing a snapshot to the renderer.
  */
-export type ProjectSourceScope = {
+type ProjectSourceBinding = {
+  readonly installationId: string
+  readonly sessionId: string
+  readonly executionRealm: 'native' | `wsl:${string}`
+  readonly setupId: string
+  readonly producerIncarnation: string
+  readonly registrationRevision: number
+  readonly policyEpoch: number
   readonly projectId: string
   /** Stable DevCrew repo identity, not a display name or path. */
   readonly repositoryId: string
-  /** null means explicitly repo-wide; undefined/unknown is invalid. */
-  readonly workspaceId: string | null
-  /** null means explicitly all worktrees in this repo-wide authorized scope. */
-  readonly worktreeId: string | null
+  readonly workspaceId: string
   /** Always a concrete host; 'all' or a missing host is never an authorization scope. */
   readonly executionHostId: ExecutionHostId
 }
+
+/** No repo-wide grants; legacy null scopes require explicit new registration. */
+export type ProjectSourceScope = ProjectSourceBinding &
+  (
+    | { readonly kind: 'git-worktree'; readonly worktreeId: string }
+    | { readonly kind: 'folder-workspace'; readonly worktreeId: null }
+  )
 
 export type ProjectSourcePermission = 'ingest-event' | 'read-snapshot'
 
@@ -67,23 +78,36 @@ function validId(value: unknown): value is string {
   )
 }
 
-function validOptionalScopeId(value: unknown): boolean {
-  return value === null || validId(value)
-}
-
 function validScope(scope: ProjectSourceScope | null | undefined): boolean {
   return Boolean(
     scope &&
       validId(scope.projectId) &&
       validId(scope.repositoryId) &&
-      validOptionalScopeId(scope.workspaceId) &&
-      validOptionalScopeId(scope.worktreeId) &&
+      validId(scope.workspaceId) &&
+      ((scope.kind === 'git-worktree' && validId(scope.worktreeId)) ||
+        (scope.kind === 'folder-workspace' && scope.worktreeId === null)) &&
+      validId(scope.installationId) &&
+      validId(scope.sessionId) &&
+      validId(scope.setupId) &&
+      validId(scope.producerIncarnation) &&
+      (scope.executionRealm === 'native' ||
+        (typeof scope.executionRealm === 'string' && scope.executionRealm.startsWith('wsl:') && validId(scope.executionRealm.slice(4)))) &&
+      Number.isSafeInteger(scope.registrationRevision) && scope.registrationRevision > 0 &&
+      Number.isSafeInteger(scope.policyEpoch) && scope.policyEpoch > 0 &&
       normalizeExecutionHostId(scope.executionHostId) === scope.executionHostId
   )
 }
 
 function equalScope(left: ProjectSourceScope, right: ProjectSourceScope): boolean {
   return (
+    left.kind === right.kind &&
+    left.installationId === right.installationId &&
+    left.sessionId === right.sessionId &&
+    left.executionRealm === right.executionRealm &&
+    left.setupId === right.setupId &&
+    left.producerIncarnation === right.producerIncarnation &&
+    left.registrationRevision === right.registrationRevision &&
+    left.policyEpoch === right.policyEpoch &&
     left.projectId === right.projectId &&
     left.repositoryId === right.repositoryId &&
     left.workspaceId === right.workspaceId &&
@@ -94,7 +118,7 @@ function equalScope(left: ProjectSourceScope, right: ProjectSourceScope): boolea
 
 function validAccessRequest(request: ProjectSourceAccessRequest): boolean {
   return (
-    validId(request.principalId) &&
+    Boolean(request) && validId(request.principalId) &&
     validId(request.producerId) &&
     validId(request.sourceId) &&
     validId(request.eventSourceName) &&

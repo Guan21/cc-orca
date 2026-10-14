@@ -4,6 +4,14 @@ import type { ProjectSourceAccessRequest, ProjectSourceGrant } from './project-s
 import { admitProjectSourceReplay, decideProjectSourceAccess } from './project-source-access'
 
 const scope = {
+  kind: 'git-worktree',
+  installationId: 'installation-a',
+  sessionId: 'session-a',
+  executionRealm: 'native',
+  setupId: 'setup-a',
+  producerIncarnation: 'incarnation-a',
+  registrationRevision: 1,
+  policyEpoch: 1,
   projectId: 'project-a',
   repositoryId: 'repo-a',
   workspaceId: 'workspace-a',
@@ -60,10 +68,15 @@ describe('#116 source access policy', () => {
     [{ repositoryId: 'repo-b' }, 'different repository'],
     [{ workspaceId: 'workspace-b' }, 'different workspace'],
     [{ worktreeId: 'worktree-b' }, 'different worktree'],
+    [{ installationId: 'installation-b' }, 'different installation'],
+    [{ sessionId: 'session-b' }, 'different session'],
+    [{ executionRealm: 'wsl:Ubuntu' }, 'WSL behind local host'],
+    [{ setupId: 'setup-b' }, 'different ProjectHostSetup'],
+    [{ producerIncarnation: 'incarnation-b' }, 'producer restart'],
+    [{ registrationRevision: 2 }, 'replacement registration'],
+    [{ policyEpoch: 2 }, 'changed policy'],
     [{ executionHostId: 'ssh:host-b' }, 'same IDs on SSH'],
     [{ executionHostId: 'runtime:env-b' }, 'same IDs on runtime host'],
-    [{ workspaceId: null }, 'explicit repo-wide scope'],
-    [{ worktreeId: null }, 'explicit all-worktrees scope']
   ] as const)('rejects %s (%s) without matching exact scope grant', (patch, _description) => {
     const changed = { ...request, scope: { ...scope, ...patch } } as ProjectSourceAccessRequest
     expect(decideProjectSourceAccess(changed, [grant])).toEqual({
@@ -87,6 +100,11 @@ describe('#116 source access policy', () => {
     { repositoryId: ' repo-a ' },
     { workspaceId: undefined },
     { worktreeId: undefined },
+    { workspaceId: null },
+    { worktreeId: null },
+    { kind: undefined },
+    { kind: 'all' },
+    { worktreeId: '*' },
     { executionHostId: 'all' },
     { executionHostId: 'ssh:' },
     { executionHostId: 'unexpected' }
@@ -110,6 +128,28 @@ describe('#116 source access policy', () => {
     expect(decideProjectSourceAccess(request, [{ ...grant, permissions: ['admin' as never] }])).toEqual(
       { allowed: false, reason: 'not_authorized' }
     )
+  })
+
+  it('allows an exact folder workspace without granting a Git worktree', () => {
+    const folder = { ...scope, kind: 'folder-workspace' as const, worktreeId: null }
+    const folderGrant: ProjectSourceGrant = { ...grant, scope: folder }
+    expect(decideProjectSourceAccess({ ...request, scope: folder }, [folderGrant])).toEqual({ allowed: true })
+    expect(decideProjectSourceAccess(request, [folderGrant]).allowed).toBe(false)
+    expect(decideProjectSourceAccess({ ...request, scope: folder }, [grant]).allowed).toBe(false)
+    expect(decideProjectSourceAccess({ ...request, scope: { ...folder, workspaceId: 'other' } }, [folderGrant]).allowed).toBe(false)
+  })
+
+  it('does not revive legacy null or ambiguous folder grants even when both sides match', () => {
+    for (const patch of [
+      { kind: undefined, worktreeId: null },
+      { kind: 'git-worktree', worktreeId: null },
+      { kind: 'folder-workspace', worktreeId: 'worktree-a' },
+      { kind: 'folder-workspace', worktreeId: undefined },
+      { workspaceId: null, worktreeId: null }
+    ]) {
+      const invalid = { ...scope, ...patch } as ProjectSourceAccessRequest['scope']
+      expect(decideProjectSourceAccess({ ...request, scope: invalid }, [{ ...grant, scope: invalid }])).toEqual({ allowed: false, reason: 'invalid_identity' })
+    }
   })
 
   it('does not infer read permission from an ingestion-only grant', () => {

@@ -20,12 +20,20 @@ An authorized request is bound to **every** field:
 | eventSourceName | Expected event.source label; consistency check only |
 | projectId | Registered project namespace; not a path/display name |
 | repositoryId | Registered stable DevCrew repo ID, bound by the trusted adapter |
-| workspaceId | Exact workspace, or *explicitly granted* repo-wide null |
-| worktreeId | Exact worktree, or *explicitly granted* all-worktrees null |
+| kind | `git-worktree` or `folder-workspace`; no repo-wide/all-worktrees scope |
+| workspaceId | Exact registered workspace; always a nonempty identity |
+| worktreeId | Exact registered Git worktree for `git-worktree`; explicit null only for `folder-workspace` without a Git worktree |
+| installationId / sessionId | Trusted installation namespace and current application session |
+| executionRealm | Explicit native realm or exact WSL distro; `local` alone cannot attest native execution |
+| setupId | Exact ProjectHostSetup linking project, repository and host |
+| producerIncarnation / registrationRevision | Current Main-owned producer lifetime and registration generation |
+| policyEpoch | Current Main-owned authorization generation |
 | executionHostId | Concrete local, ssh:<target>, or runtime:<environment> |
 | permission | Separately granted ingest-event or read-snapshot |
 
-No wildcard scope or automatic fallback from SSH/runtime to local. Missing worktree/workspace is **not** equal to explicit null. Repo-wide grants are never cross-repository, cross-host or cross-project. The same taskId, eventId, source label or project display name on different hosts cannot merge their scopes.
+No wildcard scope or automatic fallback from SSH/runtime to local. Missing worktree/workspace is **not** equal to explicit null. Legacy null grants are invalid and must never be migrated into broader permissions. Folder scope requires an exact registered folder workspace and repository; a Git-worktree scope requires a known registered worktree. The comparator cannot establish record ownership: Main must resolve and authenticate these records before calling it. B2 permits native personal infrastructure only, with Corporate/WSL/SSH/runtime registrations disabled. The same taskId, eventId, source label or project display name on different hosts cannot merge their scopes.
+
+The complete binding is compared by the pure policy helper, but its strings are not authority. Main must mint opaque producer and principal capabilities, own immutable registrations and leases, and validate the captured complete binding on every admission, cache access and delivery. Cache/dedupe state must be partitioned by that complete identity. Replacement, restart, session termination, expiry, revocation or policy change invalidates captured operations; revoke/reissue never revives an old request. Tests of trusted fixtures confer no production approval.
 
 ## Who grants access? (proposed responsibilities; owner approval pending)
 
