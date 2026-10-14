@@ -4,15 +4,23 @@ import type { PersistedUIState } from '../../shared/persisted-ui-state-types'
 import { isFeatureInteractionId } from '../../shared/feature-interactions'
 
 let trustedUIRendererWebContentsId: number | null = null
+let trustedUIRendererRegistrationRevision = 0n
 
 export function setTrustedUIRendererWebContentsId(webContentsId: number | null): void {
+  trustedUIRendererRegistrationRevision += 1n
   trustedUIRendererWebContentsId = webContentsId
 }
 
 export function clearTrustedUIRendererWebContentsId(webContentsId: number): void {
   if (trustedUIRendererWebContentsId === webContentsId) {
+    trustedUIRendererRegistrationRevision += 1n
     trustedUIRendererWebContentsId = null
   }
+}
+
+/** Prevent an old reader proof from surviving replacement and restoration of the same window. */
+export function getTrustedUIRendererRegistrationRevision(): bigint {
+  return trustedUIRendererRegistrationRevision
 }
 
 export function sendToTrustedUIRenderer(
