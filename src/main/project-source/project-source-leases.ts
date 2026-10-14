@@ -12,6 +12,8 @@ import type {
 
 export type OperationTicket = symbol
 
+export type WithdrawalResult = { readonly status: 'notified' | 'authority-unavailable' }
+
 /** A verified Main lease record; no issuer or runtime composition is provided in B2. */
 export type TrustedProjectSourceLease = {
   readonly id: string
@@ -181,18 +183,26 @@ export class ProjectSourceLeases {
   }
 
   /** Authority must notify before yielding after withdrawal; silent removal is detected on access. */
-  revoke(leaseId: string): void {
+  revoke(leaseId: string): WithdrawalResult {
     for (const [handle, ids] of this.acceptedLeaseIds) {
       if (ids.has(leaseId)) {
         this.registry.invalidate(handle)
       }
     }
-    for (const lease of this.options.trustedLeaseRecords()) {
-      if (lease.id !== leaseId) {
-        continue
+    try {
+      for (const lease of this.options.trustedLeaseRecords()) {
+        if (lease.id === leaseId) {
+          this.registry.invalidate(lease.producer)
+        }
       }
-      this.registry.invalidate(lease.producer)
+    } catch {
+      // Authority loss cannot preserve accepted work or interrupt later notifications.
+      for (const handle of this.acceptedLeaseIds.keys()) {
+        this.registry.invalidate(handle)
+      }
+      return { status: 'authority-unavailable' }
     }
+    return { status: 'notified' }
   }
 
   release(ticket: OperationTicket): void {

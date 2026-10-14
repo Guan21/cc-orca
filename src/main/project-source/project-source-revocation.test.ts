@@ -125,9 +125,34 @@ describe('Main explicit lease revocation', () => {
     })
     const ticket = leases.capture(f.producer, f.principal, f.scope, 'read-snapshot')!
     unavailable = true
-    expect(() => leases.revoke('lease')).toThrow('authority unavailable')
+    expect(leases.revoke('lease')).toEqual({ status: 'authority-unavailable' })
+    expect(leases.revoke('lease')).toEqual({ status: 'authority-unavailable' })
     expect(f.registry.resolve(f.producer)).toBeNull()
     expect(leases.validate(ticket)).toBeNull()
+  })
+
+  it('continues synchronous withdrawal notifications after authority failure', () => {
+    const f = createSourceFixture()
+    const lease = f.grant(['read-snapshot'])
+    let unavailable = false
+    const leases = new ProjectSourceLeases(f.registry, {
+      clock: () => 0,
+      leaseDurationMs: 100,
+      maxOperations: 4,
+      trustedLeaseRecords: () => {
+        if (unavailable) {
+          throw new Error('offline')
+        }
+        return [lease]
+      }
+    })
+    const ticket = leases.capture(f.producer, f.principal, f.scope, 'read-snapshot')!
+    unavailable = true
+    // Unknown notification still discovers authority loss and retires accepted work.
+    expect(leases.revoke('unknown')).toEqual({ status: 'authority-unavailable' })
+    expect(f.registry.resolve(f.producer)).toBeNull()
+    expect(leases.validate(ticket)).toBeNull()
+    expect(leases.revoke('lease')).toEqual({ status: 'authority-unavailable' })
   })
 
   it('invalidates every deferred completion before delivering a snapshot or admission', async () => {
