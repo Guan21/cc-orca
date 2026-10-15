@@ -1,5 +1,6 @@
 import {
   parseSharedContextV1,
+  SHARED_CONTEXT_V1_MAX_BYTES,
   type ContextProvider,
   type SharedContextV1
 } from './context-v1'
@@ -175,9 +176,16 @@ export function buildManualContextExportPreview(
     return { ok: false, reason: 'invalid_contract' }
   }
 
+  // The on-disk pretty-printed representation can exceed the C1 limit even
+  // when the compact JSON validated above is small enough.
+  const json = `${JSON.stringify(parsed.value, null, 2)}\n`
+  if (new TextEncoder().encode(json).byteLength > SHARED_CONTEXT_V1_MAX_BYTES) {
+    return { ok: false, reason: 'oversized' }
+  }
+
   return {
     ok: true,
     document: parsed.value,
-    json: `${JSON.stringify(parsed.value, null, 2)}\n`
+    json
   }
 }
