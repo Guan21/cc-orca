@@ -218,7 +218,10 @@ export function parseSharedContextV1(
   if (!validContract(snapshot)) {
     return { ok: false, reason: 'invalid_contract' }
   }
-  if (!Number.isFinite(nowMs) || Date.parse(snapshot.expiresAt) <= nowMs) {
+  if (!Number.isFinite(nowMs) || Date.parse(snapshot.generatedAt) > nowMs) {
+    return { ok: false, reason: 'invalid_contract' }
+  }
+  if (Date.parse(snapshot.expiresAt) <= nowMs) {
     return { ok: false, reason: 'expired' }
   }
   return { ok: true, value: snapshot }
