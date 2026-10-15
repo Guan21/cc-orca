@@ -45,12 +45,24 @@ export type SharedContextParseResult =
 const MAX_ITEMS = 32
 const MAX_SUMMARY_CHARS = 1024
 const MAX_ITEM_CHARS = 512
-const CONTROL_OR_BIDI = /[\u0000-\u001f\u007f\u202a-\u202e\u2066-\u2069]/
+const BIDI = /[\u202a-\u202e\u2066-\u2069]/
+
+function unsafeCharacters(value: string): boolean {
+  for (const char of value) {
+    const code = char.charCodeAt(0)
+    if (code < 32 || code === 127 || BIDI.test(char)) {
+      return true
+    }
+  }
+  return false
+}
 const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/
 const PROVIDERS: readonly string[] = ['claude-code', 'codex', 'human', 'other']
 
 function record(value: unknown): value is Record<string, unknown> {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return false
+  }
   const proto = Object.getPrototypeOf(value)
   return proto === Object.prototype || proto === null
 }
@@ -78,7 +90,7 @@ function text(value: unknown, maxChars: number, allowEmpty = false): value is st
     value.length <= maxChars &&
     (allowEmpty || value.length > 0) &&
     value === value.trim() &&
-    !CONTROL_OR_BIDI.test(value)
+    !unsafeCharacters(value)
   )
 }
 
@@ -91,9 +103,15 @@ function list(value: unknown): value is string[] {
 }
 
 function safeRelativeFile(value: unknown): boolean {
-  if (!text(value, MAX_ITEM_CHARS) || typeof value !== 'string') return false
-  if (value.startsWith('/') || value.startsWith('~') || value.includes('\\')) return false
-  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)) return false
+  if (!text(value, MAX_ITEM_CHARS) || typeof value !== 'string') {
+    return false
+  }
+  if (value.startsWith('/') || value.startsWith('~') || value.includes('\\')) {
+    return false
+  }
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)) {
+    return false
+  }
   const parts = value.split('/')
   return parts.every((part) => part !== '' && part !== '.' && part !== '..')
 }
@@ -110,7 +128,9 @@ function validContent(value: unknown): boolean {
   if (!record(value) || !exactKeys(value, [
     'goal', 'completedClaims', 'decisions', 'relevantFiles', 'evidenceRefs',
     'risks', 'remainingWork', 'nextAction'
-  ])) return false
+  ])) {
+    return false
+  }
 
   return (
     text(value.goal, MAX_SUMMARY_CHARS) &&
@@ -171,13 +191,21 @@ export function parseSharedContextV1(
   } catch {
     return { ok: false, reason: 'invalid_contract' }
   }
-  if (serialized === undefined) return { ok: false, reason: 'invalid_contract' }
+  if (serialized === undefined) {
+    return { ok: false, reason: 'invalid_contract' }
+  }
   if (new TextEncoder().encode(serialized).byteLength > SHARED_CONTEXT_V1_MAX_BYTES) {
     return { ok: false, reason: 'oversized' }
   }
-  if (!record(raw)) return { ok: false, reason: 'invalid_contract' }
-  if (raw.schemaVersion !== 1) return { ok: false, reason: 'unsupported_version' }
-  if (!validContract(raw)) return { ok: false, reason: 'invalid_contract' }
+  if (!record(raw)) {
+    return { ok: false, reason: 'invalid_contract' }
+  }
+  if (raw.schemaVersion !== 1) {
+    return { ok: false, reason: 'unsupported_version' }
+  }
+  if (!validContract(raw)) {
+    return { ok: false, reason: 'invalid_contract' }
+  }
   if (!Number.isFinite(nowMs) || Date.parse(raw.expiresAt) <= nowMs) {
     return { ok: false, reason: 'expired' }
   }
@@ -189,7 +217,9 @@ export function parseSharedContextJsonV1(
   json: string,
   nowMs: number = Date.now()
 ): SharedContextParseResult {
-  if (typeof json !== 'string') return { ok: false, reason: 'invalid_json' }
+  if (typeof json !== 'string') {
+    return { ok: false, reason: 'invalid_json' }
+  }
   if (new TextEncoder().encode(json).byteLength > SHARED_CONTEXT_V1_MAX_BYTES) {
     return { ok: false, reason: 'oversized' }
   }
