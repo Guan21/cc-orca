@@ -178,6 +178,6 @@ export function buildManualContextExportPreview(
   return {
     ok: true,
     document: parsed.value,
-    json: JSON.stringify(parsed.value, null, 2) + '\n'
+    json: `${JSON.stringify(parsed.value, null, 2)}\n`
   }
 }
