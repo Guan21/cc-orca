@@ -191,4 +191,39 @@ describe('#143 portable project context v1 contract', () => {
     expect(doc.projectStateSource).toBe('unavailable')
     expect(doc.content.completedClaims).toEqual(['Login API implemented (unverified claim)'])
   })
+
+  it('returns a detached validated JSON snapshot unaffected by later caller mutations', () => {
+    const input = fixture()
+    const result = parseSharedContextV1(input, NOW)
+    expect(result.ok).toBe(true)
+    if (!result.ok) {
+      return
+    }
+    input.projectId = 'project-b'
+    input.content.remainingWork.push('attacker added after validation')
+    input.source.provider = 'human'
+    expect(result.value.projectId).toBe('project-a')
+    expect(result.value.source.provider).toBe('claude-code')
+    expect(result.value.content.remainingWork).toEqual(['Add integration tests'])
+  })
+
+  it('validates serialized content rather than trusting a custom array serializer', () => {
+    const input = fixture()
+    Object.defineProperty(input.content.decisions, 'toJSON', {
+      value: () => ({ claimedAuthority: 'verified' })
+    })
+    expect(parseSharedContextV1(input, NOW)).toEqual({
+      ok: false,
+      reason: 'invalid_contract'
+    })
+  })
+
+  it('rejects future-generated handoffs before they can be treated as current', () => {
+    const input = fixture()
+    input.generatedAt = '2026-10-16T12:00:00.000Z'
+    expect(parseSharedContextV1(input, NOW)).toEqual({
+      ok: false,
+      reason: 'invalid_contract'
+    })
+  })
 })

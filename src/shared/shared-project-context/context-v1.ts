@@ -187,6 +187,12 @@ export function parseSharedContextV1(
   raw: unknown,
   nowMs: number = Date.now()
 ): SharedContextParseResult {
+  if (!record(raw)) {
+    return { ok: false, reason: 'invalid_contract' }
+  }
+  // Clone through JSON before validating. Returning the original object would
+  // allow the caller to mutate an already-validated result, and accessors or
+  // custom serializers could otherwise change what is eventually exported.
   let serialized: string | undefined
   try {
     serialized = JSON.stringify(raw)
@@ -199,19 +205,29 @@ export function parseSharedContextV1(
   if (new TextEncoder().encode(serialized).byteLength > SHARED_CONTEXT_V1_MAX_BYTES) {
     return { ok: false, reason: 'oversized' }
   }
-  if (!record(raw)) {
+
+  let snapshot: unknown
+  try {
+    snapshot = JSON.parse(serialized) as unknown
+  } catch {
     return { ok: false, reason: 'invalid_contract' }
   }
-  if (raw.schemaVersion !== 1) {
+  if (!record(snapshot)) {
+    return { ok: false, reason: 'invalid_contract' }
+  }
+  if (snapshot.schemaVersion !== 1) {
     return { ok: false, reason: 'unsupported_version' }
   }
-  if (!validContract(raw)) {
+  if (!validContract(snapshot)) {
     return { ok: false, reason: 'invalid_contract' }
   }
-  if (!Number.isFinite(nowMs) || Date.parse(raw.expiresAt) <= nowMs) {
+  if (!Number.isFinite(nowMs) || Date.parse(snapshot.generatedAt) > nowMs) {
+    return { ok: false, reason: 'invalid_contract' }
+  }
+  if (Date.parse(snapshot.expiresAt) <= nowMs) {
     return { ok: false, reason: 'expired' }
   }
-  return { ok: true, value: raw }
+  return { ok: true, value: snapshot }
 }
 
 /** Parse a file, with a size check before JSON parsing to bound resource usage. */
