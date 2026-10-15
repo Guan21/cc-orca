@@ -57,7 +57,7 @@ describe('#145 pure Context export preview', () => {
       source: { provider: 'claude-code', runId: 'run-001', provenance: 'manual_unverified' },
       targetProvider: 'codex'
     })
-    expect(preview.json).toBe(JSON.stringify(preview.document, null, 2) + '\n')
+    expect(preview.json).toBe(`${JSON.stringify(preview.document, null, 2)}\n`)
     expect(parseSharedContextJsonV1(preview.json, NOW)).toEqual({
       ok: true,
       value: preview.document
@@ -128,11 +128,11 @@ describe('#145 pure Context export preview', () => {
   })
 
   it.each([
-    [{ projectId: 'project-b' }, 'different project'],
-    [{ taskId: 'task-999' }, 'different task'],
-    [{ kind: 'project-context' }, 'different kind'],
-    [{ targetProvider: 'claude-code' }, 'wrong receiving provider']
-  ])('rejects %s (%s) even if the input is otherwise shaped correctly', (patch) => {
+    { patch: { projectId: 'project-b' }, label: 'different project' },
+    { patch: { taskId: 'task-999' }, label: 'different task' },
+    { patch: { kind: 'project-context' }, label: 'different kind' },
+    { patch: { targetProvider: 'claude-code' }, label: 'wrong receiving provider' }
+  ])('rejects $label even if the input is otherwise shaped correctly', ({ patch }) => {
     expect(buildManualContextExportPreview(selection(), { ...candidate(), ...patch }, NOW))
       .toEqual({ ok: false, reason: 'selection_mismatch' })
   })
