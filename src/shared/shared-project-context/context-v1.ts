@@ -149,7 +149,9 @@ function validContract(value: Record<string, unknown>): value is SharedContextV1
   if (!exactKeys(value, [
     'schemaVersion', 'kind', 'contextId', 'projectId', 'taskId', 'revision',
     'generatedAt', 'expiresAt', 'projectStateSource', 'source', 'targetProvider', 'content'
-  ])) return false
+  ])) {
+    return false
+  }
 
   if (!record(value.source) || !exactKeys(value.source, ['provider', 'runId', 'provenance'])) {
     return false
