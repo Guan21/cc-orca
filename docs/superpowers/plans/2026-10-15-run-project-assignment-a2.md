@@ -21,6 +21,54 @@ OrchestrationDb, A1 RunProjectAssignmentLedger, Vitest, and Playwright CDP.
 
 ## Approval audit and decision owners
 
+### A1/A2 owner assignment and final approval request
+
+The current review targets supplied for this request are A1 [Draft PR #140](https://github.com/Guan21/cc-orca/pull/140)
+at `359d351bab3a4673f0ed69e61de2805c76d09a5b` and A2 [Draft PR #142](https://github.com/Guan21/cc-orca/pull/142)
+at `4279326a6bf164671e1e7eb3ad6fb663e3417249`. This request records no approval.
+Both remain Draft, and production activation is blocked.
+
+| Proposed ownership | Status |
+| --- | --- |
+| Product Owner | @Guan21 (proposed) |
+| SQLite Schema Maintainer | To be formally confirmed |
+| Main IPC / Security Reviewer | To be appointed |
+| Native QA Owner | To be appointed |
+
+**Gate A1 — decision pending:** approve, request changes, or reject:
+
+1. Production versioned SQLite migration and backward compatibility.
+2. Allowed Personal build profile.
+3. Retention, deletion, export, backup and WAL cleanup policy.
+4. Data minimization and handling of legacy/missing records.
+
+**Gate A2 — decision pending:** approve, request changes, or reject:
+
+1. Dedicated Main IPC and narrowly scoped preload capability.
+2. Exact registered Main frame, document and session verification.
+3. Main-owned native confirmation and post-confirmation revalidation.
+4. Personal-only enforcement, Corporate/remote rejection.
+5. Redacted Run-scoped reads and catalog/assignment revision fencing.
+
+Record each applicable gate decision separately using the following template;
+unfilled fields are pending, not consent:
+
+```text
+Gate: A1 / A2
+Reviewer:
+Role:
+Reviewed commit / contract version:
+Decision: APPROVED / CHANGES REQUESTED / REJECTED
+Conditions or required changes:
+```
+
+**Release restriction:** no activation, privileged IPC registration, Draft merge
+or release claim until the applicable gates are explicitly approved. Native
+installed-app acceptance remains independently blocked. Lane B execution
+provenance remains outside this approval.
+
+### Prior approval audit
+
 On 2026-10-15, read all current #138/#139 comments and #141's body, plus A1's
 final-head review. Evidence:
 
