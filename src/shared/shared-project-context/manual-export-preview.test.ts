@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseSharedContextJsonV1 } from './context-v1'
+import { parseSharedContextJsonV1, parseSharedContextV1 } from './context-v1'
 import { buildManualContextExportPreview } from './manual-export-preview'
 
 const NOW = Date.parse('2026-10-16T00:00:00.000Z')
@@ -228,6 +228,31 @@ describe('#145 pure Context export preview', () => {
     c.content.remainingWork.push('new task after preview')
     expect(preview.document.content.remainingWork).toEqual(['Add integration tests'])
     expect(preview.json).not.toContain('new task after preview')
+  })
+
+  it('rejects a pretty-printed file exceeding the byte limit even if compact JSON passes', () => {
+    const c = candidate()
+    c.content.completedClaims = Array(30).fill('a'.repeat(512))
+    c.content.decisions = Array(32).fill('b'.repeat(512))
+    const compact = {
+      schemaVersion: 1,
+      kind: c.kind,
+      contextId: c.contextId,
+      projectId: c.projectId,
+      taskId: c.taskId,
+      revision: c.revision,
+      generatedAt: c.generatedAt,
+      expiresAt: c.expiresAt,
+      projectStateSource: 'unavailable',
+      source: { ...c.source, provenance: 'manual_unverified' },
+      targetProvider: c.targetProvider,
+      content: c.content
+    }
+    expect(parseSharedContextV1(compact, NOW).ok).toBe(true)
+    expect(buildManualContextExportPreview(selection(), c, NOW)).toEqual({
+      ok: false,
+      reason: 'oversized'
+    })
   })
 
   it('treats hostile natural-language content only as inert data', () => {
