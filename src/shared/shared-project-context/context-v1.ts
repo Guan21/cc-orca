@@ -187,6 +187,9 @@ export function parseSharedContextV1(
   raw: unknown,
   nowMs: number = Date.now()
 ): SharedContextParseResult {
+  if (!record(raw)) {
+    return { ok: false, reason: 'invalid_contract' }
+  }
   // Clone through JSON before validating. Returning the original object would
   // allow the caller to mutate an already-validated result, and accessors or
   // custom serializers could otherwise change what is eventually exported.
