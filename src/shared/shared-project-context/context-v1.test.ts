@@ -191,6 +191,7 @@ describe('#143 portable project context v1 contract', () => {
     expect(doc.projectStateSource).toBe('unavailable')
     expect(doc.content.completedClaims).toEqual(['Login API implemented (unverified claim)'])
   })
+
   it('returns a detached validated JSON snapshot unaffected by later caller mutations', () => {
     const input = fixture()
     const result = parseSharedContextV1(input, NOW)
@@ -225,6 +226,4 @@ describe('#143 portable project context v1 contract', () => {
       reason: 'invalid_contract'
     })
   })
-
-
 })
