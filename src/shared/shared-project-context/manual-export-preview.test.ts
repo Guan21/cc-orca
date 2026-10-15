@@ -46,7 +46,9 @@ describe('#145 pure Context export preview', () => {
   it('projects a parseable Claude Code to Codex Handoff without a native session', () => {
     const preview = buildManualContextExportPreview(selection(), candidate(), NOW)
     expect(preview.ok).toBe(true)
-    if (!preview.ok) return
+    if (!preview.ok) {
+      return
+    }
     expect(preview.document).toMatchObject({
       schemaVersion: 1,
       projectId: 'project-a',
@@ -77,7 +79,9 @@ describe('#145 pure Context export preview', () => {
     }
     const preview = buildManualContextExportPreview(selected, proposed, NOW)
     expect(preview.ok).toBe(true)
-    if (!preview.ok) return
+    if (!preview.ok) {
+      return
+    }
     expect(preview.document.kind).toBe('project-context')
     expect(preview.document.taskId).toBeNull()
   })
@@ -104,7 +108,9 @@ describe('#145 pure Context export preview', () => {
     }
     const preview = buildManualContextExportPreview(selection(), raw, NOW)
     expect(preview.ok).toBe(true)
-    if (!preview.ok) return
+    if (!preview.ok) {
+      return
+    }
     for (const secret of [
       'NEVER_EXPORT_ROOT_TOKEN',
       'NEVER_EXPORT_CLAUDE_SESSION',
@@ -216,7 +222,9 @@ describe('#145 pure Context export preview', () => {
     const c = candidate()
     const preview = buildManualContextExportPreview(selection(), c, NOW)
     expect(preview.ok).toBe(true)
-    if (!preview.ok) return
+    if (!preview.ok) {
+      return
+    }
     c.content.remainingWork.push('new task after preview')
     expect(preview.document.content.remainingWork).toEqual(['Add integration tests'])
     expect(preview.json).not.toContain('new task after preview')
@@ -230,7 +238,9 @@ describe('#145 pure Context export preview', () => {
       content: { ...c.content, decisions: [malicious] }
     }, NOW)
     expect(preview.ok).toBe(true)
-    if (!preview.ok) return
+    if (!preview.ok) {
+      return
+    }
     expect(preview.document.content.decisions).toEqual([malicious])
     expect(preview.document.source.provenance).toBe('manual_unverified')
     expect(Object.hasOwn(preview.document, 'permissions')).toBe(false)
