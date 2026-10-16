@@ -85,6 +85,12 @@ describe('#55 manual cross-provider handoff intake', () => {
     expect(result.review.receiverProvider).toBe('claude-code')
   })
 
+  it('rejects missing receiver expectations without throwing', () => {
+    expect(inspectManualHandoffJson(
+      readFixture(), null as unknown as typeof expected, NOW
+    )).toEqual({ ok: false, reason: 'invalid_expectation' })
+  })
+
   it('rejects a context document that is not a task handoff', () => {
     const json = readFixture({
       kind: 'project-context',
