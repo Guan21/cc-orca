@@ -54,6 +54,7 @@ export type ManualHandoffIntakeResult =
       ok: false
       reason:
         | 'invalid_context'
+        | 'invalid_expectation'
         | 'not_handoff'
         | 'wrong_project'
         | 'wrong_task'
@@ -66,6 +67,17 @@ export function inspectManualHandoffJson(
   expected: ManualHandoffIntakeExpectation,
   nowMs: number
 ): ManualHandoffIntakeResult {
+  if (
+    !expected ||
+    typeof expected.projectId !== 'string' ||
+    typeof expected.taskId !== 'string' ||
+    !(['claude-code', 'codex', 'human', 'other'] as readonly string[]).includes(
+      expected.receiverProvider
+    )
+  ) {
+    return { ok: false, reason: 'invalid_expectation' }
+  }
+
   const parsed = parseSharedContextJsonV1(json, nowMs)
   if (!parsed.ok) {
     return { ok: false, reason: 'invalid_context', sourceReason: parsed.reason }
