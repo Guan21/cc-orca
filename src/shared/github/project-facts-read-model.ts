@@ -61,9 +61,13 @@ export type GitHubFactProjectionResult =
   | { status: 'unavailable' | 'invalid' | 'scope_mismatch' | 'stale' }
 
 function plain(value: unknown): value is Record<string, unknown> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false
+  }
   const prototype: unknown = Object.getPrototypeOf(value)
-  if (prototype !== Object.prototype && prototype !== null) return false
+  if (prototype !== Object.prototype && prototype !== null) {
+    return false
+  }
   return Object.values(Object.getOwnPropertyDescriptors(value)).every(
     (descriptor) => Object.hasOwn(descriptor, 'value')
   )
@@ -75,7 +79,7 @@ function fields(value: unknown, keys: readonly string[]): value is Record<string
 
 function bounded(value: unknown, limit: number): value is string {
   return typeof value === 'string' && value.length > 0 &&
-    value.length <= limit && value.trim() === value && !/[\u0000-\u001f\u007f]/.test(value)
+    value.length <= limit && value.trim() === value && ![...value].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
 }
 
 function positive(value: unknown): value is number {
@@ -126,7 +130,9 @@ function validConclusion(value: unknown): value is CheckConclusion {
 }
 
 function parseFact(value: unknown, fetchedAtMs: number): GitHubFact | null {
-  if (!plain(value)) return null
+  if (!plain(value)) {
+    return null
+  }
   if (value.kind === 'pull_request' &&
       fields(value, ['kind', 'number', 'headSha', 'state', 'updatedAt']) &&
       positive(value.number) && sha(value.headSha) &&
@@ -156,9 +162,13 @@ function parseFact(value: unknown, fetchedAtMs: number): GitHubFact | null {
 }
 
 function keyOf(fact: GitHubFact): string {
-  if (fact.kind === 'pull_request') return 'pr:' + fact.number
-  if (fact.kind === 'check_run') return 'check:' + fact.id
-  return 'commit:' + fact.sha
+  if (fact.kind === 'pull_request') {
+    return `pr:${fact.number}`
+  }
+  if (fact.kind === 'check_run') {
+    return `check:${fact.id}`
+  }
+  return `commit:${fact.sha}`
 }
 
 /** No I/O; untrusted content can never become a native execution claim. */
@@ -172,7 +182,9 @@ export function projectGitHubFacts(
       !Number.isFinite(maxAgeMs) || maxAgeMs <= 0 || maxAgeMs > MAX_AGE_MS) {
     return { status: 'invalid' }
   }
-  if (input === null || input === undefined) return { status: 'unavailable' }
+  if (input === null || input === undefined) {
+    return { status: 'unavailable' }
+  }
   if (!fields(input, ['version', 'projectId', 'bindingRevision', 'repository',
     'fetchedAt', 'facts']) ||
       input.version !== GITHUB_FACT_SNAPSHOT_VERSION ||
@@ -185,23 +197,31 @@ export function projectGitHubFacts(
     bindingRevision: input.bindingRevision as number,
     repository: input.repository as GitHubRepoKey
   }
-  if (!sameScope(actualScope, expectedScope)) return { status: 'scope_mismatch' }
+  if (!sameScope(actualScope, expectedScope)) {
+    return { status: 'scope_mismatch' }
+  }
   if (!timestamp(input.fetchedAt, nowMs) || !Array.isArray(input.facts) ||
       input.facts.length > MAX_FACTS) {
     return { status: 'invalid' }
   }
   const fetchedAtMs = Date.parse(input.fetchedAt)
-  if (nowMs - fetchedAtMs > maxAgeMs) return { status: 'stale' }
+  if (nowMs - fetchedAtMs > maxAgeMs) {
+    return { status: 'stale' }
+  }
 
   const facts: GitHubFact[] = []
   const keys = new Map<string, string>()
   for (const candidate of input.facts) {
     const fact = parseFact(candidate, fetchedAtMs)
-    if (!fact) return { status: 'invalid' }
+    if (!fact) {
+    return { status: 'invalid' }
+  }
     const key = keyOf(fact)
     const serialized = JSON.stringify(fact)
     const previous = keys.get(key)
-    if (previous !== undefined && previous !== serialized) return { status: 'invalid' }
+    if (previous !== undefined && previous !== serialized) {
+    return { status: 'invalid' }
+  }
     if (previous === undefined) {
       keys.set(key, serialized)
       facts.push(fact)
