@@ -38,7 +38,9 @@ describe('#116 inert GitHub factual Project snapshot', () => {
   it('projects real claimable repo facts while keeping Agent and Task unknown', () => {
     const result = projectGitHubFacts(source(), selection, NOW, MAX_AGE)
     expect(result.status).toBe('ready')
-    if (result.status !== 'ready') return
+    if (result.status !== 'ready') {
+      return
+    }
     expect(result.snapshot).toMatchObject({
       version: 1,
       projectId: 'project-a',
@@ -62,7 +64,9 @@ describe('#116 inert GitHub factual Project snapshot', () => {
     })
     const empty = projectGitHubFacts(source({ facts: [] }), selection, NOW, MAX_AGE)
     expect(empty.status).toBe('empty')
-    if (empty.status === 'empty') expect(empty.snapshot.facts).toEqual([])
+    if (empty.status === 'empty') {
+      expect(empty.snapshot.facts).toEqual([])
+    }
   })
 
   it('denies same-named repos on other hosts or with another immutable repo ID', () => {
@@ -98,7 +102,9 @@ describe('#116 inert GitHub factual Project snapshot', () => {
   it('does not label a newer PR update as PR creation or proven Task completion', () => {
     const result = projectGitHubFacts(source(), selection, NOW, MAX_AGE)
     expect(result.status).toBe('ready')
-    if (result.status !== 'ready') return
+    if (result.status !== 'ready') {
+      return
+    }
     const pr = result.snapshot.facts.find((fact) => fact.kind === 'pull_request')
     expect(pr).toMatchObject({
       kind: 'pull_request', number: 12, headSha: HEAD, state: 'open'
@@ -119,7 +125,9 @@ describe('#116 inert GitHub factual Project snapshot', () => {
     const result = projectGitHubFacts(source({ facts: [...facts, facts[0]] }),
       selection, NOW, MAX_AGE)
     expect(result.status).toBe('ready')
-    if (result.status === 'ready') expect(result.snapshot.facts).toHaveLength(3)
+    if (result.status === 'ready') {
+      expect(result.snapshot.facts).toHaveLength(3)
+    }
   })
 
   it('preserves unknown CI rather than reporting success', () => {
@@ -127,7 +135,9 @@ describe('#116 inert GitHub factual Project snapshot', () => {
       { kind: 'check_run', id: 42, headSha: HEAD, status: 'completed', conclusion: null }
     ] }), selection, NOW, MAX_AGE)
     expect(result.status).toBe('ready')
-    if (result.status !== 'ready') return
+    if (result.status !== 'ready') {
+      return
+    }
     expect(result.snapshot.facts).toEqual([
       { kind: 'check_run', id: 42, headSha: HEAD, status: 'completed', conclusion: null }
     ])
