@@ -96,7 +96,9 @@ function sha(value: unknown): value is string {
 
 function timestamp(value: unknown, atMost: number): value is string {
   if (typeof value !== 'string' ||
-      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)) return false
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)) {
+    return false
+  }
   const parsed = Date.parse(value)
   return Number.isFinite(parsed) && parsed <= atMost
 }
