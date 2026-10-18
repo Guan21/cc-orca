@@ -28,6 +28,10 @@
 
 ## Required review before G2 source integration
 
+The [G2 source authorization ADR](github-project-source-authorization-g2.md) records
+the audited reuse paths, proposed bounded source flow and outstanding signatures.
+It is a proposal, not approval to activate this contract.
+
 1. **Named GitHub network/privacy policy owner** signs exact host/endpoint/method list, GitHub installation/scopes and token custody, Corporate build egress allowlist, read invocation (prefer manual user-triggered, no automatic polling/webhook), PII and rate-limits/revocation.
 2. **Named Electron Main/Project authorization reviewer** approves actual Project↔repo mapping source with monotonic binding revision across deletion/reassignment A→B→A, exact BrowserWindow/document/session, read ACL, before/after awaited revalidation and fail-closed worktree/host switching.
 3. **Independent schema/source reviewer** confirms GitHub status/CI semantics, SHA pinning, conflict resolution, time skew and freshness, durable replay/checkpoint if proposed, production state compatibility. `ProjectStateSnapshot` is Task-centric and must **not** be force-filled with fabricated Task nodes; use a separate approved GitHub Project Activity surface if required.
