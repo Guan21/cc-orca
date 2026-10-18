@@ -51,7 +51,7 @@ Paths below are baseline source references, not proposed new subsystems.
 Recommend one manually selected PR in one explicitly bound Project, via a fixed
 GraphQL read, with in-memory authorization and snapshots only. This is a useful
 PR/head-commit/check observation slice, not a complete repository activity feed.
-The Product Owner must accept this narrowed first-slice scope explicitly.
+**Product Owner scope decision (2026-10-18): ACCEPTED** this narrowed first implementation slice in [#151](https://github.com/Guan21/cc-orca/issues/151#issuecomment-6248900847): packaged native Personal Desktop, one explicitly selected same-repository PR, manually invoked bounded GraphQL read, truthful selected-PR GitHub facts UI. This is **product-scope acceptance, not permission** to perform any GitHub network call, enable new Main/IPC capabilities, access credentials or relax Corporate policy. Corporate-as-V1-launch-profile and multi-PR-as-V1 requirements are still separate Owner decisions, not erased by this pilot.
 
 Alternatives rejected for this slice: broad existing PR/check loaders expand
 fields, cache and fallback requests; owner/name REST fan-out makes immutable
@@ -339,7 +339,7 @@ Perform Windows/macOS installed QA on isolated displays/CI when claimed; set
 
 | Role                                                 | Identity / decision / evidence as of 2026-10-18                                                                                                                           |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Product Owner                                        | `Guan21` authored the linked owner direction. Narrow selected-PR, same-repository, packaged-Personal proposal acceptance is PENDING; no G2 activation signature observed. |
+| Product Owner                                        | `Guan21`: first-slice Personal/manual single-PR product scope **ACCEPTED 2026-10-18**, [#151 decision](https://github.com/Guan21/cc-orca/issues/151#issuecomment-6248900847). **No security or G2 source activation permission granted**; Corporate V1 profile and repository-wide scope priorities still pending. |
 | Independent technical architecture / schema reviewer | NOT DESIGNATED; exact ADR revision, query schema, budgets, identity and semantic decision required.                                                                       |
 | Independent Main/IPC security reviewer               | NOT DESIGNATED; principal/confirmation issuer, registry/grant lifecycle, epoch/incarnation, sender/session and runner-runtime restriction approval required.              |
 | Network / privacy / security reviewer                | NOT DESIGNATED; exact profile, host/method/query, credential identity/type/permissions, revocation window, retention/logging approval required.                           |
