@@ -85,12 +85,13 @@ function conclusion(value: unknown): CheckConclusion | undefined {
 function connection(value: unknown, max: number): JsonRecord[] | 'incomplete' | null {
   const candidate = record(value)
   const page = record(candidate?.pageInfo)
-  if (!page || typeof page.hasNextPage !== 'boolean' || !Array.isArray(candidate?.nodes)) {
+  const rawNodes = candidate?.nodes
+  if (!page || typeof page.hasNextPage !== 'boolean' || !Array.isArray(rawNodes)) {
     return null
   }
-  if (page.hasNextPage || candidate.nodes.length > max) return 'incomplete'
+  if (page.hasNextPage || rawNodes.length > max) return 'incomplete'
   const nodes: JsonRecord[] = []
-  for (const item of candidate.nodes) {
+  for (const item of rawNodes) {
     const node = record(item)
     if (!node) return null
     nodes.push(node)
@@ -168,10 +169,14 @@ export function projectSelectedGitHubPrResponse(
     return { status: 'invalid' }
   }
 
-  const commits = connection(pr.commits, 1)
-  if (commits === 'incomplete') return { status: 'incomplete' }
-  if (!commits || commits.length !== 1) return { status: 'invalid' }
-  const commit = record(commits[0].commit)
+  // The frozen GraphQL query requests commits(last: 1) with nodes, but no pageInfo.
+  const commitConnection = record(pr.commits)
+  const commitNodes = commitConnection?.nodes
+  if (!Array.isArray(commitNodes) || commitNodes.length !== 1) {
+    return { status: 'invalid' }
+  }
+  const commitNode = record(commitNodes[0])
+  const commit = record(commitNode?.commit)
   if (!commit || !hexSha(commit.oid) || commit.oid.toLowerCase() !== head.toLowerCase()) {
     return { status: 'invalid' }
   }
