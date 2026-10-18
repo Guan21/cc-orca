@@ -426,6 +426,85 @@ SHA privately under the approved evidence policy; publish only authorized eviden
 Perform Windows/macOS installed QA on isolated displays/CI when claimed; set
 `ORCA_BACKGROUND_LAUNCH=1`, use hidden-renderer CDP, never activate user windows.
 
+## #151 technical evidence and reviewer handoff — 2026-10-18
+
+This is a **source-and-GitHub-documentation-based static review**, not an authenticated
+real GitHub query, proof of effective token scope, implementation test, or independent
+security authorization. Reviewers must sign the final **exact ADR commit SHA**
+and record deviations/conditions.
+
+### Verified vs unverified GitHub API contract
+
+| Candidate/query element | Static verification source | Result / remaining action |
+| --- | --- | --- |
+| `POST https://api.github.com/graphql`, authenticated query | [GitHub Forming Calls](https://docs.github.com/en/graphql/guides/forming-calls-with-graphql) | **DOCUMENTED**; not a G2 egress authorization or active credential verification |
+| Opaque repository Node ID, REST `node_id` | [GitHub Using Global Node IDs](https://docs.github.com/en/graphql/guides/using-global-node-ids) | **DOCUMENTED** origin. Catalog names/paths cannot mint a Node ID or read grant; R1 bootstrap still missing |
+| `CheckSuite.checkRuns(first:8)`, `commit`, `repository`, `pageInfo`; `CheckRun.databaseId/status/conclusion/repository` | [GitHub GraphQL Checks schema](https://docs.github.com/en/graphql/reference/checks) | **FIELDS DOCUMENTED**; `databaseId` nullable means missing check ID fails closed |
+| `Commit.checkSuites(first:10)`, `Commit.oid` | [GitHub GraphQL Commits schema](https://docs.github.com/en/graphql/reference/commits) | **FIELDS DOCUMENTED**; null/visibility/connection overflow are not completeness proof |
+| `PullRequest.commits(last:1)`, `headRefOid`, `headRepository`, `state`, `merged` | [GitHub GraphQL Pull Requests schema](https://docs.github.com/en/graphql/reference/pulls) | **FIELDS DOCUMENTED**; use the actual PR head SHA as the binding reference, reject missing/mismatched last commit |
+| `CheckStatusState` (six), `CheckConclusionState` (nine) and nullable conclusion | [GitHub GraphQL Checks enums](https://docs.github.com/en/graphql/reference/checks) | **ENUM VALUES DOCUMENTED**; normalize one-to-one to existing G1; never infer CI PASS from absent/null checks |
+| Fine-grained PAT for Check visibility | [GitHub PAT limitations](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) and [REST Check Runs authentication](https://docs.github.com/en/rest/checks/runs) | **CONFLICTING/CONTEXT-DEPENDENT guidance**: general PAT limitations mention unsupported Checks API while individual REST check endpoints list fine-grained support. REST permissions do **not** prove the proposed GraphQL check fields are visible to a specific `gh` token. **BLOCKED pending approved token-type/ACL evidence** |
+
+**Static verification conclusion:** supported field and enum references make the
+proposed query *plausible*, but **`FULL_GRAPHQL_SCHEMA_VALIDATED = false`**:
+no authenticated introspection, query validation or real-permission execution
+has occurred, and no repository/node bootstrap has been approved. An optional
+offline query syntax parser cannot substitute for actual schema and account ACL.
+Never label G2 read-authorized or Checks complete on these documents alone.
+
+### Proposed concrete R1 decision for named reviewers (not activated)
+
+**Preferred for this *single-PR* pilot:** a separate **Main-controlled, user-
+confirmed repository registration operation** using a narrowly fixed GraphQL
+`repository(owner:,name:){ id databaseId nameWithOwner }` query on github.com.
+Unlike arbitrary `node(id:)`, this operation can discover the genuine opaque
+Node ID and numeric ID *together*, verify an operator-approved candidate and
+pin the resulting immutable identity in the Main-owned session binding.
+However, it is a **distinct, additional network operation**, not part of the
+already accepted `one request per manual PR Refresh` limit, and is NOT approved
+by that decision. Before implementing, a named network/privacy reviewer must
+authorize this registration operation, exact fields/host/method/credential
+scope, permitted triggering/consent and budget; Main security must approve the
+registration principal and bounded confirmation UI. First Refresh must not
+run if registration failed, access was revoked, or user has not explicitly
+confirmed the returned immutable identity.
+
+**Alternative:** obtain numeric+opaque IDs from an **already separately approved
+authenticated Main-owned registration/inventory** and demonstrate its
+provenance and bound Project ACL. Do not add a silent REST lookup, decode ID,
+use arbitrary renderer IDs, or treat existing owner/name catalog metadata as
+an authentic grant. Both paths require independent named review. If no path
+is approved, keep G2 source unavailable.
+
+### Three signoff requests; reject or amend with evidence
+
+- **Architecture/schema reviewer:** choose R1 registration source; check
+  `Repository.databaseId`/`CheckRun.databaseId` null/ID integer bounds and
+  rename/transfer/fork policy; verify all full GraphQL fields, connection
+  completeness, SHA agreement, one fixed operation/budget and absence of
+  lifecycle fabrication. Record approved ADR SHA, required modifications and
+  `APPROVE / CHANGES_REQUESTED / BLOCKED`.
+- **Main/IPC reviewer:** identify implementable exact Electron window/frame/
+  document/Session/principal authority, Main-only consent/binding epochs,
+  existing project catalog trust, user confirmation, native `gh` process
+  identity, async rechecks, revoke/restart/ABA tests; review any G2-specific
+  runner change without breaking existing consumers. Record exact ADR SHA and
+  decision, not a generic acknowledgment.
+- **Network/privacy/security reviewer:** separately approve or deny **both**
+  first-time registration **and** selected-PR Refresh (if registration is needed),
+  exact GraphQL host/query/permission/token custody/egress, no fallback/poll/
+  telemetry, 15s/1MiB budgets, 15-minute grant/5-minute freshness, handling
+  of out-of-band token revocation, no source logs/storage and least-privilege
+  **real** GraphQL Check visibility. Do not record credentials. Record exact
+  ADR SHA, permitted profile/host/operations and decision.
+
+**QA handoff:** nominate actual native Personal Windows/macOS test owners and
+an approved repository/PR, record least-privilege credential principal privately,
+then validate positive+negative real-source cases under [#153](https://github.com/Guan21/cc-orca/issues/153)
+**after** the preceding source and security approvals. No app/IPC/network
+permission is introduced by this document update. #151 remains BLOCKED until
+these exact signoffs and a test owner exist.
+
 ## Owner acceptance of G2-A security constraints (not security approval)
 
 On 2026-10-18, the Product Owner confirmed all **23** proposed control requirements
