@@ -107,7 +107,7 @@ describe('#152 B3 real Electron Main event identity (offline)', () => {
     expect(a.origin.attest({ ...a.event, senderFrame: {} } as never)).toBeNull()
     a.frame.url = 'https://attacker.example/'
     expect(a.origin.attest(a.event as never)).toBeNull()
-    a.frame.url = RENDERER + '?unreviewed-input=1'
+    a.frame.url = `${RENDERER}?unreviewed-input=1`
     expect(a.origin.attest(a.event as never)).toBeNull()
   })
 
