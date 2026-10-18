@@ -11,7 +11,7 @@ import {
   scanShellStartupOutput
 } from '../shell-startup-output-scanner'
 import type { LocalPtyLaunchPlan } from './local-pty-launch-plan'
-import { ptyCleanupCallbacks } from './local-pty-provider-state'
+import { addPtyCleanupCallback } from './local-pty-provider-state'
 import {
   STARTUP_COMMAND_READY_MAX_WAIT_MS,
   type ShellReadySignal
@@ -99,7 +99,7 @@ export function createLocalPtyShellReadinessSession(args: {
   }
   let startupCommandCleanup: (() => void) | null = null
   if (spawn.command) {
-    ptyCleanupCallbacks.set(id, () => {
+    addPtyCleanupCallback(id, () => {
       if (shellReadyTimeout) {
         clearTimeout(shellReadyTimeout)
         shellReadyTimeout = null

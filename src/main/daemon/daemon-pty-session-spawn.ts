@@ -24,6 +24,11 @@ import { resolveUnixShellPath } from '../providers/local-pty-utils'
 import type { PtySpawnOptions, PtySpawnResult } from '../providers/types'
 import { injectHistoryEnv, injectWslFishHistoryEnv, logHistoryInjection } from '../terminal-history'
 import { addWslEnvKeys } from '../wsl-env'
+import {
+  disposePreparedAgentExecutionRuntime,
+  prepareAgentExecutionBoundaryForPtySpawn,
+  type PreparedAgentExecutionRuntime
+} from '../agent-execution-boundary/agent-execution-boundary'
 
 export abstract class DaemonPtySessionSpawn extends DaemonPtySpawnResult {
   async spawn(opts: PtySpawnOptions): Promise<PtySpawnResult> {
@@ -216,6 +221,66 @@ export abstract class DaemonPtySessionSpawn extends DaemonPtySpawnResult {
         restoreInfo = await detectColdRestore()
       }
     }
+    let preparedRuntime: PreparedAgentExecutionRuntime | null = null
+    try {
+      if (!attachOnly) {
+        const preparedResult = prepareAgentExecutionBoundaryForPtySpawn(opts, 'daemon-pty')
+        preparedRuntime = preparedResult instanceof Promise ? await preparedResult : preparedResult
+        opts = preparedRuntime.spawn
+      }
+      return await this.doPreparedSpawn({
+        opts,
+        operation,
+        historyRecovery,
+        requestedSessionId,
+        attachOnly,
+        emulateLegacyAttachOnly,
+        sessionId,
+        wslDistro,
+        restoreInfo,
+        restoreSkippedForLiveSession,
+        preparedRuntime,
+        detectColdRestore,
+        setActiveSpawnContext: (context) => {
+          activeSpawnContext = context
+        }
+      })
+    } catch (error) {
+      await disposePreparedAgentExecutionRuntime(preparedRuntime)
+      throw error
+    }
+  }
+
+  private async doPreparedSpawn(args: {
+    opts: PtySpawnOptions
+    operation: PendingDaemonSpawnOperation
+    historyRecovery: HistoryRecoveryContext
+    requestedSessionId: string
+    attachOnly: boolean
+    emulateLegacyAttachOnly: boolean
+    sessionId: string
+    wslDistro: string | undefined
+    restoreInfo: ColdRestoreInfo | null
+    restoreSkippedForLiveSession: boolean
+    preparedRuntime: PreparedAgentExecutionRuntime | null
+    detectColdRestore(options?: { ignoreCleanEnd?: boolean }): Promise<ColdRestoreInfo | null>
+    setActiveSpawnContext(context: DaemonPtySpawnContext): void
+  }): Promise<PtySpawnResult> {
+    const {
+      opts,
+      operation,
+      historyRecovery,
+      requestedSessionId,
+      attachOnly,
+      emulateLegacyAttachOnly,
+      sessionId,
+      wslDistro,
+      restoreInfo,
+      restoreSkippedForLiveSession,
+      preparedRuntime,
+      detectColdRestore,
+      setActiveSpawnContext
+    } = args
     let effectiveCwd = restoreInfo?.cwd ?? opts.cwd
     let effectiveCols = restoreInfo?.cols ?? opts.cols
     let effectiveRows = restoreInfo?.rows ?? opts.rows
@@ -257,12 +322,18 @@ export abstract class DaemonPtySessionSpawn extends DaemonPtySpawnResult {
       historySeedSegments: restoreInfo ? getRecoveredHistorySeedSegments(restoreInfo) : null,
       detectColdRestore
     }
-    activeSpawnContext = context
+    setActiveSpawnContext(context)
     const result = await this.createOrAttachSpawn(context, context.historySeedSegments)
     if (result.isNew && !attachOnly) {
       trackDaemonPtyCwdDeniedIfDiverged(effectiveCwd, result.cwdReadableByDaemon, this.pidPath)
     }
-    return this.finishSpawn(context, result)
+    const spawnResult = await this.finishSpawn(context, result)
+    if (spawnResult.exitedBeforeSpawnReply) {
+      await disposePreparedAgentExecutionRuntime(preparedRuntime)
+    } else {
+      this.registerAgentExecutionBoundaryRuntime(spawnResult.id, preparedRuntime)
+    }
+    return spawnResult
   }
 
   protected resultForExitBeforeSpawnReply(
