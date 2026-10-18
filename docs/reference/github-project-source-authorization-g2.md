@@ -46,6 +46,97 @@ Paths below are baseline source references, not proposed new subsystems.
 | Project UI         | `src/renderer/src/app-shell/ProjectMapDesktopPage.tsx`; `components/project-map/ProjectMapPage.tsx`                                         | Desktop supplies no snapshot and displays source unavailable. Keep this behavior for the native Task map.                                                                                                   |
 | State/graph        | `src/shared/project-state/project-state.ts`; `docs/reference/project-state-engine.md`                                                       | Task-centric state cannot represent GitHub facts by manufacturing Task/Agent nodes. Reuse the shell/navigation, not false lifecycle semantics.                                                              |
 
+## Source-backed pre-implementation security review (not an independent signoff)
+
+Read-only inspection of existing code on `company-work@01ee74928a24a14d787ed65ed191134bddc7f368`
+and the [public GitHub Checks GraphQL reference](https://docs.github.com/en/graphql/reference/checks)
+identifies three **specific implementation-readiness gates**, in addition to the
+previous threat model. These findings are evidence for named reviewers, **not**
+approval to activate a new source, credential, network request or IPC channel.
+
+### R1 — Resolve trusted repository Node ID registration *before* first refresh
+
+- The existing Project Catalog / GitHub host-qualified owner/name discovery
+  is not an immutable GitHub numeric **and** opaque GraphQL Node ID grant.
+  The fixed proposed `node(id: $repositoryNodeId)` query **requires an opaque
+  Node ID before it can start**. Do not decode, derive or trust a renderer ID.
+- Architecture/Main/network owners must jointly choose and sign an implementable
+  registration path: **(A)** an already-approved, Main-verifiable trusted binding
+  with authenticated numeric+opaque IDs and provenance, or **(B)** a separate,
+  specifically authorized fixed **registration/verification** GraphQL operation,
+  including its host/method/field budget, explicit user consent, credential
+  boundary and source identity checks. Do not silently add this network call to
+  the approved single-PR Refresh; a registration action and a Refresh are
+  distinct authorized operations.
+- For either path, Main must verify numeric ID, node ID, host, owner/name,
+  Project/Workspace/host scope and current consent before committing the binding.
+  A user-provided candidate, name/path match, catalog selection or successful
+  API response alone does **not** mint a Project read grant.
+- **Acceptance proof:** registration to a known repo succeeds only in an
+  approved profile; malicious/stale/mismatched node IDs, renamed/transferred
+  repos, wrong-host IDs, revoked grants, A→B→A and absent bootstrap policy
+  fail closed. If neither path is approved, **G2-B cannot make a first request**.
+
+### R2 — Do not reuse generic `desktop-ipc` as G2 identity or permission
+
+- The current `src/main/ipc/runtime.ts` `runtime:call` checks
+  `event.senderFrame === event.sender.mainFrame` but forwards a generic
+  `authToken: 'desktop-ipc'`, `clientId: 'desktop-renderer'` to the
+  `RpcDispatcher`. This identifies an existing transport convention,
+  **not** an authenticated G2 user, exact document, Project/repo grant, or
+  approved personal credential principal.
+- `src/main/ipc/desktop-runtime-sender-lifecycle.ts` retires a connection
+  on `did-navigate`, `render-process-gone` and destruction; it does not
+  itself prove G2 read authority. G2 security reviewer must define how Main
+  attests the exact allowed BrowserWindow, WebContents, frame/document,
+  Electron Session, Personal profile, Project catalog binding, current
+  principal/credential generation and consent **at the source call and delivery**.
+- **Acceptance proof:** forged renderer/project/PR ID, subframe, replaced
+  document, same-Project new grant generation, changed Project/worktree/host
+  and delayed response all receive deny/discard without cross-Project data.
+  Generic CLI/RPC methods cannot invoke or inherit the G2 source grant.
+
+### R3 — Restrict the existing `gh` executor without changing old clients
+
+- `src/main/git/command-runner/gh-exec-file.ts` currently has a
+  Windows native-to-default-WSL missing-command fallback (lines 147–164),
+  WSL-to-host fallback (165–170) and idempotent transient retry (172–181).
+  Its environment builder spreads ambient environment, while host/rate
+  scoping considers `GH_HOST`. `idempotent: false` blocks only one
+  retry path, **not** environment/credential substitutions.
+- The independent Main/network reviewers must approve a **G2-specific pinned
+  native runtime policy** in the existing runner: exact `gh` executable,
+  approved account/host and environment custody, no WSL/host fallback,
+  no retry/probe or redirect, deadline including queue/semaphore wait,
+  bounded output and abort/revoke. Preserve behavior of unrelated preexisting
+  `gh` consumers.
+- **Acceptance proof:** missing native `gh`, hostile `GH_HOST` or ambient
+  token override, WSL fallback opportunity, rate limited request, abort
+  during queue wait, process timeout and stale-Project response all fail
+  closed, with no hidden second process/request or leaked raw output.
+
+### R4 — Static GitHub GraphQL field review is not live schema/ACL evidence
+
+The current GitHub Checks reference documents `CheckRun.repository`,
+`CheckRun.status/conclusion/databaseId`, `CheckSuite.repository/commit/checkRuns`
+and `CheckRunConnection.pageInfo`. Its read-status and conclusion enums are
+consistent with the G1 model after explicit lowercase normalization.
+This **partially supports the proposed query**, but does **not** validate
+every field, repository/PR connection path, exact token permissions, the
+actual fixed query on GitHub, or visibility of hidden checks.
+The architecture reviewer must perform full documented schema validation,
+then — **only after independent network/credential permission approval** —
+a bounded test against an authorized real repository/PR. Check `null`,
+`hasNextPage` on both connections, a zero-check result, permission filtering,
+head SHA changes and incomplete capacity semantics. Never report
+`SCHEMA_VALIDATED`, `CHECKS_COMPLETE` or E2E PASS from documentation alone.
+
+**Exit status of R1–R4 as of this review: UNRESOLVED / G2-B BLOCKED.**
+The accepted 23 Owner controls remain requirements only; all independent
+approver identities, signed exact ADR SHA, test principal/repository and
+native QA owner are still required under [#151](https://github.com/Guan21/cc-orca/issues/151).
+No production source or network/IPC code changes are part of this review.
+
 ## Proposed decision and alternatives
 
 Recommend one manually selected PR in one explicitly bound Project, via a fixed
