@@ -61,8 +61,8 @@ type SelectionState = {
   pending?: AbortController
 }
 
-export type SourceOperationResult<T> =
-  | { status: 'delivered'; value: T }
+export type SourceOperationResult =
+  | { status: 'delivered' }
   | { status: 'denied' | 'expired' | 'revoked' }
 
 const MAX_GRANT_MS = 15 * 60_000
@@ -73,7 +73,7 @@ function bounded(value: unknown): value is string {
     value.length > 0 &&
     value.length <= 256 &&
     value.trim() === value &&
-    !/[\u0000-\u001f\u007f]/.test(value)
+    ![...value].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
   )
 }
 
@@ -180,6 +180,11 @@ export class MainSelectedPrGrantRegistry {
    */
   select(document: VerifiedSourceDocument, binding: TrustedSelectedPrBinding): boolean {
     if (!validDocument(document) || !validBinding(binding)) {
+      // A rejected switch must also revoke any old read authority for this
+      // WebContents; retaining a previously authorized Project is unsafe.
+      if (document && positive(document.webContentsId)) {
+        this.retireWebContents(document.webContentsId)
+      }
       return false
     }
     this.retireWebContents(document.webContentsId)
@@ -257,7 +262,7 @@ export class MainSelectedPrGrantRegistry {
     verifiedNow: () => VerifiedSourceDocument | null,
     load: (scope: TrustedSelectedPrBinding, signal: AbortSignal) => Promise<T>,
     deliver: (value: T) => void
-  ): Promise<SourceOperationResult<T>> {
+  ): Promise<SourceOperationResult> {
     const before = this.current(verifiedNow())
     if (!before || !before.granted || before.pending) {
       return { status: 'denied' }
@@ -285,7 +290,7 @@ export class MainSelectedPrGrantRegistry {
         return { status: 'revoked' }
       }
       deliver(value)
-      return { status: 'delivered', value }
+      return { status: 'delivered' }
     } finally {
       if (before.pending === pending) {
         before.pending = undefined
