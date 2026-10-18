@@ -505,6 +505,38 @@ then validate positive+negative real-source cases under [#153](https://github.co
 permission is introduced by this document update. #151 remains BLOCKED until
 these exact signoffs and a test owner exist.
 
+## 2026-10-18 private repository governance supersession (limited)
+
+**Latest explicit Owner instruction:** this is a private repository without
+independent reviewers; development should proceed. The Owner's
+[recorded solo-maintainer exception](https://github.com/Guan21/cc-orca/issues/151#issuecomment-6250821935)
+**supersedes the earlier absolute "no G2-B code until named third-party
+signatures" stop only for implementation work in the narrow Personal Pilot**.
+Independent Architecture/Main/Network signatures remain **NOT OBTAINED**,
+are never fabricated, and still apply to future Corporate/team scope.
+All 23 mandatory technical control requirements remain fully binding.
+
+- **May proceed:** distinct Draft PRs with pure/offline code and tests; Owner
+  self-review of exact SHA, threat checklist and CI; development of a
+  fail-closed Personal-only read path after security behavior is implemented
+  and testable. [Draft #157](https://github.com/Guan21/cc-orca/pull/157)
+  begins with the PURE GraphQL→G1 adapter, no network/IPC/tokens/UI.
+- **Not yet allowed to claim:** actual GitHub read permission, real-credential
+  GraphQL Checks visibility, native E2E PASS, Corporate outbound access,
+  peer `APPROVE`, or project release GO. Before any live Personal request,
+  Owner must record the exact identity/credential/query decision, test
+  repository/PR, approved operation budget, Main authorization and
+  native-only runner negative evidence. Deny missing guarantees rather than
+  treating this governance exception as a credential or API grant.
+- **No automatic merge:** a Draft code PR stays unmerged until its own tests,
+  owner review and reproducible QA artifacts have been checked. #151 stays
+  open as an **Owner-controlled live-source readiness** gate, not a blocker
+  for a pure offline implementation. #116/#148 remain OPEN/NO-GO.
+
+This scoped exception is a documented **change in approval workflow**, not
+the presence of three independent reviewers, and does not make the original
+future Corporate security standards disappear.
+
 ## Owner acceptance of G2-A security constraints (not security approval)
 
 On 2026-10-18, the Product Owner confirmed all **23** proposed control requirements
