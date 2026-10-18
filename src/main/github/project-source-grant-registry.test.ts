@@ -58,7 +58,7 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
     expect(deliver).not.toHaveBeenCalled()
     expect(await registry.requestGrant(() => IDENTITY)).toBe(true)
     const result = await registry.run(() => IDENTITY, async () => 'value', deliver)
-    expect(result).toEqual({ status: 'delivered', value: 'value' })
+    expect(result).toEqual({ status: 'delivered' })
     expect(deliver).toHaveBeenCalledExactlyOnceWith('value')
   })
 
@@ -144,6 +144,18 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
     ).toBe(false)
   })
 
+  it('invalid new selection discards an older authorization rather than preserving it', async () => {
+    const registry = new MainSelectedPrGrantRegistry(async () => true)
+    expect(registry.select(IDENTITY, BINDING)).toBe(true)
+    expect(await registry.requestGrant(() => IDENTITY)).toBe(true)
+    expect(registry.select(IDENTITY, { ...BINDING, prNumber: 0 })).toBe(false)
+    const loader = vi.fn(async () => 'sensitive-old-project')
+    expect(await registry.run(() => IDENTITY, loader, vi.fn())).toEqual({
+      status: 'denied'
+    })
+    expect(loader).not.toHaveBeenCalled()
+  })
+
   it('expires granted reads after 15 minutes, without auto renewal', async () => {
     let now = 1_000
     const registry = new MainSelectedPrGrantRegistry(async () => true, () => now)
@@ -226,7 +238,7 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
     })
     expect(loader).not.toHaveBeenCalled()
     response.resolve('first')
-    expect(await first).toEqual({ status: 'delivered', value: 'first' })
+    expect(await first).toEqual({ status: 'delivered' })
     expect(delivered).toHaveBeenCalledTimes(1)
   })
 
@@ -278,7 +290,13 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
     await registry.requestGrant(() => IDENTITY)
     const delivered = vi.fn()
     await expect(
-      registry.run(() => IDENTITY, async () => Promise.reject(new Error('offline')), delivered)
+      registry.run(
+        () => IDENTITY,
+        async () => {
+          throw new Error('offline')
+        },
+        delivered
+      )
     ).rejects.toThrow('offline')
     expect(delivered).not.toHaveBeenCalled()
     const other = { ...IDENTITY, windowId: 99, webContentsId: 99 }
