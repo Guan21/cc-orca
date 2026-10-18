@@ -335,6 +335,19 @@ SHA privately under the approved evidence policy; publish only authorized eviden
 Perform Windows/macOS installed QA on isolated displays/CI when claimed; set
 `ORCA_BACKGROUND_LAUNCH=1`, use hidden-renderer CDP, never activate user windows.
 
+## Owner acceptance of G2-A security constraints (not security approval)
+
+On 2026-10-18, the Product Owner confirmed all **23** proposed control requirements
+for the first Personal single-PR pilot: **8 Main/IPC**, **9 GitHub
+network/credential**, and **6 privacy/data** requirements. The exact accepted
+checklist is [recorded in #151](https://github.com/Guan21/cc-orca/issues/151#issuecomment-6249817800).
+This is acceptance of what the implementation **must** enforce, not independent
+review evidence, proof of actual credentials, GraphQL schema/API feasibility,
+runtime testing, network approval, IPC authorization, or authority to activate.
+All signer rows below except the Product Owner remain NOT DESIGNATED. G2-B and
+real-source E2E stay BLOCKED. An explicit security decision must cite the precise
+ADR/code SHA and evidence independently before enabling any privileged path.
+
 ## Signatures and stop condition
 
 | Role                                                 | Identity / decision / evidence as of 2026-10-18                                                                                                                           |
