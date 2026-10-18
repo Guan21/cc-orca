@@ -41,6 +41,7 @@ function setup() {
     isDestroyed: vi.fn(() => false)
   }
   mocks.fromWebContents.mockReturnValue(window)
+  let activeProfile: 'personal' | 'corporate' | 'development' = 'personal'
   let principal: VerifiedPersonalGhPrincipal | null = {
     principalId: 'gh-actor-1',
     credentialGeneration: 8
@@ -48,6 +49,7 @@ function setup() {
   const revoke = vi.fn()
   const origin = new PersonalProjectSourceElectronOrigin({
     approvedSession: session as never,
+    currentAppProfile: () => activeProfile,
     expectedDocumentUrl: RENDERER,
     currentPrincipal: () => principal,
     revokeWebContents: revoke
@@ -61,6 +63,9 @@ function setup() {
     window,
     event,
     revoke,
+    setProfile: (next: 'personal' | 'corporate' | 'development') => {
+      activeProfile = next
+    },
     setPrincipal: (next: VerifiedPersonalGhPrincipal | null) => {
       principal = next
     }
@@ -98,6 +103,9 @@ describe('#152 B3 real Electron Main event identity (offline)', () => {
     mocks.isPackaged = false
     expect(a.origin.attest(a.event as never)).toBeNull()
     mocks.isPackaged = true
+    a.setProfile('corporate')
+    expect(a.origin.attest(a.event as never)).toBeNull()
+    a.setProfile('personal')
     a.sender.session = { label: 'different-instance' }
     expect(a.origin.attest(a.event as never)).toBeNull()
   })
