@@ -60,6 +60,7 @@ function setup() {
   mocks.fromWebContents.mockReturnValue(window)
   const authority = new MainPersonalProjectSourceAuthority({
     approvedSession: session as never,
+    currentAppProfile: () => 'personal',
     expectedDocumentUrl: RENDERER,
     currentPrincipal: () => ({ principalId: 'github-user', credentialGeneration: 1 })
   })
