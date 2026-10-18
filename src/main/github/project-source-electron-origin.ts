@@ -22,6 +22,8 @@ export type VerifiedPersonalGhPrincipal = Readonly<{
 export type ElectronSourceOriginOptions = Readonly<{
   /** Exact Session object supplied by the trusted Main window-creation code. */
   approvedSession: Session
+  /** Main-owned runtime profile, never a renderer argument. */
+  currentAppProfile: () => 'personal' | 'corporate' | 'development'
   /** Exact bundled renderer document URL; hash-based navigation is ignored. */
   expectedDocumentUrl: string
   /** Trusted native identity resolver; never derived from renderer arguments. */
@@ -80,7 +82,11 @@ export class PersonalProjectSourceElectronOrigin {
 
   /** Returns null until Main can attest every required identity field. */
   attest(event: IpcMainInvokeEvent): VerifiedSourceDocument | null {
-    if (!app.isPackaged || !nonempty(this.options.expectedDocumentUrl)) {
+    if (
+      !app.isPackaged ||
+      this.options.currentAppProfile() !== 'personal' ||
+      !nonempty(this.options.expectedDocumentUrl)
+    ) {
       return null
     }
     const sender = event.sender
