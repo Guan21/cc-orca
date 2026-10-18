@@ -74,7 +74,9 @@ describe('#116 G2-B offline selected-PR GraphQL adapter', () => {
   it('normalizes only a SHA-linked PR/commit/check without claiming Agent or Task execution', () => {
     const result = project(fixture())
     expect(result.status).toBe('ready')
-    if (result.status !== 'ready') return
+    if (result.status !== 'ready') {
+      return
+    }
     expect(result.snapshot).toMatchObject({
       projectId: 'project-a',
       bindingRevision: 12,
@@ -100,7 +102,9 @@ describe('#116 G2-B offline selected-PR GraphQL adapter', () => {
     raw.data.node.pullRequest.commits.nodes[0].commit.checkSuites.nodes[0].checkRuns.nodes = []
     const result = project(raw)
     expect(result.status).toBe('ready')
-    if (result.status !== 'ready') return
+    if (result.status !== 'ready') {
+      return
+    }
     expect(result.snapshot.facts).toHaveLength(2)
     expect(JSON.stringify(result.snapshot)).not.toContain('success')
   })
