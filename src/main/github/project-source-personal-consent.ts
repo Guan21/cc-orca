@@ -30,9 +30,9 @@ export function createPersonalPrConsent(
       title: 'DevCrew — GitHub project read',
       message: 'Allow a one-time, read-only GitHub PR refresh?',
       detail: [
-        'Project: ' + binding.projectId,
-        'Repository: ' + binding.repository.owner + '/' + binding.repository.name,
-        'Pull request: #' + binding.prNumber,
+        `Project: ${binding.projectId}`,
+        `Repository: ${binding.repository.owner}/${binding.repository.name}`,
+        `Pull request: #${binding.prNumber}`,
         'Only this selected PR, head commit and CI checks will be requested.',
         'This confirmation does not allow background polling or write actions.'
       ].join('\n'),
