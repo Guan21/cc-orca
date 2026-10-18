@@ -50,9 +50,13 @@ const CONCLUSIONS = [
 ] as const
 
 function record(value: unknown): JsonRecord | null {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return null
+  }
   const prototype: unknown = Object.getPrototypeOf(value)
-  if (prototype !== Object.prototype && prototype !== null) return null
+  if (prototype !== Object.prototype && prototype !== null) {
+    return null
+  }
   if (!Object.values(Object.getOwnPropertyDescriptors(value)).every((x) => 'value' in x)) {
     return null
   }
@@ -75,7 +79,9 @@ function status(value: unknown): CheckStatus | null {
 }
 
 function conclusion(value: unknown): CheckConclusion | undefined {
-  if (value === null) return null
+  if (value === null) {
+    return null
+  }
   if (typeof value !== 'string' || !CONCLUSIONS.some((candidate) => candidate === value)) {
     return undefined
   }
@@ -89,11 +95,15 @@ function connection(value: unknown, max: number): JsonRecord[] | 'incomplete' | 
   if (!page || typeof page.hasNextPage !== 'boolean' || !Array.isArray(rawNodes)) {
     return null
   }
-  if (page.hasNextPage || rawNodes.length > max) return 'incomplete'
+  if (page.hasNextPage || rawNodes.length > max) {
+    return 'incomplete'
+  }
   const nodes: JsonRecord[] = []
   for (const item of rawNodes) {
     const node = record(item)
-    if (!node) return null
+    if (!node) {
+      return null
+    }
     nodes.push(node)
   }
   return nodes
@@ -131,23 +141,33 @@ export function projectSelectedGitHubPrResponse(
   }
 
   const response = record(input)
-  if (!response || response.errors !== undefined) return { status: 'invalid' }
+  if (!response || response.errors !== undefined) {
+    return { status: 'invalid' }
+  }
   const data = record(response.data)
-  if (!data) return { status: 'invalid' }
-  if (data.node === null) return { status: 'unavailable' }
+  if (!data) {
+    return { status: 'invalid' }
+  }
+  if (data.node === null) {
+    return { status: 'unavailable' }
+  }
   const repository = record(data.node)
-  if (!repository) return { status: 'invalid' }
+  if (!repository) {
+    return { status: 'invalid' }
+  }
   if (
     repository.id !== selected.repositoryNodeId ||
     repository.databaseId !== scope.repository.id ||
     typeof repository.nameWithOwner !== 'string' ||
     repository.nameWithOwner.toLowerCase() !==
-      (scope.repository.owner + '/' + scope.repository.name).toLowerCase()
+      (`${scope.repository.owner}/${scope.repository.name}`).toLowerCase()
   ) {
     return { status: 'scope_mismatch' }
   }
 
-  if (repository.pullRequest === null) return { status: 'unavailable' }
+  if (repository.pullRequest === null) {
+    return { status: 'unavailable' }
+  }
   const pr = record(repository.pullRequest)
   const head = pr?.headRefOid
   if (
@@ -182,8 +202,12 @@ export function projectSelectedGitHubPrResponse(
   }
 
   const suites = connection(commit.checkSuites, 10)
-  if (suites === 'incomplete') return { status: 'incomplete' }
-  if (!suites) return { status: 'invalid' }
+  if (suites === 'incomplete') {
+    return { status: 'incomplete' }
+  }
+  if (!suites) {
+    return { status: 'invalid' }
+  }
 
   const facts: GitHubFact[] = [
     {
@@ -205,8 +229,12 @@ export function projectSelectedGitHubPrResponse(
       return { status: 'invalid' }
     }
     const runs = connection(suite.checkRuns, 8)
-    if (runs === 'incomplete') return { status: 'incomplete' }
-    if (!runs) return { status: 'invalid' }
+    if (runs === 'incomplete') {
+      return { status: 'incomplete' }
+    }
+    if (!runs) {
+      return { status: 'invalid' }
+    }
     for (const run of runs) {
       const runStatus = status(run.status)
       const runConclusion = conclusion(run.conclusion)
@@ -241,6 +269,8 @@ export function projectSelectedGitHubPrResponse(
     nowMs,
     5 * 60_000
   )
-  if (projection.status === 'ready') return projection
+  if (projection.status === 'ready') {
+    return { status: 'ready', snapshot: projection.snapshot }
+  }
   return { status: projection.status === 'empty' ? 'invalid' : projection.status }
 }
