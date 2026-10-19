@@ -53,6 +53,7 @@ function createFixture(includeVerifier = true) {
     projectId: 'project-a',
     repoId: 'repo-a',
     hostSetupId: 'setup-a',
+    selectionRevision: 1,
     workspaceKind: 'folder',
     workspaceId: 'repo-a',
     prNumber: 17
@@ -205,6 +206,7 @@ describe('#152 B4a Main-only registered immutable GitHub identity (offline)', ()
       projectId: 'project-b',
       repoId: 'repo-a',
       hostSetupId: 'setup-a',
+      selectionRevision: 2,
       workspaceKind: 'folder',
       workspaceId: 'repo-a',
       prNumber: 17
@@ -214,6 +216,7 @@ describe('#152 B4a Main-only registered immutable GitHub identity (offline)', ()
       projectId: 'project-a',
       repoId: 'repo-a',
       hostSetupId: 'setup-a',
+      selectionRevision: 3,
       workspaceKind: 'folder',
       workspaceId: 'repo-a',
       prNumber: 17
@@ -243,6 +246,7 @@ describe('#152 B4a Main-only registered immutable GitHub identity (offline)', ()
       projectId: 'project-a',
       repoId: 'repo-a',
       hostSetupId: 'setup-a',
+      selectionRevision: 2,
       workspaceKind: 'worktree',
       workspaceId: 'worktree-17',
       prNumber: 17
