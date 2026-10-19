@@ -19,6 +19,8 @@ export type MainSelectedRepositoryContext = Readonly<{
   projectId: string
   repoId: string
   hostSetupId: string
+  /** Main-maintained monotonic epoch incremented on every selection, including A→B→A. */
+  selectionRevision: number
   workspaceKind: 'folder' | 'worktree'
   workspaceId: string
   prNumber: number
@@ -127,6 +129,7 @@ export class MainRegisteredSelectedPrRepository {
       !safeString(selected.projectId) ||
       !safeString(selected.repoId) ||
       !safeString(selected.hostSetupId) ||
+      !safeGeneration(selected.selectionRevision) ||
       !safeString(selected.workspaceId) ||
       !safePositive(selected.prNumber)
     ) {
@@ -184,6 +187,7 @@ export class MainRegisteredSelectedPrRepository {
     }
     const fingerprint = JSON.stringify([
       binding,
+      selected.selectionRevision,
       project.updatedAt,
       project.sourceRepoIds,
       setup.updatedAt,
@@ -234,6 +238,7 @@ export class MainRegisteredSelectedPrRepository {
       verified.host !== 'github.com' ||
       !safePositive(verified.id) ||
       !safeString(verified.nodeId) ||
+      !safeString(verified.nameWithOwner) ||
       verified.nameWithOwner.toLowerCase() !==
         (before.binding.repository.owner + '/' + before.binding.repository.name).toLowerCase() ||
       verified.principalId !== before.principal.principalId ||
