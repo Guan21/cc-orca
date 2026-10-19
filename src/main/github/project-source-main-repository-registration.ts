@@ -159,7 +159,7 @@ export class MainRegisteredSelectedPrRepository {
       repo.connectionId != null ||
       (repo.executionHostId != null && repo.executionHostId !== 'local') ||
       repo.gitRemoteIdentity?.canonicalKey.toLowerCase() !==
-        ('github.com/' + provider.owner + '/' + provider.repo).toLowerCase()
+        (`github.com/${provider.owner}/${provider.repo}`).toLowerCase()
     ) {
       return null
     }
@@ -240,7 +240,7 @@ export class MainRegisteredSelectedPrRepository {
       !safeString(verified.nodeId) ||
       !safeString(verified.nameWithOwner) ||
       verified.nameWithOwner.toLowerCase() !==
-        (before.binding.repository.owner + '/' + before.binding.repository.name).toLowerCase() ||
+        (`${before.binding.repository.owner}/${before.binding.repository.name}`).toLowerCase() ||
       verified.principalId !== before.principal.principalId ||
       verified.credentialGeneration !== before.principal.credentialGeneration
     ) {
