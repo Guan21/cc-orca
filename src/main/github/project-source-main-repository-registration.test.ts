@@ -71,7 +71,7 @@ function createFixture(includeVerifier = true) {
     principalId: 'gh-user',
     credentialGeneration: 2
   }
-  const verify = vi.fn(async () => ({ ...verified }))
+  const verify = vi.fn(async (): Promise<MainVerifiedRepositoryIdentity | null> => ({ ...verified }))
   const registry = new MainRegisteredSelectedPrRepository({
     readCatalog: () => ({ projects: [project], setups: [setup], repos: [repo] }),
     readSelection: () => selected,
