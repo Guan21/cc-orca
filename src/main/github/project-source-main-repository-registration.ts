@@ -248,7 +248,16 @@ export class MainRegisteredSelectedPrRepository {
     }
     this.registered = {
       fingerprint: before.fingerprint,
-      identity: Object.freeze({ ...verified })
+      // Allowlist only registered identifiers; never retain arbitrary response
+      // fields (the injected verifier could expose raw API fields or secrets).
+      identity: Object.freeze({
+        host: 'github.com',
+        id: verified.id,
+        nodeId: verified.nodeId,
+        nameWithOwner: verified.nameWithOwner,
+        principalId: verified.principalId,
+        credentialGeneration: verified.credentialGeneration
+      })
     }
     return 'registered'
   }
