@@ -110,6 +110,29 @@ describe('#152 B3 real Electron Main event identity (offline)', () => {
     expect(a.origin.attest(a.event as never)).toBeNull()
   })
 
+  it('creates fresh installation, Session and document identities despite repeated Electron IDs', () => {
+    const old = setup()
+    const before = old.origin.attest(old.event as never)
+    old.origin.dispose()
+    const restarted = setup()
+    const after = restarted.origin.attest(restarted.event as never)
+    expect(before).not.toBeNull()
+    expect(after).toMatchObject({
+      windowId: before?.windowId,
+      webContentsId: before?.webContentsId,
+      frameProcessId: before?.frameProcessId,
+      frameRoutingId: before?.frameRoutingId,
+      principalId: before?.principalId,
+      credentialGeneration: before?.credentialGeneration
+    })
+    expect(after?.installationId).not.toBe(before?.installationId)
+    expect(after?.sessionPartition).not.toBe(before?.sessionPartition)
+    expect(after?.documentId).not.toBe(before?.documentId)
+    expect(old.origin.attest(old.event as never)).toBeNull()
+    expect(restarted.origin.attest(old.event as never)).toBeNull()
+    restarted.origin.dispose()
+  })
+
   it('denies foreign main frame, remote web origin, or stale app document', () => {
     const a = setup()
     expect(a.origin.attest({ ...a.event, senderFrame: {} } as never)).toBeNull()

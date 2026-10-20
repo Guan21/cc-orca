@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   MainSelectedPrGrantRegistry,
+  type MainSelectedPrOperationContext,
   type TrustedSelectedPrBinding,
   type VerifiedSourceDocument
 } from './project-source-grant-registry'
@@ -400,6 +401,51 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
     ).toEqual({
       status: 'denied'
     })
+  })
+
+  it('requires fresh consent when a recreated registry repeats every numeric revision and identity', async () => {
+    const previous = new MainSelectedPrGrantRegistry(async () => true)
+    previous.select(IDENTITY, BINDING)
+    await previous.requestGrant(() => IDENTITY)
+    const late = deferred<string>()
+    let oldContext: MainSelectedPrOperationContext | undefined
+    const oldDeliver = vi.fn()
+    const oldRead = previous.run(
+      () => IDENTITY,
+      async (_binding, _signal, context) => {
+        oldContext = context
+        return late.promise
+      },
+      oldDeliver
+    )
+    previous.retireAll()
+    const confirm = vi.fn(async () => true)
+    const restarted = new MainSelectedPrGrantRegistry(confirm)
+    restarted.select({ ...IDENTITY }, structuredClone(BINDING))
+    const load = vi.fn(async () => 'fresh')
+    const deliver = vi.fn()
+    expect(await restarted.run(() => IDENTITY, load, deliver)).toEqual({ status: 'denied' })
+    expect(load).not.toHaveBeenCalled()
+    expect(confirm).not.toHaveBeenCalled()
+    expect(await restarted.requestGrant(() => IDENTITY)).toBe(true)
+    expect(
+      await restarted.run(
+        () => IDENTITY,
+        async (_binding, _signal, context) => {
+          expect(context.bindingRevision).toBe(oldContext?.bindingRevision)
+          expect(context.grantRevision).toBe(oldContext?.grantRevision)
+          expect(context.sessionIncarnation).not.toBe(oldContext?.sessionIncarnation)
+          return 'fresh'
+        },
+        deliver
+      )
+    ).toEqual({ status: 'delivered' })
+    late.resolve('previous process result')
+    expect(await oldRead).toEqual({ status: 'revoked' })
+    expect(oldContext?.isCurrent()).toBe(false)
+    expect(oldDeliver).not.toHaveBeenCalled()
+    expect(deliver).toHaveBeenCalledExactlyOnceWith('fresh')
+    expect(confirm).toHaveBeenCalledOnce()
   })
 
   it('copies input binding so later external mutation does not redirect an active read', async () => {

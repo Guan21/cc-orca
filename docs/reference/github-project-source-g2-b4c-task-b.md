@@ -82,7 +82,7 @@ store, public IPC/preload, UI, Corporate policy or transport factory were added.
 
 ## Offline verification
 
-Node 24.21.0: **480 tests PASS across 25 files**, including Catalog/Selection,
+Node 24.21.0: **484 tests PASS across 25 files**, including Catalog/Selection,
 Store identity/mutation, credential, Origin/Authority/Integration, native runner,
 G1 projection/facts, Profile IPC and startup ordering regressions. The focused
 Coordinator/Transport/Runner suites also PASS 77 tests. Node, CLI
@@ -135,6 +135,40 @@ the file-end finding locally. The repair reuses imported lease types and groups
 the identical positive-revision checks. No limit, exception or workflow changed.
 Full-file lint now covers all six changed TypeScript files; exact final-SHA CI
 supersedes that failed implementation run without erasing it.
+
+## Follow-up: App Restart Grant Reuse
+
+The focused review at `d60cae3692a10af57656b672857ba9a51f5bfac8` found no
+production grant-reuse defect. Grant/consent state, pending registration, operation
+closures and current selection are Main-memory state with no reviewed persistence
+or restoration path. Fresh Registry, Origin and Integration instances own fresh
+incarnations; production Bootstrap also starts with no credential evidence adapter.
+Store reload restores Project facts but leaves current selection empty.
+
+Four added regression cases close a composite coverage gap without changing
+production behavior:
+
+- Recreate a Registry with identical document fields and numeric binding/grant
+  revisions. A read is denied until fresh consent, the incarnation differs, and
+  the retired pending read/context cannot deliver or become current again.
+- Recreate Origin with repeated numeric Electron IDs and principal generation.
+  Installation, Session and document identities differ; old origins/events fail.
+- Separately retire pending registration and pending PR read, then reconstruct
+  the composed Integration/Catalog/Credential fixtures with repeated IDs,
+  selection revision and principal generation. The replacement's own current
+  event is denied before testing the old event. Late old native completion cannot
+  authorize the replacement, deliver a result or trigger an extra process.
+
+The three targeted suites PASS **71 tests**. Independent read-only AI review found
+the coverage meaningful, with no new actionable finding. These are offline
+same-process owner-replacement simulations, not actual installed-app restart E2E.
+
+Normal committed quit disposes owners; pre-relaunch retirement occurs before
+awaits and covers direct `app.exit()` relaunch. A vetoed ordinary quit is not a
+restart or grant restoration. Explicit pre-relaunch retirement remains terminal
+even if shutdown is later vetoed. Abrupt process death loses its in-memory grants;
+surviving native children and termination across a real OS restart still require
+OS confinement evidence. No persistent grant/consent recovery mechanism is added.
 
 ## Evidence boundaries
 

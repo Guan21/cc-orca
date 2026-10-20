@@ -470,6 +470,61 @@ describe('B4c actual authorization → registration → native transport composi
     f.integration.dispose()
   })
 
+  it.each(['registration', 'read'] as const)(
+    'does not inherit %s authority when IDs and revisions repeat after replacement',
+    async (phase) => {
+      const old = fixture()
+      if (phase === 'read') {
+        expect(await old.integration.register(old.event as never)).toBe('registered')
+      }
+      const revision = old.catalog.readSelection()!.selectionRevision
+      const generation = old.options.credential.current()!.credentialGeneration
+      const gate = Promise.withResolvers<{ stdout: string; stderr: string }>()
+      mocks.process.mockImplementation(async (_path, _args, options) => {
+        const result = await gate.promise
+        options.onChildTerminated()
+        return result
+      })
+      const deliver = vi.fn()
+      const pending =
+        phase === 'registration'
+          ? old.integration.register(old.event as never)
+          : old.integration.refresh(old.event as never, HEAD, deliver)
+      const calls = phase === 'registration' ? 1 : 2
+      await vi.waitFor(() => expect(mocks.process).toHaveBeenCalledTimes(calls))
+      old.integration.dispose()
+      old.options.credential.dispose()
+      old.catalog.dispose()
+      const restarted = fixture()
+      expect(restarted.sender.id).toBe(old.sender.id)
+      expect(restarted.frame.processId).toBe(old.frame.processId)
+      expect(restarted.catalog.readSelection()!.selectionRevision).toBe(revision)
+      expect(restarted.options.credential.current()!.credentialGeneration).toBe(generation)
+      expect(await restarted.integration.refresh(restarted.event as never, HEAD, deliver)).toEqual({
+        status: 'denied'
+      })
+      expect(await restarted.integration.refresh(old.event as never, HEAD, deliver)).toEqual({
+        status: 'denied'
+      })
+      gate.resolve({
+        stdout: JSON.stringify(
+          phase === 'registration' ? { data: { repository: REPO } } : response()
+        ),
+        stderr: ''
+      })
+      expect(await pending).toEqual(phase === 'registration' ? 'stale' : { status: 'unavailable' })
+      expect(await restarted.integration.refresh(restarted.event as never, HEAD, deliver)).toEqual({
+        status: 'denied'
+      })
+      expect(deliver).not.toHaveBeenCalled()
+      expect(mocks.process).toHaveBeenCalledTimes(calls)
+      expect(old.options.credential.current()).toBeNull()
+      restarted.integration.dispose()
+      restarted.options.credential.dispose()
+      restarted.catalog.dispose()
+    }
+  )
+
   it.each(['registration', 'read'])(
     'settles pending %s confirmation immediately on disposal without user interaction',
     async (operation) => {
