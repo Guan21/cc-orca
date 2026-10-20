@@ -40,10 +40,16 @@ export class MainPersonalProjectSourceAuthority {
   private readonly perWebContents = new Map<number, MainSelectedPrGrantRegistry>()
   private readonly origin: PersonalProjectSourceElectronOrigin
 
-  constructor(options: Omit<ElectronSourceOriginOptions, 'revokeWebContents'>) {
+  constructor(
+    options: Omit<ElectronSourceOriginOptions, 'revokeWebContents'>,
+    onDocumentRetired?: () => void
+  ) {
     this.origin = new PersonalProjectSourceElectronOrigin({
       ...options,
-      revokeWebContents: (id) => this.retireWebContents(id)
+      revokeWebContents: (id) => {
+        this.retireWebContents(id)
+        onDocumentRetired?.()
+      }
     })
   }
 
@@ -53,7 +59,11 @@ export class MainPersonalProjectSourceAuthority {
   }
 
   /** Called ONLY after Main independently authenticates the chosen binding. */
-  selectTrusted(event: IpcMainInvokeEvent, binding: TrustedSelectedPrBinding): boolean {
+  selectTrusted(
+    event: IpcMainInvokeEvent,
+    binding: TrustedSelectedPrBinding,
+    signal?: AbortSignal
+  ): boolean {
     const document = this.origin.attest(event)
     const id = event.sender.id
     this.retireWebContents(id)
@@ -65,10 +75,14 @@ export class MainPersonalProjectSourceAuthority {
       return false
     }
     const registry = new MainSelectedPrGrantRegistry(
-      createPersonalPrConsent(window, () => {
-        const latest = this.origin.attest(event)
-        return latest !== null && sameDocument(latest, document)
-      })
+      createPersonalPrConsent(
+        window,
+        () => {
+          const latest = this.origin.attest(event)
+          return latest !== null && sameDocument(latest, document)
+        },
+        signal
+      )
     )
     if (!registry.select(document, binding)) {
       return false
@@ -115,5 +129,10 @@ export class MainPersonalProjectSourceAuthority {
     for (const id of this.perWebContents.keys()) {
       this.retireWebContents(id)
     }
+  }
+
+  dispose(): void {
+    this.retireAll()
+    this.origin.dispose()
   }
 }

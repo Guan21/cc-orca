@@ -38,7 +38,9 @@ export class MainCredentialEvidenceProvider {
     if (adapter) {
       try {
         const unsubscribe = adapter.subscribeChanges(() => this.revoke())
-        if (this.retired) {
+        if (typeof unsubscribe !== 'function') {
+          this.revoke()
+        } else if (this.retired) {
           this.notify(unsubscribe)
         } else {
           this.unsubscribe = unsubscribe

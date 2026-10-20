@@ -237,6 +237,86 @@ describe('B4c actual authorization → registration → native transport composi
     f.integration.dispose()
   })
 
+  it.each(['missing', 'malformed', 'throwing', 'synchronous'])(
+    'permanently denies a %s catalog subscription',
+    async (kind) => {
+      const f = fixture()
+      f.integration.dispose()
+      const unsubscribe = vi.fn()
+      const subscribe =
+        kind === 'missing'
+          ? undefined
+          : (listener: () => void) => {
+              if (kind === 'throwing') {
+                throw new Error('subscription unavailable')
+              }
+              if (kind === 'synchronous') {
+                listener()
+              }
+              return kind === 'malformed' ? undefined : unsubscribe
+            }
+      const integration = new MainProjectSourceIntegration({
+        ...f.options,
+        catalog: {
+          readCatalog: () => f.catalog.readCatalog(),
+          readSelection: () => f.catalog.readSelection(),
+          isCurrentWorktree: (selection) => f.catalog.isCurrentWorktree(selection),
+          subscribe
+        } as never
+      })
+      expect(await integration.register(f.event as never)).toBe('denied')
+      expect(mocks.process).not.toHaveBeenCalled()
+      integration.dispose()
+      if (kind === 'synchronous') {
+        expect(unsubscribe).toHaveBeenCalledOnce()
+      }
+    }
+  )
+
+  it('disposes every subscription and origin listener even when one unsubscribe throws', async () => {
+    const f = fixture()
+    f.integration.dispose()
+    const credentialUnsubscribe = vi.fn()
+    const integration = new MainProjectSourceIntegration({
+      ...f.options,
+      catalog: {
+        readCatalog: () => f.catalog.readCatalog(),
+        readSelection: () => f.catalog.readSelection(),
+        isCurrentWorktree: (selection) => f.catalog.isCurrentWorktree(selection),
+        subscribe: () => () => {
+          throw new Error('cleanup failed')
+        }
+      },
+      credential: {
+        current: () => f.options.credential.current(),
+        principal: f.options.credential.principal,
+        subscribeRevocation: () => credentialUnsubscribe
+      }
+    })
+    expect(await integration.register(f.event as never)).toBe('registered')
+    expect(() => integration.dispose()).not.toThrow()
+    expect(() => integration.dispose()).not.toThrow()
+    expect(credentialUnsubscribe).toHaveBeenCalledOnce()
+    expect(f.sender.eventNames()).toEqual([])
+    expect(await integration.register(f.event as never)).toBe('denied')
+  })
+
+  it('continues removing lifecycle listeners after an Electron listener removal throws', async () => {
+    const f = fixture()
+    expect(await f.integration.register(f.event as never)).toBe('registered')
+    const remove = f.sender.removeListener.bind(f.sender)
+    vi.spyOn(f.sender, 'removeListener').mockImplementation((name, listener) => {
+      if (name === 'did-start-navigation') {
+        throw new Error('detachment failed')
+      }
+      return remove(name, listener)
+    })
+    expect(() => f.integration.dispose()).not.toThrow()
+    expect(f.sender.listenerCount('will-navigate')).toBe(0)
+    expect(f.sender.listenerCount('destroyed')).toBe(0)
+    expect(await f.integration.register(f.event as never)).toBe('denied')
+  })
+
   it('requires independent default-Cancel native registration and read confirmations', async () => {
     const f = fixture()
     const deliver = vi.fn()
@@ -389,6 +469,38 @@ describe('B4c actual authorization → registration → native transport composi
     expect(await first).toEqual({ status: 'denied' })
     f.integration.dispose()
   })
+
+  it.each(['registration', 'read'])(
+    'settles pending %s confirmation immediately on disposal without user interaction',
+    async (operation) => {
+      const f = fixture()
+      if (operation === 'read') {
+        expect(await f.integration.register(f.event as never)).toBe('registered')
+      }
+      const gate = Promise.withResolvers<{ response: number }>()
+      mocks.dialog.mockReturnValue(gate.promise)
+      let settled = false
+      const deliver = vi.fn()
+      const pending = (
+        operation === 'registration'
+          ? f.integration.register(f.event as never)
+          : f.integration.refresh(f.event as never, HEAD, deliver)
+      ).then((result) => {
+        settled = true
+        return result
+      })
+      await vi.waitFor(() =>
+        expect(mocks.dialog).toHaveBeenCalledTimes(operation === 'read' ? 2 : 1)
+      )
+      const options = mocks.dialog.mock.lastCall![1]
+      f.integration.dispose()
+      await vi.waitFor(() => expect(settled).toBe(true), { timeout: 200 })
+      expect(options.signal.aborted).toBe(true)
+      expect(await pending).toEqual(operation === 'registration' ? 'stale' : { status: 'denied' })
+      gate.reject(new Error('late native rejection must be consumed'))
+      expect(deliver).not.toHaveBeenCalled()
+    }
+  )
 
   it.each(['partial', 'HEAD', 'repository', 'checks', 'secret'])(
     'does not deliver %s failure or expose raw errors',

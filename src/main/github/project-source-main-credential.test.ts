@@ -39,6 +39,18 @@ function fixture() {
 }
 
 describe('Main credential evidence integration', () => {
+  it.each([undefined, null, 1])('retires a malformed change subscription %s', (unsubscribe) => {
+    const readEvidence = vi.fn(evidence)
+    const provider = new MainCredentialEvidenceProvider({
+      adapter: {
+        readEvidence,
+        subscribeChanges: () => unsubscribe as never
+      }
+    })
+    expect(provider.current()).toBeNull()
+    expect(readEvidence).not.toHaveBeenCalled()
+  })
+
   it('defaults to NOT VERIFIED with no OS reader or network path', () => {
     const provider = new MainCredentialEvidenceProvider()
     expect(provider.current()).toBeNull()

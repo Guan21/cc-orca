@@ -37,7 +37,6 @@ export class MainProjectSourceIntegration {
   private readonly authority: MainPersonalProjectSourceAuthority
   private readonly transport: MainNativeGitHubTransport
   private readonly incarnation = randomUUID()
-  private readonly listeners = new Map<WebContents, () => void>()
   private readonly unsubscribe: (() => void)[] = []
   private pending = new AbortController()
   private epoch = 1
@@ -46,24 +45,49 @@ export class MainProjectSourceIntegration {
   private disposed = false
 
   constructor(private readonly options: Options) {
-    this.authority = new MainPersonalProjectSourceAuthority({
-      ...options.origin,
-      currentPrincipal: () => options.credential.current()
-    })
+    this.authority = new MainPersonalProjectSourceAuthority(
+      { ...options.origin, currentPrincipal: () => options.credential.current() },
+      () => this.revoke()
+    )
     this.transport = new MainNativeGitHubTransport({
       enabled: options.enabled,
       principal: options.credential.principal,
       runner: options.runner
     })
-    if (options.catalog.subscribe) {
-      this.unsubscribe.push(options.catalog.subscribe(() => this.revoke()))
+    try {
+      this.subscribe(
+        (listener) => options.catalog.subscribe?.(listener),
+        () => this.revoke()
+      )
+      this.subscribe(
+        (listener) => options.credential.subscribeRevocation(listener),
+        () => {
+          this.revoke()
+          this.transport.retireAll()
+        }
+      )
+    } catch {
+      this.dispose()
     }
-    this.unsubscribe.push(
-      options.credential.subscribeRevocation(() => {
-        this.revoke()
-        this.transport.retireAll()
-      })
-    )
+  }
+
+  private subscribe(subscribe: (listener: () => void) => unknown, retire: () => void): void {
+    let installing = true
+    let interrupted = false
+    const unsubscribe = subscribe(() => {
+      if (installing) {
+        interrupted = true
+      }
+      retire()
+    })
+    installing = false
+    if (typeof unsubscribe !== 'function') {
+      throw new Error('SOURCE_UNAVAILABLE')
+    }
+    this.unsubscribe.push(unsubscribe as () => void)
+    if (interrupted) {
+      throw new Error('SOURCE_UNAVAILABLE')
+    }
   }
 
   /** All Main selection/mutation/profile changes must arrive here before state publication. */
@@ -74,19 +98,6 @@ export class MainProjectSourceIntegration {
     this.activeRegistration?.retireAll()
     this.activeRegistration = null
     this.authority.retireAll()
-  }
-
-  private watch(sender: WebContents): void {
-    if (this.listeners.has(sender)) {
-      return
-    }
-    const retire = (): void => this.revoke()
-    this.listeners.set(sender, retire)
-    sender.on('did-start-navigation', retire)
-    sender.on('will-navigate', retire)
-    sender.on('did-navigate', retire)
-    sender.on('render-process-gone', retire)
-    sender.on('destroyed', retire)
   }
 
   private fence(event: IpcMainInvokeEvent): Fence | null {
@@ -103,7 +114,6 @@ export class MainProjectSourceIntegration {
       this.revoke()
       return null
     }
-    this.watch(event.sender)
     const epoch = this.epoch
     const snapshot = JSON.stringify([document, selected, this.options.catalog.readCatalog()])
     const isCurrent = (): boolean => {
@@ -165,7 +175,8 @@ export class MainProjectSourceIntegration {
             event,
             fence.projectId,
             repository,
-            fence.isCurrent
+            fence.isCurrent,
+            AbortSignal.any([signal, registrationSignal])
           )
           if (!accepted || !fence.isCurrent()) {
             return null
@@ -195,7 +206,7 @@ export class MainProjectSourceIntegration {
           return result
         }
         const binding = request.currentBinding()
-        if (!binding || !this.authority.selectTrusted(event, binding)) {
+        if (!binding || !this.authority.selectTrusted(event, binding, signal)) {
           return 'denied'
         }
         // Adopt only the validated B4a object; no identity is reconstructed from selectors.
@@ -274,19 +285,19 @@ export class MainProjectSourceIntegration {
   }
 
   dispose(): void {
+    if (this.disposed) {
+      return
+    }
     this.disposed = true
     this.revoke()
     this.transport.retireAll()
-    for (const unsubscribe of this.unsubscribe) {
-      unsubscribe()
+    this.authority.dispose()
+    for (const unsubscribe of this.unsubscribe.splice(0)) {
+      try {
+        unsubscribe()
+      } catch {
+        // One failed cleanup must not retain the remaining authority listeners.
+      }
     }
-    for (const [sender, retire] of this.listeners) {
-      sender.removeListener('did-start-navigation', retire)
-      sender.removeListener('will-navigate', retire)
-      sender.removeListener('did-navigate', retire)
-      sender.removeListener('render-process-gone', retire)
-      sender.removeListener('destroyed', retire)
-    }
-    this.listeners.clear()
   }
 }

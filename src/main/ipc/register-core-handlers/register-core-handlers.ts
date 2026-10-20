@@ -95,6 +95,7 @@ import type { PluginMarketplaceHandlerServices } from '../plugin-marketplaces'
 let registered = false
 
 type CoreHandlerLifecycleOptions = {
+  onBeforeOrcaProfileSelectionChange?: () => void
   onBeforeRelaunch?: () => void | Promise<void>
   onOrcaProfileAuthMutation?: () => void
   onBeforeOrcaProfileSignOut?: () => void
@@ -191,6 +192,7 @@ export function registerCoreHandlers(
   }
   registerTelemetryHandlers(store)
   registerOrcaProfileHandlers(store, {
+    onBeforeProfileSelectionChange: lifecycleOptions.onBeforeOrcaProfileSelectionChange,
     onBeforeRelaunch: lifecycleOptions.onBeforeRelaunch,
     onAuthMutation: lifecycleOptions.onOrcaProfileAuthMutation,
     onBeforeSignOut: lifecycleOptions.onBeforeOrcaProfileSignOut

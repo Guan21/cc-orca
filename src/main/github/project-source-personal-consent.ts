@@ -3,9 +3,10 @@
  * The returned callback may be supplied to a per-window grant registry.
  * Calling this is NOT permission to run an API request or grant an IPC method.
  */
-import { app, dialog } from 'electron'
+import { app } from 'electron'
 import type { BrowserWindow } from 'electron'
 import type { TrustedSelectedPrBinding } from './project-source-grant-registry'
+import { confirmProjectSourceNative } from './project-source-native-confirmation'
 
 /**
  * getCurrentApproval is a trusted Main-origin predicate (not renderer state).
@@ -13,7 +14,8 @@ import type { TrustedSelectedPrBinding } from './project-source-grant-registry'
  */
 export function createPersonalPrConsent(
   window: BrowserWindow,
-  getCurrentApproval: () => boolean
+  getCurrentApproval: () => boolean,
+  signal?: AbortSignal
 ): (binding: TrustedSelectedPrBinding) => Promise<boolean> {
   return async (binding): Promise<boolean> => {
     if (
@@ -25,24 +27,28 @@ export function createPersonalPrConsent(
     ) {
       return false
     }
-    const response = await dialog.showMessageBox(window, {
-      type: 'question',
-      title: 'DevCrew — GitHub project read',
-      message: 'Allow a one-time, read-only GitHub PR refresh?',
-      detail: [
-        `Project: ${binding.projectId}`,
-        `Repository: ${binding.repository.owner}/${binding.repository.name}`,
-        `Pull request: #${binding.prNumber}`,
-        'Only this selected PR, head commit and CI checks will be requested.',
-        'This confirmation does not allow background polling or write actions.'
-      ].join('\n'),
-      buttons: ['Cancel', 'Allow read'],
-      defaultId: 0,
-      cancelId: 0,
-      noLink: true
-    })
+    const accepted = await confirmProjectSourceNative(
+      window,
+      {
+        type: 'question',
+        title: 'DevCrew — GitHub project read',
+        message: 'Allow a one-time, read-only GitHub PR refresh?',
+        detail: [
+          `Project: ${binding.projectId}`,
+          `Repository: ${binding.repository.owner}/${binding.repository.name}`,
+          `Pull request: #${binding.prNumber}`,
+          'Only this selected PR, head commit and CI checks will be requested.',
+          'This confirmation does not allow background polling or write actions.'
+        ].join('\n'),
+        buttons: ['Cancel', 'Allow read'],
+        defaultId: 0,
+        cancelId: 0,
+        noLink: true
+      },
+      signal
+    )
     return (
-      response.response === 1 &&
+      accepted &&
       app.isPackaged &&
       !window.isDestroyed() &&
       !window.webContents.isDestroyed() &&

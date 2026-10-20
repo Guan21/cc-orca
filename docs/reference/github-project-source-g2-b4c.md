@@ -3,6 +3,12 @@
 Tracking #152; source #116; security #151; release #148; native QA #153.
 Corporate Source **DISABLED**. V1 **NO-GO**. No live activation is authorized.
 
+Task B continuation: [Main selection and coordinator lifecycle](./github-project-source-g2-b4c-task-b.md)
+records the default-disabled foundation/window/profile/relaunch wiring and its
+offline review. The historical Task A records below retain their original scope.
+Production has no authoritative Main selection producer or verified credential/
+confinement provider; current selection remains UNAVAILABLE, live activation BLOCKED.
+
 ## Baseline and implementation plan
 
 The latest #161 HEAD was verified on 2026-10-20 as
