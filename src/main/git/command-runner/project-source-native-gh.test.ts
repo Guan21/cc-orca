@@ -1,10 +1,12 @@
 import { createHash } from 'node:crypto'
 import { resolve } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  createProjectSourceNativeGhRunner,
-  ProjectSourceNativeGhError
+import type {
+  createProjectSourceNativeGhRunner as CreateRunner,
+  ProjectSourceNativeGhError as NativeGhError
 } from './project-source-native-gh'
+let createProjectSourceNativeGhRunner: typeof CreateRunner
+let ProjectSourceNativeGhError: typeof NativeGhError
 
 const mocks = vi.hoisted(() => ({
   realpath: vi.fn(),
@@ -61,7 +63,11 @@ const request = () => ({
   variables: { owner: 'alice', number: 1 },
   deadlineMs: Date.now() + 5_000
 })
-beforeEach(() => {
+beforeEach(async () => {
+  // Unknown termination deliberately holds the production lane for its module lifetime.
+  vi.resetModules()
+  ;({ createProjectSourceNativeGhRunner, ProjectSourceNativeGhError } =
+    await import('./project-source-native-gh'))
   vi.resetAllMocks()
   mocks.realpath.mockResolvedValue(path)
   mocks.stat.mockResolvedValue({ ...executable, isFile: () => true })
@@ -263,6 +269,9 @@ describe('native project source gh runner', () => {
     await expect(pending).rejects.toMatchObject({ code: 'ABORTED' })
     expect(mocks.execute.mock.calls[0][2].signal.aborted).toBe(true)
     await expect(runner.execute(request())).rejects.toMatchObject({ code: 'BUSY' })
+    await expect(
+      createProjectSourceNativeGhRunner(options()).execute(request())
+    ).rejects.toMatchObject({ code: 'BUSY' })
     let idle = false
     void runner.whenIdle().then(() => {
       idle = true
@@ -339,6 +348,47 @@ describe('native project source gh runner', () => {
     await expect(runner.execute(request())).rejects.toMatchObject({ code: 'BUSY' })
     let idle = false
     void runner.whenIdle().then(() => {
+      idle = true
+    })
+    await Promise.resolve()
+    expect(idle).toBe(false)
+    expect(mocks.execute).toHaveBeenCalledOnce()
+  })
+  it('shares the process permit and idle proof across distinct runner instances', async () => {
+    let finish!: (value: { stdout: string; stderr: string }) => void
+    mocks.execute.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve
+        })
+    )
+    const firstRunner = createProjectSourceNativeGhRunner(options())
+    const secondRunner = createProjectSourceNativeGhRunner(options())
+    const pending = firstRunner.execute(request())
+    await vi.waitFor(() => expect(mocks.execute).toHaveBeenCalledOnce())
+    expect(secondRunner.whenIdle()).toBe(firstRunner.whenIdle())
+    const competing = secondRunner.execute(request()).catch((error: unknown) => error)
+    mocks.execute.mock.calls[0][2].onChildTerminated()
+    finish({ stdout: '{}', stderr: '' })
+    await pending
+    await expect(competing).resolves.toMatchObject({ code: 'BUSY' })
+    await secondRunner.whenIdle()
+    mocks.execute.mockImplementation(async (_program, _args, config) => {
+      config.onChildTerminated()
+      return { stdout: '{}', stderr: '' }
+    })
+    await expect(secondRunner.execute(request())).resolves.toBe('{}')
+  })
+  it('cannot regain an uncertain process permit by constructing a new runner', async () => {
+    mocks.execute.mockResolvedValue({ stdout: '{}', stderr: '' })
+    const firstRunner = createProjectSourceNativeGhRunner(options())
+    await expect(firstRunner.execute(request())).rejects.toMatchObject({
+      code: 'TERMINATION_NOT_VERIFIED'
+    })
+    const newRunner = createProjectSourceNativeGhRunner(options())
+    await expect(newRunner.execute(request())).rejects.toMatchObject({ code: 'BUSY' })
+    let idle = false
+    void newRunner.whenIdle().then(() => {
       idle = true
     })
     await Promise.resolve()

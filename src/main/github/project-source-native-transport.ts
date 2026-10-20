@@ -292,7 +292,12 @@ export class MainNativeGitHubTransport {
       source: {
         projectId: binding.projectId,
         bindingRevision: lease.bindingRevision,
-        repository: binding.repository
+        repository: {
+          host: binding.repository.host,
+          id: binding.repository.id,
+          owner: binding.repository.owner,
+          name: binding.repository.name
+        }
       },
       repositoryNodeId: binding.repository.nodeId,
       prNumber: binding.prNumber

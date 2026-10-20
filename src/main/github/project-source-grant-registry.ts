@@ -65,6 +65,15 @@ export type SourceOperationResult =
   | { status: 'delivered' }
   | { status: 'denied' | 'expired' | 'revoked' }
 
+export type MainSelectedPrOperationContext = Readonly<{
+  document: VerifiedSourceDocument
+  bindingRevision: number
+  grantRevision: number
+  sessionIncarnation: string
+  expiresAtMs: number
+  isCurrent(): boolean
+}>
+
 const MAX_GRANT_MS = 15 * 60_000
 
 function bounded(value: unknown): value is string {
@@ -260,7 +269,11 @@ export class MainSelectedPrGrantRegistry {
    */
   async run<T>(
     verifiedNow: () => VerifiedSourceDocument | null,
-    load: (scope: TrustedSelectedPrBinding, signal: AbortSignal) => Promise<T>,
+    load: (
+      scope: TrustedSelectedPrBinding,
+      signal: AbortSignal,
+      context: MainSelectedPrOperationContext
+    ) => Promise<T>,
     deliver: (value: T) => void
   ): Promise<SourceOperationResult> {
     const before = this.current(verifiedNow())
@@ -274,8 +287,34 @@ export class MainSelectedPrGrantRegistry {
     }
     const pending = new AbortController()
     before.pending = pending
+    const context: MainSelectedPrOperationContext = Object.freeze({
+      document: grant.scope.document,
+      bindingRevision: grant.scope.bindingRevision,
+      grantRevision: grant.scope.grantRevision,
+      sessionIncarnation: grant.scope.sessionIncarnation,
+      expiresAtMs: grant.expiresAt,
+      isCurrent: () => {
+        try {
+          const now = this.now()
+          if (
+            !pending.signal.aborted &&
+            before.pending === pending &&
+            before.granted === grant &&
+            this.current(verifiedNow()) === before &&
+            Number.isFinite(now) &&
+            now < grant.expiresAt
+          ) {
+            return true
+          }
+        } catch {
+          /* Failed attestation permanently retires this operation. */
+        }
+        pending.abort()
+        return false
+      }
+    })
     try {
-      const value = await load(copyBinding(grant.scope.binding), pending.signal)
+      const value = await load(copyBinding(grant.scope.binding), pending.signal, context)
       const after = this.current(verifiedNow())
       if (pending.signal.aborted || after !== before || after.granted !== grant) {
         return { status: 'revoked' }
@@ -294,6 +333,9 @@ export class MainSelectedPrGrantRegistry {
     } finally {
       if (before.pending === pending) {
         before.pending = undefined
+      }
+      if (before.granted === grant) {
+        before.granted = undefined
       }
     }
   }

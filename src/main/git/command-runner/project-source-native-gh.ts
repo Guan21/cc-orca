@@ -19,6 +19,8 @@ export type {
 } from './project-source-native-gh-contract'
 const MAX_RESPONSE_BYTES = 1024 * 1024
 const MAX_DEADLINE_MS = 15_000
+// Main owns one permit across runner factories, including uncertain child termination.
+const executionLane = { busy: false, idle: Promise.resolve() }
 const ENVIRONMENT_KEYS = new Set([
   'HOME',
   'USERPROFILE',
@@ -57,15 +59,13 @@ export function createProjectSourceNativeGhRunner(
   const authorizationCheck = options.assertAuthorized
   const confinementCheck = options.confinement?.assertConfined
   const enabled = options.enabled === true
-  let busy = false
-  let idle = Promise.resolve()
   return {
-    whenIdle: () => idle,
+    whenIdle: () => executionLane.idle,
     async execute(request) {
       if (!enabled) {
         fail('DISABLED')
       }
-      if (busy) {
+      if (executionLane.busy) {
         fail('BUSY')
       }
       if (!Number.isFinite(request.deadlineMs) || request.deadlineMs <= Date.now()) {
@@ -187,7 +187,7 @@ export function createProjectSourceNativeGhRunner(
           fail('UNTRUSTED_EXECUTABLE')
         }
       }
-      busy = true
+      executionLane.busy = true
       let launched = false
       let terminationVerified = false
       let confirmTermination!: () => void
@@ -266,9 +266,9 @@ export function createProjectSourceNativeGhRunner(
         if (launched) {
           await terminated
         }
-        busy = false
+        executionLane.busy = false
       }
-      idle = pending.then(release, release)
+      executionLane.idle = pending.then(release, release)
       try {
         const result = await Promise.race([pending, abort])
         check()

@@ -9,6 +9,8 @@ import { BrowserWindow } from 'electron'
 import type { IpcMainInvokeEvent } from 'electron'
 import {
   MainSelectedPrGrantRegistry,
+  type MainSelectedPrOperationContext,
+  type SourceOperationResult,
   type TrustedSelectedPrBinding,
   type VerifiedSourceDocument
 } from './project-source-grant-registry'
@@ -82,6 +84,26 @@ export class MainPersonalProjectSourceAuthority {
       return false
     }
     return registry.requestGrant(() => this.origin.attest(event))
+  }
+
+  attest(event: IpcMainInvokeEvent): VerifiedSourceDocument | null {
+    return this.origin.attest(event)
+  }
+
+  async run<T>(
+    event: IpcMainInvokeEvent,
+    load: (
+      binding: TrustedSelectedPrBinding,
+      signal: AbortSignal,
+      context: MainSelectedPrOperationContext
+    ) => Promise<T>,
+    deliver: (value: T) => void
+  ): Promise<SourceOperationResult> {
+    const registry = this.perWebContents.get(event.sender.id)
+    if (!registry) {
+      return { status: 'denied' }
+    }
+    return registry.run(() => this.origin.attest(event), load, deliver)
   }
 
   /** Main-level Project switch/logout/credential revocation; never renderer auth. */
