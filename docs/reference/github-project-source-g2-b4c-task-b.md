@@ -129,6 +129,13 @@ The targeted three suites pass **77 tests** (19 Bootstrap, 45 Raw Runner,
 13 Transport). Independent scoped AI re-review found both P2 findings resolved,
 without authorization weakening or replacement of the shared termination permit.
 
+The first follow-up SHA `4b7c2d200...` failed CI's full-file lint because Transport
+exceeded the 300-line limit; the added-line-only diagnostic filter did not catch
+the file-end finding locally. The repair reuses imported lease types and groups
+the identical positive-revision checks. No limit, exception or workflow changed.
+Full-file lint now covers all six changed TypeScript files; exact final-SHA CI
+supersedes that failed implementation run without erasing it.
+
 ## Evidence boundaries
 
 Fixtures prove offline behavior only. Actual credential provenance, repository

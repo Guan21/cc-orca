@@ -20,10 +20,7 @@ import type {
   MainNativeRegistrationLease,
   MainNativeSelectedPrLease
 } from './project-source-native-authorization'
-export type {
-  MainNativeRegistrationLease,
-  MainNativeSelectedPrLease
-} from './project-source-native-authorization'
+export type { MainNativeRegistrationLease, MainNativeSelectedPrLease }
 type Lease = MainNativeRegistrationLease | MainNativeSelectedPrLease
 type RunnerPolicy = Omit<
   ProjectSourceNativeGhOptions,
@@ -73,7 +70,6 @@ function fingerprint(lease: Lease): string {
   })
 }
 
-/** Unwired Main-only composition; neither this class nor enabled=true issues grants. */
 export class MainNativeGitHubTransport {
   private pending: AbortController | null = null
   private epoch = 0
@@ -128,9 +124,7 @@ export class MainNativeGitHubTransport {
       bounded(lease.workspaceId) &&
       bounded(lease.sessionIncarnation) &&
       bounded(lease.actionId) &&
-      positive(lease.selectionRevision) &&
-      positive(lease.bindingRevision) &&
-      positive(lease.grantRevision) &&
+      [lease.selectionRevision, lease.bindingRevision, lease.grantRevision].every(positive) &&
       Number.isFinite(lease.expiresAtMs) &&
       lease.expiresAtMs > now &&
       lease.expiresAtMs <= now + 15 * 60_000 &&
