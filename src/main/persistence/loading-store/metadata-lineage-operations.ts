@@ -31,13 +31,11 @@ import {
   setWorktreeMetaForHost as setWorktreeMetaForHostOperation
 } from './worktree-identity-metadata'
 import { mergeWorktreeMetaForWrite } from './worktree-meta-write-normalization'
-import {
-  captureNativeLocalWorktreeMetadataScanExpectation as captureNativeLocalWorktreeMetadataScanExpectationOperation,
-  pruneSessionlessMissingLocalWorktreeMetadataForRepo as pruneSessionlessMissingLocalWorktreeMetadataForRepoOperation,
-  selectProbeableLocalWorktreeMetadataCandidates as selectProbeableLocalWorktreeMetadataCandidatesOperation,
-  type LocalWorktreeMetadataPruneExpectation,
-  type NativeLocalWorktreeMetadataScanExpectation
+import type {
+  LocalWorktreeMetadataPruneExpectation,
+  NativeLocalWorktreeMetadataScanExpectation
 } from '../tracking-repos/missing-local-worktree-metadata-pruning'
+import { WorktreeScanOwnership } from './worktree-scan-ownership'
 
 type MetadataLineageOperationsRuntime = Pick<StoreRuntimeState, 'state'>
 
@@ -46,6 +44,7 @@ type MetadataLineageOperationsContext = {
   runtime: MetadataLineageOperationsRuntime
   scheduling: WriteSchedulingOperations
   sessions: SessionHostPartitionOperations
+  scans: WorktreeScanOwnership
 }
 
 export class MetadataLineageOperations {
@@ -56,21 +55,26 @@ export class MetadataLineageOperations {
     scheduling: WriteSchedulingOperations,
     sessions: SessionHostPartitionOperations
   ) {
-    this[metadataLineageOperationsContext] = { runtime, scheduling, sessions }
+    this[metadataLineageOperationsContext] = {
+      runtime,
+      scheduling,
+      sessions,
+      scans: new WorktreeScanOwnership()
+    }
   }
   getWorktreeMeta(worktreeId: string): WorktreeMeta | undefined {
-    return this[metadataLineageOperationsContext].runtime.state.worktreeMeta[worktreeId]
+    return structuredClone(
+      this[metadataLineageOperationsContext].runtime.state.worktreeMeta[worktreeId]
+    )
   }
 
   getWorktreeMetaForHost(
     worktreeId: string,
     executionHostId: ExecutionHostId
   ): WorktreeMeta | undefined {
-    return getWorktreeMetaForHostOperation(
-      this[metadataLineageOperationsContext].runtime,
-      this[metadataLineageOperationsContext].scheduling,
-      worktreeId,
-      executionHostId
+    const { runtime, scheduling } = this[metadataLineageOperationsContext]
+    return structuredClone(
+      getWorktreeMetaForHostOperation(runtime, scheduling, worktreeId, executionHostId)
     )
   }
 
@@ -79,7 +83,9 @@ export class MetadataLineageOperations {
     executionHostId: ExecutionHostId
   ): WorktreeMeta | undefined {
     const { runtime, scheduling } = this[metadataLineageOperationsContext]
-    return readUnambiguousMetadata(runtime, scheduling, worktreeId, executionHostId)
+    return structuredClone(
+      readUnambiguousMetadata(runtime, scheduling, worktreeId, executionHostId)
+    )
   }
 
   setWorktreeMetaForHost(
@@ -87,32 +93,33 @@ export class MetadataLineageOperations {
     executionHostId: ExecutionHostId,
     meta: Partial<WorktreeMeta>
   ): WorktreeMeta {
-    return setWorktreeMetaForHostOperation(
-      this[metadataLineageOperationsContext].runtime,
-      this[metadataLineageOperationsContext].scheduling,
-      worktreeId,
-      executionHostId,
-      meta
+    const { runtime, scheduling } = this[metadataLineageOperationsContext]
+    return structuredClone(
+      setWorktreeMetaForHostOperation(
+        runtime,
+        scheduling,
+        worktreeId,
+        executionHostId,
+        structuredClone(meta)
+      )
     )
   }
 
   getAllWorktreeMeta(): Record<string, WorktreeMeta> {
-    return this[metadataLineageOperationsContext].runtime.state.worktreeMeta
+    return structuredClone(this[metadataLineageOperationsContext].runtime.state.worktreeMeta)
   }
 
   getAllWorktreeMetaForHost(executionHostId: ExecutionHostId): Record<string, WorktreeMeta> {
-    return getAllWorktreeMetaForHostOperation(
-      this[metadataLineageOperationsContext].runtime,
-      executionHostId
-    )
+    const { runtime } = this[metadataLineageOperationsContext]
+    return structuredClone(getAllWorktreeMetaForHostOperation(runtime, executionHostId))
   }
 
   captureNativeLocalWorktreeMetadataScanExpectation(
     repo: Repo
   ): NativeLocalWorktreeMetadataScanExpectation {
-    return captureNativeLocalWorktreeMetadataScanExpectationOperation(
+    return this[metadataLineageOperationsContext].scans.capture(
       this[metadataLineageOperationsContext].runtime.state,
-      repo
+      structuredClone(repo)
     )
   }
 
@@ -121,18 +128,12 @@ export class MetadataLineageOperations {
     const stored = state.worktreeMeta[worktreeId]
     const executionHostId = meta.hostId ?? stored?.hostId
     if (executionHostId) {
-      return setWorktreeMetaForHostOperation(
-        this[metadataLineageOperationsContext].runtime,
-        this[metadataLineageOperationsContext].scheduling,
-        worktreeId,
-        executionHostId,
-        meta
-      )
+      return this.setWorktreeMetaForHost(worktreeId, executionHostId, meta)
     }
-    const updated = mergeWorktreeMetaForWrite(stored, meta)
+    const updated = mergeWorktreeMetaForWrite(stored, structuredClone(meta))
     state.worktreeMeta[worktreeId] = updated
     scheduleSave(this[metadataLineageOperationsContext].scheduling)
-    return updated
+    return structuredClone(updated)
   }
 
   removeWorktreeMeta(worktreeId: string, hostId?: ExecutionHostId | null): void {
@@ -217,7 +218,7 @@ export class MetadataLineageOperations {
   selectProbeableLocalWorktreeMetadataCandidates(
     scan: NativeLocalWorktreeMetadataScanExpectation
   ): readonly LocalWorktreeMetadataPruneExpectation[] {
-    return selectProbeableLocalWorktreeMetadataCandidatesOperation(
+    return this[metadataLineageOperationsContext].scans.select(
       this[metadataLineageOperationsContext].runtime.state,
       scan
     )
@@ -227,7 +228,7 @@ export class MetadataLineageOperations {
     scan: NativeLocalWorktreeMetadataScanExpectation,
     missingMetadata: readonly LocalWorktreeMetadataPruneExpectation[]
   ): string[] {
-    const removed = pruneSessionlessMissingLocalWorktreeMetadataForRepoOperation(
+    const removed = this[metadataLineageOperationsContext].scans.prune(
       this[metadataLineageOperationsContext].runtime.state,
       scan,
       missingMetadata

@@ -9,6 +9,28 @@ offline review. The historical Task A records below retain their original scope.
 Production has no authoritative Main selection producer or verified credential/
 confinement provider; current selection remains UNAVAILABLE, live activation BLOCKED.
 
+## Task B current disposition — PARTIAL / BLOCKED
+
+Task A HEAD stays `a3b6e4246b5c2cad5ac5763eef7d18ca1fd74846`. Task B's
+[source-of-truth, architecture, validation and review ledger](./github-project-source-g2-b4c-task-b.md)
+records disabled Main window/profile/restart wiring, shared Coordinator/Runner
+reentrancy fixes, restart grant-isolation tests and the Main Store mutable-reference
+repair. Public source-record inputs/results are detached; internal identity-CAS
+scan expectations remain private. Supported Store writes still revoke before debounce.
+Task B adds 110 tests relative to Task A, including 32 real-Store ownership cases;
+focused source/authorization/startup verification is 516 PASS. A wider local
+Windows POSIX-path fixture diagnostic retains its FAIL status separately.
+
+No trustworthy production Current Selection producer is available. Consequently
+Task B **does not meet** `B4c TASK B OFFLINE INTEGRATION COMPLETE`; production
+Selection is UNAVAILABLE and Coordinator is default disabled. AI review is not
+independent human safety approval or Owner acceptance of real runtime risk.
+Final SHA, exact Actions/test-LoC results and Bot #156 disposition are recorded on
+Draft #162 and tracking #152 without overwriting Task A history. #116/#151/#152/#153
+stay OPEN. LIVE GITHUB SOURCE BLOCKED; REAL CREDENTIAL / CHECKS ACL and NATIVE
+CONFINEMENT NOT VERIFIED; INSTALLED-APP E2E NOT EXERCISED; CORPORATE SOURCE DISABLED;
+V1 RELEASE NO-GO. No public privileged IPC/preload, live call, merge or release.
+
 ## Baseline and implementation plan
 
 The latest #161 HEAD was verified on 2026-10-20 as

@@ -3,6 +3,11 @@
 Tracking: #152; parent #116; security #151; release #148; real E2E #153.
 Task A baseline: `a3b6e4246b5c2cad5ac5763eef7d18ca1fd74846`; continue Draft #162 on #161.
 
+**Task B implementation status: PARTIAL / BLOCKED.** A trustworthy production
+Main Current Selection producer is absent. The explicit fail-closed adapter and
+default-disabled Coordinator lifecycle are implemented; this does not satisfy
+the user's condition for `B4c TASK B OFFLINE INTEGRATION COMPLETE`.
+
 ## Source of truth and design
 
 Project Map (`ProjectMapDesktopPage.tsx`) uses Renderer `useActiveRepo()` and
@@ -82,7 +87,7 @@ store, public IPC/preload, UI, Corporate policy or transport factory were added.
 
 ## Offline verification
 
-Node 24.21.0: **484 tests PASS across 25 files**, including Catalog/Selection,
+Node 24.21.0: **516 tests PASS across 26 files**, including Catalog/Selection,
 Store identity/mutation, credential, Origin/Authority/Integration, native runner,
 G1 projection/facts, Profile IPC and startup ordering regressions. The focused
 Coordinator/Transport/Runner suites also PASS 77 tests. Node, CLI
@@ -170,9 +175,123 @@ even if shutdown is later vetoed. Abrupt process death loses its in-memory grant
 surviving native children and termination across a real OS restart still require
 OS confinement evidence. No persistent grant/consent recovery mechanism is added.
 
+## Follow-up: Main Store mutable-reference ownership
+
+The audit found a real Main-internal ABA defect: Project/HostSetup getters and
+mutation results exposed live records, Repo admission retained caller objects,
+hydrated Repo results shared nested arrays, and metadata getters/results/maps
+and scan expectations exposed canonical rows. A retained reference could change
+A to B to A without `scheduleSave()`, so no mutation event or revision changed
+and final snapshots matched A. Catalog's output clone cannot prove that history.
+No Renderer-reachable JavaScript reference transfer was identified; production
+remains disabled, but the source ownership invariant needed repair.
+
+The repair stays at existing public Store domain boundaries:
+
+- `ProjectCollectionOperations`: clone Repo/Project/HostSetup getters and mutation
+  results; clone update/setup arguments. Include the alternate Repo result from
+  `moveProjectToGroup()`, found in the independent re-review.
+- `RepoLifecycleOperations`: copy admitted Repo and update input/result values.
+- `MetadataLineageOperations`: copy every public Worktree metadata row/map and
+  setter input/result, including legacy unhosted and strict native-host paths.
+- `WorktreeScanOwnership`: keep original reference-CAS scan expectations in a
+  per-Store weak mapping. Expose detached snapshots; only the original unmodified
+  public scan/member objects map back to internal expectations. Existing host,
+  path, owner, Instance, serialized-value and reference checks still decide
+  pruning. A clone/forged row/foreign Store/mutated scan cannot widen deletion.
+
+Internal persistence identity helpers remain unchanged. Public values remain
+mutable caller-owned snapshots; private Main collaborator writes still require
+the existing synchronous invalidation path. This is source-domain ownership
+repair, not a claim that every unrelated Store record is immutable or that
+snapshot comparison detects arbitrary private-memory corruption.
+Deep copies add allocation cost; production profile performance was not benchmarked.
+
+**32 new actual-Store tests** exercise retained inputs/results, nested arrays,
+Project/runtime fields, all metadata access paths, genuine and forged/stale scan
+pruning, pending registration, and synchronous pending-read revocation. The first
+21 tests reproduced the alias failures before implementation; the alternate
+group-move result also failed before its fix. Relative to Task A, Task B now adds
+**110 tests** (226 new B4c tests including Task A's 116). No tests were deleted.
+
+The old strict-reader and alias-projection assertions are strengthened for the
+new public contract: values match but references differ; all 400 actual internal
+alias/locator twins still share objects. The initial wider run's new-contract
+failure was fixed without removing that internal sharing invariant. The full
+alias-projection file subsequently passes all six tests.
+
+Independent offline AI re-review found no remaining actionable alias path in the
+examined public source domains and no destructive-prune widening. It is **not
+independent human security approval or Owner acceptance of real runtime risk**.
+No dependency, schema, privileged IPC/preload, credential store, egress policy or
+new authorization system was introduced. Folder remains DENIED.
+
+## B7 validation ledger
+
+Commands use Node 24.21.0 and the repository-installed tools/configuration,
+matching the package scripts; `ORCA_BACKGROUND_LAUNCH=1` applies to all tests.
+No visible app/native-focus validation was launched on the user's desktop.
+
+| Validation                                       | Local status / evidence                                                                                                                                                      |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node Typecheck                                   | PASS: `tsc --noEmit -p config/tsconfig.node.json`                                                                                                                            |
+| CLI Typecheck                                    | PASS: `tsc --noEmit -p config/tsconfig.tc.cli.json`                                                                                                                          |
+| Web Typecheck                                    | PASS: `tsc --noEmit -p config/tsconfig.tc.web.json`                                                                                                                          |
+| Base lint                                        | PASS: full `oxlint --format github`, 24,003 files, zero warnings/errors                                                                                                      |
+| Type-aware lint                                  | PASS: full `--type-aware --config config/oxlint-code-quality-type-aware.json src config tests --deny-warnings`                                                               |
+| Static analysis                                  | PASS: configured native plugins; changed base/type-aware/React Doctor; reliability 118 gates; max-lines/ts-nocheck/runtime-Electron ratchets                                 |
+| Formatting                                       | PASS: repository `oxfmt` on changed files; `git diff --check`                                                                                                                |
+| Project Source / Authorization / focused Startup | PASS: 516 tests, 26 files; includes all 32 new Store ownership cases                                                                                                         |
+| Broader Main Store / Electron Startup            | Initial 197 PASS / 4 FAIL; internal alias-sharing assertion retained; corrected rerun: 198 PASS / 3 existing Windows fixture FAIL across 14 files                            |
+| Windows POSIX-path diagnostic                    | FAIL retained: three unchanged `local-worktree-metadata-scan-expectation.test.ts` positive-prune cases use `/workspace/...`; native Windows absolute-path guard refuses them |
+| Host / SSH / Project Runtime compatibility       | PASS: 36 tests across five existing regression files                                                                                                                         |
+| Corporate Forbidden Endpoint Scanner             | PASS: 12,370 files, zero known/new forbidden violations                                                                                                                      |
+| GitHub PR Checks / PR test LoC                   | Exact final-SHA result recorded in PR #162 and Issue #152; earlier SHA results are historical only                                                                           |
+| Auxiliary Bot #156                               | Separate status at final SHA; NOT EXERCISED if absent; retain any failed run; no secret or workflow permission change                                                        |
+| Installed-app / actual GitHub / OS confinement   | NOT EXERCISED / NOT VERIFIED; not inferred from packaging or fixtures                                                                                                        |
+
+The three Windows diagnostic failures are on untouched pure prune/test sources;
+their Git blob IDs match `7081916a1...`. Initial failure logs and the rerun are
+retained separately. Neither those fixtures, the absolute-path guard, scan rules,
+timeouts nor existing fail-closed checks were relaxed. Historical local source
+scan timeout and earlier `4b7c2d200...` max-lines CI failure remain historical
+evidence, never silently relabeled PASS.
+
+## B8 delivery and completion gate
+
+Continue existing branch `feature/116-g2b-b4c-main-security-integration` and
+Draft [#162](https://github.com/Guan21/cc-orca/pull/162). Task A HEAD remains
+`a3b6e4246b5c2cad5ac5763eef7d18ca1fd74846`; base #161 remains
+`cb3b96fe2c4c9cbcd3ef281d7bcbd7bb80a9fd84`. Exact Task B final HEAD, its Actions,
+changed-file inventory, review and progression records are published on #162 and
+#152 after this implementation commit. Prior Task A and earlier Task B results
+are retained. #116/#151/#152/#153 stay OPEN; no merge/release is performed.
+
+Foundation creates the real Store/Catalog, the unavailable Selection owner and
+disabled Bootstrap in `main-process-ready-foundation.ts`; `main-window-controller.ts`
+attaches only the actual Main window before loading; `main-process-state.ts` owns
+them. Origin authenticates object identities and current document; subscriptions
+retire registration/grants on changes. `main-window-core-services.ts` revokes before
+profile/auth/sign-out/relaunch awaits, existing Profile handlers signal before
+switch/transfer, and committed `main-process-quit.ts` disposes owners before async
+teardown. Separate native registration/read confirmation and shared Runner permit
+remain. No real production Selection producer is installed by this work.
+
+Therefore **PARTIAL / BLOCKED**, even if final CI is green. B5 guarded IPC/preload,
+Main-pinned HEAD/delivery/UI and G3 authorized test repository/named QA owner,
+Owner exact-SHA review, real credential/Repository/Checks permissions, effective
+OS confinement and installed Windows/macOS positive/negative acceptance remain.
+
 ## Evidence boundaries
 
 Fixtures prove offline behavior only. Actual credential provenance, repository
 and Checks permission, OS binary/library/config/network/process confinement and
 installed-platform real-source E2E remain NOT VERIFIED / NOT EXERCISED. Source
 activation stays BLOCKED, Corporate source DISABLED and V1 NO-GO.
+
+- `LIVE GITHUB SOURCE: BLOCKED`
+- `REAL CREDENTIAL / CHECKS ACL: NOT VERIFIED`
+- `NATIVE CONFINEMENT: NOT VERIFIED`
+- `INSTALLED-APP E2E: NOT EXERCISED`
+- `CORPORATE SOURCE: DISABLED`
+- `V1 RELEASE: NO-GO`

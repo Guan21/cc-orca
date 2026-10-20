@@ -13,8 +13,8 @@ type CatalogStore = Pick<
 type SelectionCandidate = Omit<MainSelectedRepositoryContext, 'selectionRevision'>
 
 /** Main-only Store adapter. Selection is a selector, never repository/read authorization.
- * Store API mutations retire selection synchronously; direct Main reference mutation
- * still requires explicit invalidation. Renderer session snapshots never restore selection.
+ * Public Store source records are detached; supported mutations retire selection synchronously.
+ * Private Main writes still require invalidation. Renderer snapshots never restore selection.
  */
 export class MainProjectSourceCatalog {
   private selected: MainSelectedRepositoryContext | null = null

@@ -46,7 +46,9 @@ describe('unambiguous host-qualified worktree metadata', () => {
     const { runtime, scheduling, add } = fixture()
     const { meta } = add('instance-a')
     const operations = new MetadataLineageOperations(runtime, scheduling, {} as never)
-    expect(operations.getUnambiguousWorktreeMetaForHost(WORKTREE, 'local')).toBe(meta)
+    const snapshot = operations.getUnambiguousWorktreeMetaForHost(WORKTREE, 'local')
+    expect(snapshot).toEqual(meta)
+    expect(snapshot).not.toBe(meta)
     expect(save).not.toHaveBeenCalled()
   })
 

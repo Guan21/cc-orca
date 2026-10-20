@@ -60,31 +60,39 @@ export class ProjectCollectionOperations {
   }
 
   getRepos(): Repo[] {
-    return getProjectHostOperations(this).getRepos()
+    return structuredClone(getProjectHostOperations(this).getRepos())
   }
 
   getProjects(): Project[] {
-    return getProjectHostOperations(this).getProjects()
+    return structuredClone(getProjectHostOperations(this).getProjects())
   }
 
   updateProject(id: string, updates: ProjectUpdateArgs['updates']): Project | null {
-    return getProjectHostOperations(this).updateProject(id, updates)
+    return structuredClone(
+      getProjectHostOperations(this).updateProject(id, structuredClone(updates))
+    )
   }
 
   getProjectHostSetups(): ProjectHostSetup[] {
-    return getProjectHostOperations(this).getProjectHostSetups()
+    return structuredClone(getProjectHostOperations(this).getProjectHostSetups())
   }
 
   createProjectHostSetup(args: ProjectHostSetupCreateArgs): ProjectHostSetupCreateResult | null {
-    return getProjectHostOperations(this).createProjectHostSetup(args)
+    return structuredClone(
+      getProjectHostOperations(this).createProjectHostSetup(structuredClone(args))
+    )
   }
 
   updateProjectHostSetup(args: ProjectHostSetupUpdateArgs): ProjectHostSetupUpdateResult | null {
-    return getProjectHostOperations(this).updateProjectHostSetup(args)
+    return structuredClone(
+      getProjectHostOperations(this).updateProjectHostSetup(structuredClone(args))
+    )
   }
 
   deleteProjectHostSetup(args: ProjectHostSetupDeleteArgs): ProjectHostSetupDeleteResult | null {
-    return getProjectHostOperations(this).deleteProjectHostSetup(args)
+    return structuredClone(
+      getProjectHostOperations(this).deleteProjectHostSetup(structuredClone(args))
+    )
   }
 
   getRepoCount(): number {
@@ -92,7 +100,7 @@ export class ProjectCollectionOperations {
   }
 
   getRepo(id: string): Repo | undefined {
-    return getProjectHostOperations(this).getRepo(id)
+    return structuredClone(getProjectHostOperations(this).getRepo(id))
   }
 
   setResolvedRepoGitUsername(
@@ -149,7 +157,9 @@ export class ProjectCollectionOperations {
   }
 
   moveProjectToGroup(repoId: string, groupId: string | null, order?: number): Repo | null {
-    return getFolderWorkspaceOperations(this).moveProjectToGroup(repoId, groupId, order)
+    return structuredClone(
+      getFolderWorkspaceOperations(this).moveProjectToGroup(repoId, groupId, order)
+    )
   }
 }
 
