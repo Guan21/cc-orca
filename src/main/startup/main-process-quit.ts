@@ -105,6 +105,8 @@ function installWillQuitHandler(): void {
     if (!quitTeardownStartGate.tryStart(event)) {
       return
     }
+    state.projectSourceCatalog?.dispose()
+    state.projectSourceCatalog = null
     state.unsubscribeSystemResumeBroadcast?.()
     state.unsubscribeSystemResumeBroadcast = null
     // Why: renderer guards can still cancel before this committed phase; `log stream` must survive those vetoes.

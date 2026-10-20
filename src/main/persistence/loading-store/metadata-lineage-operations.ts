@@ -24,6 +24,7 @@ import {
 import { migrateWorktreeIdentity as migrateWorktreeIdentityOperation } from '../tracking-repos/worktree-identity-migration'
 import {
   getAllWorktreeMetaForHost as getAllWorktreeMetaForHostOperation,
+  getUnambiguousWorktreeMetaForHost as readUnambiguousMetadata,
   getWorktreeMetaForHost as getWorktreeMetaForHostOperation,
   migrateWorktreeMetadataLocator,
   removeWorktreeMetadataForHost,
@@ -71,6 +72,14 @@ export class MetadataLineageOperations {
       worktreeId,
       executionHostId
     )
+  }
+
+  getUnambiguousWorktreeMetaForHost(
+    worktreeId: string,
+    executionHostId: ExecutionHostId
+  ): WorktreeMeta | undefined {
+    const { runtime, scheduling } = this[metadataLineageOperationsContext]
+    return readUnambiguousMetadata(runtime, scheduling, worktreeId, executionHostId)
   }
 
   setWorktreeMetaForHost(

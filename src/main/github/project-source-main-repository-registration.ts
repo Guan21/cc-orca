@@ -152,24 +152,19 @@ export class MainRegisteredSelectedPrRepository {
       setup.projectId !== project.id ||
       setup.repoId !== repo.id ||
       setup.hostId !== 'local' ||
-      setup.executionHostId != null && setup.executionHostId !== 'local' ||
+      (setup.executionHostId != null && setup.executionHostId !== 'local') ||
       setup.connectionId != null ||
       setup.setupState !== 'ready' ||
       repo.kind !== 'git' ||
       repo.connectionId != null ||
       (repo.executionHostId != null && repo.executionHostId !== 'local') ||
       repo.gitRemoteIdentity?.canonicalKey.toLowerCase() !==
-        (`github.com/${provider.owner}/${provider.repo}`).toLowerCase()
+        `github.com/${provider.owner}/${provider.repo}`.toLowerCase()
     ) {
       return null
     }
-    if (
-      !(
-        (selected.workspaceKind === 'folder' && selected.workspaceId === repo.id) ||
-        (selected.workspaceKind === 'worktree' &&
-          this.deps.isCurrentWorktree?.(selected) === true)
-      )
-    ) {
+    // Folder UUID/root identity lacks an authoritative Project mapping in this catalog.
+    if (selected.workspaceKind !== 'worktree' || this.deps.isCurrentWorktree?.(selected) !== true) {
       return null
     }
     const binding = {
@@ -240,7 +235,7 @@ export class MainRegisteredSelectedPrRepository {
       !safeString(verified.nodeId) ||
       !safeString(verified.nameWithOwner) ||
       verified.nameWithOwner.toLowerCase() !==
-        (`${before.binding.repository.owner}/${before.binding.repository.name}`).toLowerCase() ||
+        `${before.binding.repository.owner}/${before.binding.repository.name}`.toLowerCase() ||
       verified.principalId !== before.principal.principalId ||
       verified.credentialGeneration !== before.principal.credentialGeneration
     ) {

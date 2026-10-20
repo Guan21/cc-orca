@@ -20,13 +20,22 @@ const writeSchedulingOperationsContext = Symbol('WriteSchedulingOperations')
 type WriteSchedulingOperationsContext = {
   runtime: WriteSchedulingOperationsRuntime
   writes: PrimaryStateWriteOperations
+  mutationListeners: Set<() => void>
 }
 
 export class WriteSchedulingOperations {
   readonly [writeSchedulingOperationsContext]: WriteSchedulingOperationsContext
 
   constructor(runtime: WriteSchedulingOperationsRuntime, writes: PrimaryStateWriteOperations) {
-    this[writeSchedulingOperationsContext] = { runtime, writes }
+    this[writeSchedulingOperationsContext] = { runtime, writes, mutationListeners: new Set() }
+  }
+
+  subscribeMutations(listener: () => void): () => void {
+    const listeners = this[writeSchedulingOperationsContext].mutationListeners
+    listeners.add(listener)
+    return () => {
+      listeners.delete(listener)
+    }
   }
 
   async waitForPendingWrite(): Promise<void> {
@@ -38,6 +47,15 @@ export class WriteSchedulingOperations {
 }
 
 export function scheduleSave(owner: WriteSchedulingOperations): void {
+  // Observe each mutation before debounce can hide A→B→A transitions.
+  const listeners = [...owner[writeSchedulingOperationsContext].mutationListeners]
+  for (const listener of listeners) {
+    try {
+      listener()
+    } catch {
+      // Subscribers own fail-closed revocation; one failure must not skip other listeners or saving.
+    }
+  }
   owner[writeSchedulingOperationsContext].runtime.automationListProjectionCache = null
   // Why: once the quit flush has snapshotted, a newly debounced write would fire during
   // teardown with nothing awaiting it, and the process can exit mid-rename. The quit

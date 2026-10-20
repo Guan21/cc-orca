@@ -23,6 +23,7 @@ import { MainProjectSourceCatalog } from './project-source-main-catalog'
 import { MainCredentialEvidenceProvider } from './project-source-main-credential'
 import type { Project, ProjectHostSetup } from '../../shared/project-types'
 import type { Repo } from '../../shared/repo-types'
+import type { WorktreeMeta } from '../../shared/worktree/meta-types'
 
 const HEAD = 'a'.repeat(40)
 const URL = 'file:///DevCrew/resources/app.asar/out/renderer/index.html'
@@ -110,14 +111,21 @@ function fixture(enabled = true) {
     getProjects: () => [project],
     getProjectHostSetups: () => [setup],
     getRepos: () => [repo],
-    getWorktreeMeta: () => undefined
+    subscribeMutations: () => () => {},
+    getUnambiguousWorktreeMetaForHost: () =>
+      ({
+        instanceId: 'workspace-1',
+        projectId: 'p',
+        projectHostSetupId: 's',
+        hostId: 'local'
+      }) as WorktreeMeta
   })
   const selected = {
     projectId: 'p',
     repoId: 'r',
     hostSetupId: 's',
-    workspaceKind: 'folder' as const,
-    workspaceId: 'r',
+    workspaceKind: 'worktree' as const,
+    workspaceId: 'r::/repo/w',
     prNumber: 42
   }
   expect(catalog.selectCurrent(selected)).toBe(true)

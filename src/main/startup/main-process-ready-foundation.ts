@@ -13,6 +13,7 @@ import {
 import { browserCertificateTrustController } from '../browser/browser-manager'
 import { ensureActiveOrcaProfile } from '../orca-profiles/profile-index-store'
 import { Store, getCanonicalUserDataPath } from '../persistence'
+import { MainProjectSourceCatalog } from '../github/project-source-main-catalog'
 import { initializeBrowserClientHostId } from '../browser/browser-client-host-id'
 import { scheduleSecretProtectionGapReport } from '../host/deferred-secret-protection-report'
 import { initSshHostKeyStoreFile } from '../ssh/ssh-host-key-store'
@@ -141,6 +142,8 @@ export async function initializeReadyFoundation(): Promise<void> {
     storageAuthority: state.isServeMode ? 'runtime' : 'desktop'
   })
   state.store = store
+  state.projectSourceCatalog?.dispose()
+  state.projectSourceCatalog = new MainProjectSourceCatalog(store)
   // Why: create pending readiness before the guard can observe the default session.
   // Why parked on state instead of awaited here: Dock/Launchpad launches don't inherit shell
   // proxy env vars, so the persisted proxy must land before any app-owned network fetcher runs —

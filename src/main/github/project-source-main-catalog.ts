@@ -7,19 +7,21 @@ import type {
 
 type CatalogStore = Pick<
   Store,
-  'getProjects' | 'getProjectHostSetups' | 'getRepos' | 'getWorktreeMeta'
->
+  'getProjects' | 'getProjectHostSetups' | 'getRepos' | 'subscribeMutations'
+> &
+  Partial<Pick<Store, 'getUnambiguousWorktreeMetaForHost'>>
 type SelectionCandidate = Omit<MainSelectedRepositoryContext, 'selectionRevision'>
 
 /** Main-only Store adapter. Selection is a selector, never repository/read authorization.
- * Production activation requires Main selection and every catalog mutation to call invalidate().
- * Store currently exposes no complete mutation subscription; polling cannot prove unseen ABA.
+ * Store API mutations retire selection synchronously; direct Main reference mutation
+ * still requires explicit invalidation. Renderer session snapshots never restore selection.
  */
 export class MainProjectSourceCatalog {
   private selected: MainSelectedRepositoryContext | null = null
   private fingerprint: string | null = null
   private revision = 0
   private disposed = false
+  private unsubscribeStore: (() => void) | undefined
   private readonly listeners = new Set<() => void>()
 
   constructor(
@@ -28,6 +30,16 @@ export class MainProjectSourceCatalog {
   ) {
     if (onInvalidate) {
       this.listeners.add(onInvalidate)
+    }
+    try {
+      const unsubscribe = store.subscribeMutations(() => this.invalidate())
+      if (typeof unsubscribe !== 'function') {
+        this.disposed = true
+      } else {
+        this.unsubscribeStore = unsubscribe
+      }
+    } catch {
+      this.disposed = true
     }
   }
 
@@ -42,6 +54,9 @@ export class MainProjectSourceCatalog {
     this.selected = null
     this.fingerprint = null
     this.revision += 1
+    if (!Number.isSafeInteger(this.revision)) {
+      this.disposed = true
+    }
     const listeners = [...this.listeners]
     for (const listener of listeners) {
       try {
@@ -55,6 +70,13 @@ export class MainProjectSourceCatalog {
 
   dispose(): void {
     this.disposed = true
+    const unsubscribe = this.unsubscribeStore
+    this.unsubscribeStore = undefined
+    try {
+      unsubscribe?.()
+    } catch {
+      // Disposal must still notify every dependent authority.
+    }
     this.invalidate()
     this.listeners.clear()
   }
@@ -81,8 +103,9 @@ export class MainProjectSourceCatalog {
       return false
     }
     const next = Object.freeze({ ...candidate, selectionRevision: this.revision })
+    const revision = this.revision
     const fingerprint = this.resolve(next)
-    if (fingerprint === null) {
+    if (fingerprint === null || this.disposed || revision !== this.revision) {
       return false
     }
     this.selected = next
@@ -95,7 +118,7 @@ export class MainProjectSourceCatalog {
     if (!selected) {
       return null
     }
-    if (this.resolve(selected) !== this.fingerprint) {
+    if (this.resolve(selected) !== this.fingerprint || this.selected !== selected) {
       this.invalidate()
       return null
     }
@@ -141,13 +164,9 @@ export class MainProjectSourceCatalog {
         return null
       }
       let instance: string | null = null
-      if (selection.workspaceKind === 'folder') {
-        if (selection.workspaceId !== repo.id) {
-          return null
-        }
-      } else if (selection.workspaceKind === 'worktree') {
+      if (selection.workspaceKind === 'worktree') {
         const parsed = splitWorktreeId(selection.workspaceId)
-        const meta = this.store.getWorktreeMeta(selection.workspaceId)
+        const meta = this.store.getUnambiguousWorktreeMetaForHost?.(selection.workspaceId, 'local')
         if (
           !parsed?.worktreePath ||
           parsed.repoId !== repo.id ||

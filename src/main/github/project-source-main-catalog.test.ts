@@ -36,12 +36,18 @@ function fixture() {
   }
   let projects = [project]
   let repos = [repo]
-  let meta: WorktreeMeta | undefined
+  let meta: WorktreeMeta | undefined = {
+    instanceId: 'instance-1',
+    projectId: 'p',
+    projectHostSetupId: 's',
+    hostId: 'local'
+  } as WorktreeMeta
   const store = {
     getProjects: () => projects,
     getProjectHostSetups: () => [setup],
     getRepos: () => repos,
-    getWorktreeMeta: () => meta
+    getUnambiguousWorktreeMetaForHost: () => meta,
+    subscribeMutations: () => () => {}
   }
   const retire = vi.fn()
   const catalog = new MainProjectSourceCatalog(store, retire)
@@ -49,8 +55,8 @@ function fixture() {
     projectId: 'p',
     repoId: 'r',
     hostSetupId: 's',
-    workspaceKind: 'folder' as const,
-    workspaceId: 'r',
+    workspaceKind: 'worktree' as const,
+    workspaceId: 'r::/repo/w',
     prNumber: 3
   }
   return {
@@ -134,6 +140,7 @@ describe('MainProjectSourceCatalog', () => {
 
   it('requires worktree instance, explicit Project/setup/host and repo ownership', () => {
     const f = fixture()
+    f.setMeta({} as WorktreeMeta)
     const worktree = {
       ...f.selected,
       workspaceKind: 'worktree' as const,

@@ -18,7 +18,7 @@ security state. Direct renderer identity and ambient gh login are rejected as
 authority. The Main-only coordinator owns action epochs and abort signals.
 
 1. Add real Store catalog and explicit Main selection adapter with ABA revisions;
-   test folder/worktree membership, remote denial and missing Store data.
+   test Worktree membership, explicit folder denial, remote denial and missing Store data.
 2. Extend the B2/B3 execution interface compatibly with immutable operation scope;
    preserve native read consent and consume grants once per operation.
 3. Compose separate default-Cancel repository consent with B4a and B4b; bind every
@@ -34,11 +34,12 @@ authority. The Main-only coordinator owns action epochs and abort signals.
 
 ## Integration boundary
 
-Real Store snapshots are available, but the current application has no trusted
-Main current-selection lifecycle service. Renderer workspace selection is not
-authorization. Bootstrap and mutation/selection event wiring must stay explicitly
-UNWIRED until B5 supplies reviewed Main adapters. The coordinator is executable
-offline and installs no IPC, preload, UI, credential storage or egress policy.
+The Catalog is attached to the actual Store in Main foundation and disposed on
+committed shutdown. Authored Store mutations synchronously retire its selection.
+The application still has no trusted Main current-selection lifecycle service;
+renderer workspace snapshots do not establish authority. Coordinator/Window/
+Session and selection wiring remain UNWIRED until reviewed Main adapters exist.
+No IPC, preload, UI, credential storage or egress policy is installed.
 
 Actual keyring provenance, effective account/config generation, repository and
 Checks permissions, OS executable/library/config replacement prevention,
@@ -53,7 +54,7 @@ attestations, executable bytes and process termination callbacks, never real gh.
 
 ## Main call flow and decisions
 
-`Store.getProjects/getProjectHostSetups/getRepos/getWorktreeMeta` →
+`Store.getProjects/getProjectHostSetups/getRepos/getUnambiguousWorktreeMetaForHost` →
 `MainProjectSourceCatalog.selectCurrent` → coordinator's pinned WebContents,
 Session/document/principal fence → separate default-Cancel native registration
 confirmation → B4a registration → B4b fixed registration query → B3 trusted binding.
@@ -66,13 +67,15 @@ post-await path rechecks authority. Navigation/process loss, catalog selection o
 mutation, credential changes, explicit revoke and disposal abort pending work and
 retire registration plus grants. Returning to old values cannot restore them.
 
-The real Store adapter is present; `main-process-state.ts` owns the actual Store.
-`index.ts` and `startup/main-process-ipc-bootstrap.ts` install no B4c consumer.
-Existing GitHub Project View IPC is a separate broader feature and is not reused
-as G2 authority. Main bootstrap/current selection/mutation wiring remains explicitly
-**UNWIRED / BLOCKED**; polling cannot prove a deletion/recreation that went unseen.
-Folder workspaces and explicitly owned worktree instances are supported by the
-adapter; SSH/WSL/paired/runtime hosts never fall back to native execution.
+`main-process-state.ts` owns the actual Store and its default-deny Catalog, created
+in Main foundation. No coordinator consumer is installed in IPC/preload/renderer.
+Existing GitHub Project View IPC is a separate broader feature, not G2 authority.
+Main current selection and coordinator/Window/Session wiring remain **UNWIRED /
+BLOCKED**. Store API mutations now invalidate synchronously, while arbitrary direct
+reference mutation still needs explicit invalidation plus snapshot rechecks.
+Only explicitly owned native Worktree instances are accepted. Folder models lack
+the required mapping and are DENIED, including bare Repo IDs; no folder support
+is inferred from fixture equality. SSH/WSL/paired/runtime hosts never fall back.
 
 ## Credential and confinement evidence
 
@@ -101,7 +104,9 @@ LIVE_SOURCE_BLOCKED. Tests' proof callbacks are fixtures, not deployment evidenc
 | Native runner      | Cross-instance concurrent construction, uncertain termination, replacement, environment injection, no WSL/fallback, deadline/Abort, response bounds             |
 | API/privacy        | 401/403/404/429 allowlisted errors, partial GraphQL errors, incomplete Checks, mismatched repository/HEAD, raw secret errors suppressed, default zero execution |
 
-New offline tests: **74**. Focused + G1 regression: **322 PASS across 14 files**.
+Initial delivery at `e08f38eb...`: **74 new offline tests** and **322 PASS across
+14 focused/G1 files**. The Task A continuation below supersedes its fixture scope
+and records additional tests and final-head evidence separately.
 Node, CLI and web TypeScript projects PASS on Node 24.19.0.
 Additional process/Host/rate-limit regression: **68 PASS / 5 platform SKIPPED /
 1 local timeout** across 10 files. The unchanged gh spawn-boundary source scan exceeded its original
@@ -135,3 +140,57 @@ negative/positive acceptance. CI packages do not supply those proofs.
 Status: **B4c OFFLINE IMPLEMENTATION COMPLETE** only after final checks recorded
 in the Draft; **LIVE SOURCE ACTIVATION BLOCKED**; **REAL GITHUB E2E NOT EXERCISED**.
 No merge, issue closure or V1/Corporate readiness is authorized.
+
+## Task A continuation — real Main catalog boundary
+
+Follow-up to `e08f38eb84724bee223610a7ba1aef3a80761e1b`, 2026-10-20.
+The first offline fixtures incorrectly used `workspaceKind: folder` with a bare
+Repo ID. Actual repo-backed folder instances and standalone FolderWorkspace UUIDs
+have different identities; standalone records lack an authoritative Project/Repo/
+HostSetup association. Do not infer one from display names, paths or ProjectGroup.
+
+Implementation sequence:
+
+1. Add regression tests that reject synthetic/real unbound folder IDs, demand
+   explicit native Worktree instance ownership, and detect reentrant invalidation.
+2. Reuse Store write scheduling for synchronous Main mutation notifications,
+   before debounce or committed quit suppresses writes. Subscribe the Catalog and
+   retire selection on every notified mutation; retain post-await snapshot fences.
+3. Read host-qualified local Worktree metadata and refuse a missing provider.
+   Reuse the identity map with a strict getter that refuses multiple incarnations;
+   preserve existing listing winner behavior. Guard selection commits against
+   mutation notifications during metadata reads.
+4. Instantiate one empty/default-deny Catalog from the real Store in Main
+   foundation; dispose the previous instance and retire on committed shutdown.
+5. Test actual Store mutation/restart behavior, existing registration/composition,
+   typechecks, lint, formatting, Corporate scanning and final-head PR checks.
+
+This adds no credential/network/IPC authority. Main active selection remains
+UNWIRED; renderer session snapshots are selectors, not source proof. Folder
+selection remains DENIED until an explicit authoritative mapping exists. Store
+notifications cover authored mutation APIs, not arbitrary writes through mutable
+Main getter references; snapshot revalidation and live activation blocking remain.
+
+Task A review found and corrected two Medium issues: a missing mutation provider
+could still accept selections, and the listing getter could pick a winner among
+competing instances. Catalog now requires the mutation subscription and validates
+its unsubscribe callback; the strict getter rejects ambiguous/dangling/mismatched
+host/instance/key records. An actual Store reload test preserves readable listing
+behavior while denying that same record as source authority. Offline AI re-review
+PASS; no independent human or actual runtime security approval is claimed.
+
+Added Task A tests: **42** (17 catalog lifecycle, 8 actual Store, 7 scheduling,
+9 strict identity, 1 registration). Existing normal-path fixtures now use real
+Worktree locators and instance ownership rather than `folder = repo.id`.
+The initial 74 B4c cases plus this continuation total **116 new tests**.
+
+Additional metadata batch-pruning diagnostic: one pre-existing local Windows
+failure uses POSIX `/workspace/...` fixture paths rejected by the unchanged
+Windows absolute-path guard. Neither the fixture nor its safety check was relaxed.
+Final Task A local checks: **364 PASS across 18 focused/G1 files**, plus **79 PASS
+across 6 persistence/startup regression files**. Node/CLI/web typechecks PASS;
+changed-code base/type-aware/React Doctor gates have zero new findings; format,
+whitespace and Corporate scanner PASS (12,366 files, zero known/new violations).
+Existing broad-process and platform-specific diagnostic failures remain historical
+local results, not hidden or relabeled. Current exact-head CI is recorded in the
+Draft PR and #152 after completion.
