@@ -23,6 +23,7 @@ export class MainProjectSourceBootstrap {
   private contents: WebContents | null = null
   private unsubscribe: (() => void) | null = null
   private disposed = false
+  private attaching = false
   private readonly retire = (): void => {
     try {
       this.integration?.revoke()
@@ -84,6 +85,18 @@ export class MainProjectSourceBootstrap {
 
   /** Only the explicit Main window factory calls this, before loading its document. */
   attachMainWindow(window: BrowserWindow): boolean {
+    if (this.attaching) {
+      return false
+    }
+    this.attaching = true
+    try {
+      return this.attachWindow(window)
+    } finally {
+      this.attaching = false
+    }
+  }
+
+  private attachWindow(window: BrowserWindow): boolean {
     if (this.disposed || this.appProfile !== 'personal' || !this.isCurrentProfile()) {
       return false
     }
@@ -97,7 +110,14 @@ export class MainProjectSourceBootstrap {
       return false
     }
     this.detachWindow()
-    if (this.disposed || !this.isCurrentProfile()) {
+    if (
+      this.disposed ||
+      !this.isCurrentProfile() ||
+      window.isDestroyed() ||
+      contents.isDestroyed() ||
+      windowOwners.has(window) ||
+      contentsOwners.has(contents)
+    ) {
       return false
     }
     this.window = window
@@ -111,7 +131,7 @@ export class MainProjectSourceBootstrap {
       }
       const credential = new MainCredentialEvidenceProvider()
       this.credential = credential
-      this.integration = new MainProjectSourceIntegration({
+      const integration = new MainProjectSourceIntegration({
         enabled: false,
         approvedWebContents: contents,
         catalog: this.options.catalog,
@@ -128,6 +148,19 @@ export class MainProjectSourceBootstrap {
           runtime: () => ({ packaged: false, profile: 'development', execution: 'native' })
         }
       })
+      if (
+        this.disposed ||
+        this.window !== window ||
+        this.contents !== contents ||
+        !this.isCurrentProfile() ||
+        windowOwners.get(window) !== this ||
+        contentsOwners.get(contents) !== this
+      ) {
+        integration.dispose()
+        this.detachWindow()
+        return false
+      }
+      this.integration = integration
       window.on('closed', this.detach)
       contents.on('destroyed', this.detach)
       contents.on('did-start-navigation', this.retireDocument)
@@ -150,28 +183,34 @@ export class MainProjectSourceBootstrap {
       }
     }
     const integration = this.integration
-    this.integration = null
-    cleanup(() => integration?.dispose())
     const credential = this.credential
+    const window = this.window
+    const contents = this.contents
+    this.integration = null
     this.credential = null
-    cleanup(() => credential?.dispose())
-    if (this.window) {
-      cleanup(() => this.options.catalog.invalidate())
-    }
-    if (this.window) {
-      cleanup(() => this.window?.removeListener('closed', this.detach))
-      windowOwners.delete(this.window)
-    }
-    if (this.contents) {
-      cleanup(() => this.contents?.removeListener('destroyed', this.detach))
-      cleanup(() => this.contents?.removeListener('did-start-navigation', this.retireDocument))
-      cleanup(() => this.contents?.removeListener('will-navigate', this.retireDocument))
-      cleanup(() => this.contents?.removeListener('did-navigate', this.retireDocument))
-      cleanup(() => this.contents?.removeListener('render-process-gone', this.retireDocument))
-      contentsOwners.delete(this.contents)
-    }
     this.window = null
     this.contents = null
+    cleanup(() => integration?.dispose())
+    cleanup(() => credential?.dispose())
+    if (window) {
+      cleanup(() => this.options.catalog.invalidate())
+    }
+    if (window) {
+      cleanup(() => window.removeListener('closed', this.detach))
+      if (windowOwners.get(window) === this) {
+        windowOwners.delete(window)
+      }
+    }
+    if (contents) {
+      cleanup(() => contents.removeListener('destroyed', this.detach))
+      cleanup(() => contents.removeListener('did-start-navigation', this.retireDocument))
+      cleanup(() => contents.removeListener('will-navigate', this.retireDocument))
+      cleanup(() => contents.removeListener('did-navigate', this.retireDocument))
+      cleanup(() => contents.removeListener('render-process-gone', this.retireDocument))
+      if (contentsOwners.get(contents) === this) {
+        contentsOwners.delete(contents)
+      }
+    }
   }
 
   dispose(): void {

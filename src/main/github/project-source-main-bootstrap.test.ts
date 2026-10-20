@@ -5,12 +5,14 @@ import type { MainProjectSourceIntegration } from './project-source-main-integra
 const mocks = vi.hoisted(() => ({
   options: [] as ConstructorParameters<typeof MainProjectSourceIntegration>[0][],
   revoke: vi.fn(),
+  construct: vi.fn(),
   dispose: vi.fn()
 }))
 vi.mock('./project-source-main-integration', () => ({
   MainProjectSourceIntegration: class {
     constructor(options: ConstructorParameters<typeof MainProjectSourceIntegration>[0]) {
       mocks.options.push(options)
+      mocks.construct()
     }
     revoke = mocks.revoke
     dispose = mocks.dispose
@@ -90,6 +92,49 @@ describe('default-disabled Main project-source bootstrap', () => {
     expect(f.window.eventNames()).toHaveLength(0)
     f.bootstrap.dispose()
     replacement.bootstrap.dispose()
+  })
+  it('does not overwrite ownership acquired during synchronous replacement revocation', () => {
+    const first = fixture()
+    const second = fixture()
+    let acquired: boolean | undefined
+    first.bootstrap.attachMainWindow(first.window as never)
+    first.catalog.invalidate.mockImplementationOnce(() => {
+      acquired = second.bootstrap.attachMainWindow(second.window as never)
+    })
+    expect(first.bootstrap.attachMainWindow(second.window as never)).toBe(false)
+    expect(acquired).toBe(true)
+    expect(mocks.options).toHaveLength(2)
+    first.bootstrap.dispose()
+    expect(second.window.listenerCount('closed')).toBe(1)
+    expect(second.sender.listenerCount('destroyed')).toBe(1)
+    second.bootstrap.dispose()
+    expect(second.window.eventNames()).toHaveLength(0)
+    expect(second.sender.eventNames()).toHaveLength(0)
+  })
+  it('denies reentrant attachment by the same bootstrap during replacement', () => {
+    const first = fixture()
+    const replacement = fixture()
+    let reentered: boolean | undefined
+    first.bootstrap.attachMainWindow(first.window as never)
+    first.catalog.invalidate.mockImplementationOnce(() => {
+      reentered = first.bootstrap.attachMainWindow(replacement.window as never)
+    })
+    expect(first.bootstrap.attachMainWindow(replacement.window as never)).toBe(true)
+    expect(reentered).toBe(false)
+    expect(mocks.options).toHaveLength(2)
+    first.bootstrap.dispose()
+    replacement.bootstrap.dispose()
+    expect(replacement.window.eventNames()).toHaveLength(0)
+    expect(replacement.sender.eventNames()).toHaveLength(0)
+  })
+  it('does not adopt a coordinator if bootstrap retires during coordinator construction', () => {
+    const f = fixture()
+    mocks.construct.mockImplementationOnce(() => f.bootstrap.dispose())
+    expect(f.bootstrap.attachMainWindow(f.window as never)).toBe(false)
+    expect(mocks.dispose).toHaveBeenCalledOnce()
+    expect(f.window.eventNames()).toHaveLength(0)
+    expect(f.sender.eventNames()).toHaveLength(0)
+    expect(f.listeners.size).toBe(0)
   })
   it.each(['did-start-navigation', 'will-navigate', 'did-navigate', 'render-process-gone'])(
     'synchronously revokes on %s',

@@ -153,6 +153,7 @@ export class MainNativeGitHubTransport {
     }
     const start = Date.now()
     let initial: string
+    let actionId: string
     try {
       if (
         lease.operation !== operation ||
@@ -163,14 +164,18 @@ export class MainNativeGitHubTransport {
         return { status: 'denied' }
       }
       initial = fingerprint(lease)
-      if (this.consumedActions.has(lease.actionId) || this.consumedActions.size >= 256) {
+      actionId = lease.actionId
+      if (this.consumedActions.has(actionId) || this.consumedActions.size >= 256) {
         return { status: 'denied' }
       }
     } catch {
       return { status: 'denied' }
     }
+    if (this.pending || nativeTransportBusy) {
+      return { status: 'busy' }
+    }
     this.consumed.add(lease)
-    this.consumedActions.add(lease.actionId)
+    this.consumedActions.add(actionId)
     nativeTransportBusy = true
     const epoch = this.epoch
     const controller = new AbortController()

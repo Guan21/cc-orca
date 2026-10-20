@@ -82,10 +82,10 @@ store, public IPC/preload, UI, Corporate policy or transport factory were added.
 
 ## Offline verification
 
-Node 24.21.0: **472 tests PASS across 25 files**, including Catalog/Selection,
+Node 24.21.0: **480 tests PASS across 25 files**, including Catalog/Selection,
 Store identity/mutation, credential, Origin/Authority/Integration, native runner,
-G1 projection/facts, Profile IPC and startup ordering regressions. Bootstrap's
-16 tests also PASS after the final formatting-only braces correction. Node, CLI
+G1 projection/facts, Profile IPC and startup ordering regressions. The focused
+Coordinator/Transport/Runner suites also PASS 77 tests. Node, CLI
 and web TypeScript projects PASS. Changed-code base/type-aware/React Doctor gates
 report zero new findings; format and whitespace PASS. Final Corporate scan and
 max-lines/runtime-Electron ratchets are recorded with exact-HEAD CI in Draft #162.
@@ -99,6 +99,35 @@ Changed files: new Selection, Bootstrap and native-confirmation modules; their
 tests; Origin, Credential, Integration, Authority and consent modules; existing
 Profile IPC internal lifecycle hooks; startup foundation/state/window/quit/core
 services; startup/Profile regressions; this document and the B4c index.
+
+## Follow-up: multiple Coordinator / Runner bypass
+
+The explicit follow-up review at `c5426d2316736c78b55efad44df5d06c4500b233`
+found two P2 internal reentrancy defects missed by the earlier broad review.
+No Renderer-reachable production route or enabled credential access was found;
+the defects nevertheless violated the claimed cross-instance invariants.
+
+- Bootstrap checked target ownership before detaching its old window. A Catalog
+  callback could let another Bootstrap acquire the target, then the outer call
+  overwrote that ownership. Reentrant attachment is now guarded; ownership is
+  rechecked after callbacks and construction. Detach clears captured state before
+  callbacks, cleans captured instances and deletes only entries it still owns.
+- Raw Runner checked its shared lane before request-property access. A getter
+  could start a different factory's Runner before the outer call acquired it.
+  Runner now rechecks immediately before acquisition, owns a unique reservation,
+  and publishes pending idle proof before invoking runtime callbacks. Only its
+  reservation can release the shared lane, after required termination evidence.
+- Transport had a similar pre-acquisition `isCurrent()` callback gap, normally
+  contained by the real Raw Runner. Its shared permit is now rechecked after
+  validation and snapshotting, before consuming the action or invoking Runner.
+
+Eight new offline regressions cover competing Bootstrap ownership, same-owner
+reentry, construction-time disposal, request getter reentry, Transport callback
+reentry, early idle inspection and uncertain termination after rejected outer
+acquisition. Existing recreation/uncertain-termination cases remain unchanged.
+The targeted three suites pass **77 tests** (19 Bootstrap, 45 Raw Runner,
+13 Transport). Independent scoped AI re-review found both P2 findings resolved,
+without authorization weakening or replacement of the shared termination permit.
 
 ## Evidence boundaries
 

@@ -218,6 +218,75 @@ describe('native project source gh runner', () => {
     finish({ stdout: '{}', stderr: '' })
     await first
   })
+  it.each(['deadlineMs', 'variables'] as const)(
+    'blocks a second acquisition after reentrant request %s access',
+    async (field) => {
+      const firstRunner = createProjectSourceNativeGhRunner(options())
+      const secondRunner = createProjectSourceNativeGhRunner(options())
+      const outerRequest = request()
+      const value = outerRequest[field]
+      let nested: Promise<string> | undefined
+      Object.defineProperty(outerRequest, field, {
+        get() {
+          nested ??= secondRunner.execute(request())
+          return value
+        }
+      })
+      const outer = firstRunner.execute(outerRequest).catch((error: unknown) => error)
+      await nested
+      await expect(outer).resolves.toMatchObject({ code: 'BUSY' })
+      await secondRunner.whenIdle()
+      expect(mocks.execute).toHaveBeenCalledOnce()
+    }
+  )
+  it('publishes pending idle proof before runtime callbacks can inspect another runner', async () => {
+    const pending = Promise.withResolvers<{ stdout: string; stderr: string }>()
+    mocks.execute.mockReturnValue(pending.promise)
+    const observer = createProjectSourceNativeGhRunner(options())
+    let idleObserved = false
+    const config = options()
+    config.assertAuthorized.mockImplementationOnce(() => {
+      void observer.whenIdle().then(() => {
+        idleObserved = true
+      })
+    })
+    const runner = createProjectSourceNativeGhRunner(config)
+    const result = runner.execute(request())
+    await vi.waitFor(() => expect(mocks.execute).toHaveBeenCalledOnce())
+    expect(idleObserved).toBe(false)
+    expect(observer.whenIdle()).toBe(runner.whenIdle())
+    mocks.execute.mock.calls[0][2].onChildTerminated()
+    pending.resolve({ stdout: '{}', stderr: '' })
+    await result
+    await observer.whenIdle()
+    expect(idleObserved).toBe(true)
+  })
+  it('retains uncertain termination proof after rejecting a reentrant outer acquisition', async () => {
+    mocks.execute.mockResolvedValue({ stdout: '{}', stderr: '' })
+    const innerRunner = createProjectSourceNativeGhRunner(options())
+    const outerRequest = request()
+    let nested: Promise<unknown> | undefined
+    Object.defineProperty(outerRequest, 'variables', {
+      get() {
+        nested ??= innerRunner.execute(request()).catch((error: unknown) => error)
+        return { owner: 'alice', number: 1 }
+      }
+    })
+    await expect(
+      createProjectSourceNativeGhRunner(options()).execute(outerRequest)
+    ).rejects.toMatchObject({ code: 'BUSY' })
+    expect(await nested).toMatchObject({ code: 'TERMINATION_NOT_VERIFIED' })
+    const replacement = createProjectSourceNativeGhRunner(options())
+    await expect(replacement.execute(request())).rejects.toMatchObject({ code: 'BUSY' })
+    expect(replacement.whenIdle()).toBe(innerRunner.whenIdle())
+    let idle = false
+    void replacement.whenIdle().then(() => {
+      idle = true
+    })
+    await Promise.resolve()
+    expect(idle).toBe(false)
+    expect(mocks.execute).toHaveBeenCalledOnce()
+  })
   it.each([
     ['HTTP 401 secret', 'HTTP_401'],
     ['HTTP 403 secret', 'HTTP_403'],

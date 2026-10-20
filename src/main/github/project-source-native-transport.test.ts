@@ -168,6 +168,19 @@ describe('Main native transport composition', () => {
     await Promise.resolve()
     expect((await second.transport.register(second.lease)).status).toBe('registered')
   })
+  it('cannot acquire transport authority twice through a reentrant current-selection check', async () => {
+    const first = fixture()
+    const second = fixture()
+    let nested: ReturnType<typeof second.transport.register> | undefined
+    first.lease.isCurrent = () => {
+      nested ??= second.transport.register(second.lease)
+      return true
+    }
+    const outer = first.transport.register(first.lease)
+    expect(await nested).toMatchObject({ status: 'registered' })
+    expect(await outer).toEqual({ status: 'busy' })
+    expect(execute).toHaveBeenCalledOnce()
+  })
   it('rejects absent, expired, revoked or mismatched Main authority before execution', async () => {
     const { transport, lease, principal } = fixture()
     expect(await transport.register({ ...lease, expiresAtMs: 0 })).toEqual({ status: 'denied' })
