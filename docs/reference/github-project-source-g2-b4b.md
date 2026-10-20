@@ -47,9 +47,9 @@ No token store, token persistence, raw response/error logging or source cache.
       projection to #157. Deny partial errors, null, incomplete/overflow/empty Checks.
 - [x] Add failing Main composition tests, then principal retirement and distinct
       operation authorization with pre/post-await fences and default zero execution.
-- [ ] Run focused/regression Vitest, typecheck, lint/static scans, formatting,
+- [x] Run focused/regression Vitest, typecheck, lint/static scans, formatting,
       Corporate endpoint scanner and independent code review; fix introduced defects.
-- [ ] Commit only B4b, open a stacked Draft PR on #160's branch, record exact
+- [x] Commit only B4b, open a stacked Draft PR on #160's branch, record exact
       SHA/check results and append #152 progress without closing any tracking issue.
 
 ## Evidence boundaries
@@ -118,3 +118,15 @@ exact-SHA risk acceptance, native QA, or V1 release approval.
 Local dependency installation encountered Windows file-in-use errors. Tests use
 the existing pinned dependency toolchain through a local ignored junction, with
 Vitest cache disabled. No package manifest, lockfile or dependency version changed.
+
+Final local validation after implementation stabilized: **280 PASS / 1 SKIPPED**
+across 16 Vitest files (including all **89 new tests**). The gh chokepoint retest
+passed in 229s with a command-only 600s local timeout; CI/test source is unchanged.
+Node, CLI and web TypeScript projects all PASS. The changed-code quality gate
+against the actual B4a base reports zero new findings in base, type-aware and
+React Doctor scans. Formatting and whitespace checks PASS. The Corporate scan
+above PASSes without policy/baseline changes.
+
+Delivery: [Draft PR #161](https://github.com/Guan21/cc-orca/pull/161), base #160's
+branch. Its description and progress comments record the final SHA and the actual
+GitHub Actions results, separately from these local checks. No auto merge.
