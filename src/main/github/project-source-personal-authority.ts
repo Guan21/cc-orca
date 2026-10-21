@@ -9,6 +9,8 @@ import { BrowserWindow } from 'electron'
 import type { IpcMainInvokeEvent } from 'electron'
 import {
   MainSelectedPrGrantRegistry,
+  type MainSelectedPrOperationContext,
+  type SourceOperationResult,
   type TrustedSelectedPrBinding,
   type VerifiedSourceDocument
 } from './project-source-grant-registry'
@@ -38,10 +40,16 @@ export class MainPersonalProjectSourceAuthority {
   private readonly perWebContents = new Map<number, MainSelectedPrGrantRegistry>()
   private readonly origin: PersonalProjectSourceElectronOrigin
 
-  constructor(options: Omit<ElectronSourceOriginOptions, 'revokeWebContents'>) {
+  constructor(
+    options: Omit<ElectronSourceOriginOptions, 'revokeWebContents'>,
+    onDocumentRetired?: () => void
+  ) {
     this.origin = new PersonalProjectSourceElectronOrigin({
       ...options,
-      revokeWebContents: (id) => this.retireWebContents(id)
+      revokeWebContents: (id) => {
+        this.retireWebContents(id)
+        onDocumentRetired?.()
+      }
     })
   }
 
@@ -51,7 +59,11 @@ export class MainPersonalProjectSourceAuthority {
   }
 
   /** Called ONLY after Main independently authenticates the chosen binding. */
-  selectTrusted(event: IpcMainInvokeEvent, binding: TrustedSelectedPrBinding): boolean {
+  selectTrusted(
+    event: IpcMainInvokeEvent,
+    binding: TrustedSelectedPrBinding,
+    signal?: AbortSignal
+  ): boolean {
     const document = this.origin.attest(event)
     const id = event.sender.id
     this.retireWebContents(id)
@@ -63,10 +75,14 @@ export class MainPersonalProjectSourceAuthority {
       return false
     }
     const registry = new MainSelectedPrGrantRegistry(
-      createPersonalPrConsent(window, () => {
-        const latest = this.origin.attest(event)
-        return latest !== null && sameDocument(latest, document)
-      })
+      createPersonalPrConsent(
+        window,
+        () => {
+          const latest = this.origin.attest(event)
+          return latest !== null && sameDocument(latest, document)
+        },
+        signal
+      )
     )
     if (!registry.select(document, binding)) {
       return false
@@ -84,6 +100,26 @@ export class MainPersonalProjectSourceAuthority {
     return registry.requestGrant(() => this.origin.attest(event))
   }
 
+  attest(event: IpcMainInvokeEvent): VerifiedSourceDocument | null {
+    return this.origin.attest(event)
+  }
+
+  async run<T>(
+    event: IpcMainInvokeEvent,
+    load: (
+      binding: TrustedSelectedPrBinding,
+      signal: AbortSignal,
+      context: MainSelectedPrOperationContext
+    ) => Promise<T>,
+    deliver: (value: T) => void
+  ): Promise<SourceOperationResult> {
+    const registry = this.perWebContents.get(event.sender.id)
+    if (!registry) {
+      return { status: 'denied' }
+    }
+    return registry.run(() => this.origin.attest(event), load, deliver)
+  }
+
   /** Main-level Project switch/logout/credential revocation; never renderer auth. */
   revoke(event: IpcMainInvokeEvent): void {
     this.retireWebContents(event.sender.id)
@@ -93,5 +129,10 @@ export class MainPersonalProjectSourceAuthority {
     for (const id of this.perWebContents.keys()) {
       this.retireWebContents(id)
     }
+  }
+
+  dispose(): void {
+    this.retireAll()
+    this.origin.dispose()
   }
 }

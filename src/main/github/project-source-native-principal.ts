@@ -40,11 +40,22 @@ export class MainNativeGitHubPrincipal {
     }
     try {
       const raw = this.verify()
-      if (typeof raw !== 'object' || raw === null) {
+      if (this.retired || typeof raw !== 'object' || raw === null) {
         return this.reject()
       }
-      const candidate = raw as Partial<MainNativePrincipalEvidence>
+      const source = raw as Partial<MainNativePrincipalEvidence>
+      const candidate = {
+        host: source.host,
+        source: source.source,
+        loginVerified: source.loginVerified,
+        credentialGeneration: source.credentialGeneration,
+        principalId: source.principalId,
+        configDir: source.configDir,
+        identityFingerprint: source.identityFingerprint,
+        policyReviewReceipt: source.policyReviewReceipt
+      }
       if (
+        this.retired ||
         candidate.host !== 'github.com' ||
         candidate.source !== 'os-keyring' ||
         candidate.loginVerified !== true ||

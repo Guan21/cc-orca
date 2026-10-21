@@ -54,15 +54,15 @@ function createFixture(includeVerifier = true) {
     repoId: 'repo-a',
     hostSetupId: 'setup-a',
     selectionRevision: 1,
-    workspaceKind: 'folder',
-    workspaceId: 'repo-a',
+    workspaceKind: 'worktree',
+    workspaceId: 'repo-a::/workspace/service',
     prNumber: 17
   }
   let principal: MainVerifiedGhAccount | null = {
     principalId: 'gh-user',
     credentialGeneration: 2
   }
-  let worktreeIsCurrent = false
+  let worktreeIsCurrent = true
   const verified: MainVerifiedRepositoryIdentity = {
     host: 'github.com',
     id: 42,
@@ -71,7 +71,9 @@ function createFixture(includeVerifier = true) {
     principalId: 'gh-user',
     credentialGeneration: 2
   }
-  const verify = vi.fn(async (): Promise<MainVerifiedRepositoryIdentity | null> => ({ ...verified }))
+  const verify = vi.fn(async (): Promise<MainVerifiedRepositoryIdentity | null> => ({
+    ...verified
+  }))
   const registry = new MainRegisteredSelectedPrRepository({
     readCatalog: () => ({ projects: [project], setups: [setup], repos: [repo] }),
     readSelection: () => selected,
@@ -99,6 +101,20 @@ function createFixture(includeVerifier = true) {
 }
 
 describe('#152 B4a Main-only registered immutable GitHub identity (offline)', () => {
+  it('does not treat a bare Repo ID as a verified folder workspace', async () => {
+    const { registry, verify, setSelection } = createFixture()
+    setSelection({
+      projectId: 'project-a',
+      repoId: 'repo-a',
+      hostSetupId: 'setup-a',
+      selectionRevision: 2,
+      workspaceKind: 'folder',
+      workspaceId: 'repo-a',
+      prNumber: 17
+    })
+    expect(await registry.registerSelected()).toBe('denied')
+    expect(verify).not.toHaveBeenCalled()
+  })
   it('is disabled until a separately approved verifier is supplied', async () => {
     const { registry } = createFixture(false)
     expect(await registry.registerSelected()).toBe('denied')
@@ -114,7 +130,7 @@ describe('#152 B4a Main-only registered immutable GitHub identity (offline)', ()
     )
     expect(registry.currentBinding()).toMatchObject({
       projectId: 'project-a',
-      workspaceId: 'repo-a',
+      workspaceId: 'repo-a::/workspace/service',
       hostSetupId: 'setup-a',
       executionHostId: 'local',
       prNumber: 17,
@@ -207,8 +223,8 @@ describe('#152 B4a Main-only registered immutable GitHub identity (offline)', ()
       repoId: 'repo-a',
       hostSetupId: 'setup-a',
       selectionRevision: 2,
-      workspaceKind: 'folder',
-      workspaceId: 'repo-a',
+      workspaceKind: 'worktree',
+      workspaceId: 'repo-a::/workspace/service',
       prNumber: 17
     })
     expect(registry.currentBinding()).toBeNull()
@@ -217,8 +233,8 @@ describe('#152 B4a Main-only registered immutable GitHub identity (offline)', ()
       repoId: 'repo-a',
       hostSetupId: 'setup-a',
       selectionRevision: 3,
-      workspaceKind: 'folder',
-      workspaceId: 'repo-a',
+      workspaceKind: 'worktree',
+      workspaceId: 'repo-a::/workspace/service',
       prNumber: 17
     })
     expect(registry.currentBinding()).toBeNull()
@@ -242,6 +258,7 @@ describe('#152 B4a Main-only registered immutable GitHub identity (offline)', ()
 
   it('worktrees require a separately authenticated Main-owned predicate', async () => {
     const { registry, setSelection, setWorktree } = createFixture()
+    setWorktree(false)
     const worktree: MainSelectedRepositoryContext = {
       projectId: 'project-a',
       repoId: 'repo-a',

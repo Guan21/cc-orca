@@ -110,6 +110,29 @@ describe('#152 B3 real Electron Main event identity (offline)', () => {
     expect(a.origin.attest(a.event as never)).toBeNull()
   })
 
+  it('creates fresh installation, Session and document identities despite repeated Electron IDs', () => {
+    const old = setup()
+    const before = old.origin.attest(old.event as never)
+    old.origin.dispose()
+    const restarted = setup()
+    const after = restarted.origin.attest(restarted.event as never)
+    expect(before).not.toBeNull()
+    expect(after).toMatchObject({
+      windowId: before?.windowId,
+      webContentsId: before?.webContentsId,
+      frameProcessId: before?.frameProcessId,
+      frameRoutingId: before?.frameRoutingId,
+      principalId: before?.principalId,
+      credentialGeneration: before?.credentialGeneration
+    })
+    expect(after?.installationId).not.toBe(before?.installationId)
+    expect(after?.sessionPartition).not.toBe(before?.sessionPartition)
+    expect(after?.documentId).not.toBe(before?.documentId)
+    expect(old.origin.attest(old.event as never)).toBeNull()
+    expect(restarted.origin.attest(old.event as never)).toBeNull()
+    restarted.origin.dispose()
+  })
+
   it('denies foreign main frame, remote web origin, or stale app document', () => {
     const a = setup()
     expect(a.origin.attest({ ...a.event, senderFrame: {} } as never)).toBeNull()
@@ -185,5 +208,56 @@ describe('#152 B3 real Electron Main event identity (offline)', () => {
     expect(before?.principalId).toBe('gh-actor-1')
     expect(after?.principalId).toBe('new-principal')
     expect(after?.credentialGeneration).toBe(9)
+  })
+
+  it('retires document identity after observing a rejected Session ABA', () => {
+    const a = setup()
+    const before = a.origin.attest(a.event as never)
+    a.sender.session = { label: 'replacement' }
+    expect(a.origin.attest(a.event as never)).toBeNull()
+    a.sender.session = a.session
+    expect(a.origin.attest(a.event as never)?.documentId).not.toBe(before?.documentId)
+    expect(a.revoke).toHaveBeenCalledWith(17)
+  })
+
+  it('rejects a replacement BrowserWindow even with the same window ID and WebContents', () => {
+    const a = setup()
+    const origin = new PersonalProjectSourceElectronOrigin({
+      approvedSession: a.session as never,
+      approvedWindow: a.window as never,
+      currentAppProfile: () => 'personal',
+      expectedDocumentUrl: RENDERER,
+      currentPrincipal: () => ({ principalId: 'actor', credentialGeneration: 1 }),
+      revokeWebContents: a.revoke
+    })
+    expect(origin.attest(a.event as never)).not.toBeNull()
+    mocks.fromWebContents.mockReturnValue({ ...a.window })
+    expect(origin.attest(a.event as never)).toBeNull()
+    origin.dispose()
+  })
+
+  it('permanently denies after a partially installed lifecycle subscription throws', () => {
+    const a = setup()
+    const on = a.sender.on.bind(a.sender)
+    vi.spyOn(a.sender, 'on').mockImplementation((name, listener) => {
+      if (name === 'will-navigate') {
+        throw new Error('listener unavailable')
+      }
+      return on(name, listener)
+    })
+    expect(a.origin.attest(a.event as never)).toBeNull()
+    vi.restoreAllMocks()
+    expect(a.origin.attest(a.event as never)).toBeNull()
+    expect(a.sender.eventNames()).toEqual([])
+  })
+
+  it('disposes lifecycle listeners and permanently denies further attestations', () => {
+    const a = setup()
+    a.origin.attest(a.event as never)
+    a.origin.dispose()
+    a.origin.dispose()
+    expect(a.sender.eventNames()).toEqual([])
+    expect(a.origin.attest(a.event as never)).toBeNull()
+    expect(a.revoke).toHaveBeenCalledExactlyOnceWith(17)
   })
 })

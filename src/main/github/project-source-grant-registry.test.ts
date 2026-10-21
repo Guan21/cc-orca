@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   MainSelectedPrGrantRegistry,
+  type MainSelectedPrOperationContext,
   type TrustedSelectedPrBinding,
   type VerifiedSourceDocument
 } from './project-source-grant-registry'
@@ -46,18 +47,109 @@ function deferred<T>() {
 }
 
 describe('#152 Main-only selected PR consent and scope fence', () => {
+  it('consumes consent after one completed or failed read', async () => {
+    const registry = new MainSelectedPrGrantRegistry(async () => true)
+    registry.select(IDENTITY, BINDING)
+    await registry.requestGrant(() => IDENTITY)
+    await registry.run(
+      () => IDENTITY,
+      async () => 'first',
+      vi.fn()
+    )
+    const load = vi.fn(async () => 'replayed')
+    expect(await registry.run(() => IDENTITY, load, vi.fn())).toEqual({ status: 'denied' })
+    expect(load).not.toHaveBeenCalled()
+    await registry.requestGrant(() => IDENTITY)
+    await expect(
+      registry.run(
+        () => IDENTITY,
+        async () => {
+          throw new Error('offline')
+        },
+        vi.fn()
+      )
+    ).rejects.toThrow('offline')
+    expect(await registry.run(() => IDENTITY, load, vi.fn())).toEqual({ status: 'denied' })
+  })
+
+  it('provides immutable in-flight authority that retires after completion and revoke', async () => {
+    const registry = new MainSelectedPrGrantRegistry(async () => true)
+    registry.select(IDENTITY, BINDING)
+    await registry.requestGrant(() => IDENTITY)
+    let context: { isCurrent(): boolean } | undefined
+    await registry.run(
+      () => IDENTITY,
+      async (_binding, _signal, authority) => {
+        context = authority
+        expect(Object.isFrozen(authority)).toBe(true)
+        expect(authority.document).toEqual(IDENTITY)
+        expect(authority.bindingRevision).toBeGreaterThan(0)
+        expect(authority.grantRevision).toBeGreaterThan(authority.bindingRevision)
+        expect(authority.sessionIncarnation).toBe(registry.getIncarnation())
+        expect(authority.expiresAtMs).toBeGreaterThan(Date.now())
+        expect(authority.isCurrent()).toBe(true)
+        return 'data'
+      },
+      vi.fn()
+    )
+    expect(context?.isCurrent()).toBe(false)
+    await registry.requestGrant(() => IDENTITY)
+    await registry.run(
+      () => IDENTITY,
+      async (_binding, _signal, authority) => {
+        registry.revoke(IDENTITY)
+        expect(authority.isCurrent()).toBe(false)
+        return 'stale'
+      },
+      vi.fn()
+    )
+  })
+
+  it('never restores in-flight authority after an observed document mismatch', async () => {
+    const registry = new MainSelectedPrGrantRegistry(async () => true)
+    let current = IDENTITY
+    registry.select(current, BINDING)
+    await registry.requestGrant(() => current)
+    const deliver = vi.fn()
+    expect(
+      await registry.run(
+        () => current,
+        async (_binding, signal, context) => {
+          current = { ...IDENTITY, documentId: 'other-document' }
+          expect(context.isCurrent()).toBe(false)
+          current = IDENTITY
+          expect(context.isCurrent()).toBe(false)
+          expect(signal.aborted).toBe(true)
+          return 'stale'
+        },
+        deliver
+      )
+    ).toEqual({ status: 'revoked' })
+    expect(deliver).not.toHaveBeenCalled()
+  })
+
   it('selection cannot confer a read grant; explicit confirmation is required', async () => {
     const confirm = vi.fn(async () => true)
     const registry = new MainSelectedPrGrantRegistry(confirm)
     const deliver = vi.fn()
     expect(registry.select(IDENTITY, BINDING)).toBe(true)
-    expect(await registry.run(() => IDENTITY, async () => 'value', deliver)).toEqual({
+    expect(
+      await registry.run(
+        () => IDENTITY,
+        async () => 'value',
+        deliver
+      )
+    ).toEqual({
       status: 'denied'
     })
     expect(confirm).not.toHaveBeenCalled()
     expect(deliver).not.toHaveBeenCalled()
     expect(await registry.requestGrant(() => IDENTITY)).toBe(true)
-    const result = await registry.run(() => IDENTITY, async () => 'value', deliver)
+    const result = await registry.run(
+      () => IDENTITY,
+      async () => 'value',
+      deliver
+    )
     expect(result).toEqual({ status: 'delivered' })
     expect(deliver).toHaveBeenCalledExactlyOnceWith('value')
   })
@@ -66,7 +158,13 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
     const registry = new MainSelectedPrGrantRegistry(async () => false)
     expect(registry.select(IDENTITY, BINDING)).toBe(true)
     expect(await registry.requestGrant(() => IDENTITY)).toBe(false)
-    expect(await registry.run(() => IDENTITY, async () => 1, vi.fn())).toEqual({
+    expect(
+      await registry.run(
+        () => IDENTITY,
+        async () => 1,
+        vi.fn()
+      )
+    ).toEqual({
       status: 'denied'
     })
   })
@@ -80,7 +178,13 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
     registry.select(IDENTITY, BINDING)
     prompt.resolve(true)
     expect(await pending).toBe(false)
-    expect(await registry.run(() => IDENTITY, async () => 1, vi.fn())).toEqual({
+    expect(
+      await registry.run(
+        () => IDENTITY,
+        async () => 1,
+        vi.fn()
+      )
+    ).toEqual({
       status: 'denied'
     })
   })
@@ -93,7 +197,13 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
     registry.revoke(IDENTITY)
     prompt.resolve(true)
     expect(await pending).toBe(false)
-    expect(await registry.run(() => IDENTITY, async () => 1, vi.fn())).toEqual({
+    expect(
+      await registry.run(
+        () => IDENTITY,
+        async () => 1,
+        vi.fn()
+      )
+    ).toEqual({
       status: 'denied'
     })
   })
@@ -126,9 +236,7 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
 
   it('blocks invalid Personal realm and unregistered/inconsistent binding candidates', () => {
     const registry = new MainSelectedPrGrantRegistry(async () => true)
-    expect(
-      registry.select({ ...IDENTITY, executionRealm: 'wsl' as 'native' }, BINDING)
-    ).toBe(false)
+    expect(registry.select({ ...IDENTITY, executionRealm: 'wsl' as 'native' }, BINDING)).toBe(false)
     expect(
       registry.select(IDENTITY, {
         ...BINDING,
@@ -158,7 +266,10 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
 
   it('expires granted reads after 15 minutes, without auto renewal', async () => {
     let now = 1_000
-    const registry = new MainSelectedPrGrantRegistry(async () => true, () => now)
+    const registry = new MainSelectedPrGrantRegistry(
+      async () => true,
+      () => now
+    )
     registry.select(IDENTITY, BINDING)
     expect(await registry.requestGrant(() => IDENTITY)).toBe(true)
     now += 15 * 60_000
@@ -174,12 +285,19 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
 
   it('drops responses after grant expiry while the loader is awaiting', async () => {
     let now = 10_000
-    const registry = new MainSelectedPrGrantRegistry(async () => true, () => now)
+    const registry = new MainSelectedPrGrantRegistry(
+      async () => true,
+      () => now
+    )
     const response = deferred<string>()
     registry.select(IDENTITY, BINDING)
     await registry.requestGrant(() => IDENTITY)
     const delivered = vi.fn()
-    const result = registry.run(() => IDENTITY, async () => response.promise, delivered)
+    const result = registry.run(
+      () => IDENTITY,
+      async () => response.promise,
+      delivered
+    )
     now += 15 * 60_000
     response.resolve('sensitive')
     expect(await result).toEqual({ status: 'expired' })
@@ -231,7 +349,11 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
     await registry.requestGrant(() => IDENTITY)
     const response = deferred<string>()
     const delivered = vi.fn()
-    const first = registry.run(() => IDENTITY, async () => response.promise, delivered)
+    const first = registry.run(
+      () => IDENTITY,
+      async () => response.promise,
+      delivered
+    )
     const loader = vi.fn(async () => 'second')
     expect(await registry.run(() => IDENTITY, loader, delivered)).toEqual({
       status: 'denied'
@@ -247,20 +369,83 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
     registry.select(IDENTITY, BINDING)
     await registry.requestGrant(() => IDENTITY)
     registry.retireWebContents(IDENTITY.webContentsId)
-    expect(await registry.run(() => IDENTITY, async () => 'old', vi.fn())).toEqual({
+    expect(
+      await registry.run(
+        () => IDENTITY,
+        async () => 'old',
+        vi.fn()
+      )
+    ).toEqual({
       status: 'denied'
     })
     registry.select(IDENTITY, BINDING)
     await registry.requestGrant(() => IDENTITY)
     registry.retireAll()
-    expect(await registry.run(() => IDENTITY, async () => 'old', vi.fn())).toEqual({
+    expect(
+      await registry.run(
+        () => IDENTITY,
+        async () => 'old',
+        vi.fn()
+      )
+    ).toEqual({
       status: 'denied'
     })
     const newSession = new MainSelectedPrGrantRegistry(async () => true)
     expect(newSession.getIncarnation()).not.toBe(registry.getIncarnation())
-    expect(await newSession.run(() => IDENTITY, async () => 'old', vi.fn())).toEqual({
+    expect(
+      await newSession.run(
+        () => IDENTITY,
+        async () => 'old',
+        vi.fn()
+      )
+    ).toEqual({
       status: 'denied'
     })
+  })
+
+  it('requires fresh consent when a recreated registry repeats every numeric revision and identity', async () => {
+    const previous = new MainSelectedPrGrantRegistry(async () => true)
+    previous.select(IDENTITY, BINDING)
+    await previous.requestGrant(() => IDENTITY)
+    const late = deferred<string>()
+    let oldContext: MainSelectedPrOperationContext | undefined
+    const oldDeliver = vi.fn()
+    const oldRead = previous.run(
+      () => IDENTITY,
+      async (_binding, _signal, context) => {
+        oldContext = context
+        return late.promise
+      },
+      oldDeliver
+    )
+    previous.retireAll()
+    const confirm = vi.fn(async () => true)
+    const restarted = new MainSelectedPrGrantRegistry(confirm)
+    restarted.select({ ...IDENTITY }, structuredClone(BINDING))
+    const load = vi.fn(async () => 'fresh')
+    const deliver = vi.fn()
+    expect(await restarted.run(() => IDENTITY, load, deliver)).toEqual({ status: 'denied' })
+    expect(load).not.toHaveBeenCalled()
+    expect(confirm).not.toHaveBeenCalled()
+    expect(await restarted.requestGrant(() => IDENTITY)).toBe(true)
+    expect(
+      await restarted.run(
+        () => IDENTITY,
+        async (_binding, _signal, context) => {
+          expect(context.bindingRevision).toBe(oldContext?.bindingRevision)
+          expect(context.grantRevision).toBe(oldContext?.grantRevision)
+          expect(context.sessionIncarnation).not.toBe(oldContext?.sessionIncarnation)
+          return 'fresh'
+        },
+        deliver
+      )
+    ).toEqual({ status: 'delivered' })
+    late.resolve('previous process result')
+    expect(await oldRead).toEqual({ status: 'revoked' })
+    expect(oldContext?.isCurrent()).toBe(false)
+    expect(oldDeliver).not.toHaveBeenCalled()
+    expect(deliver).toHaveBeenCalledExactlyOnceWith('fresh')
+    expect(confirm).toHaveBeenCalledOnce()
   })
 
   it('copies input binding so later external mutation does not redirect an active read', async () => {
@@ -301,7 +486,13 @@ describe('#152 Main-only selected PR consent and scope fence', () => {
     expect(delivered).not.toHaveBeenCalled()
     const other = { ...IDENTITY, windowId: 99, webContentsId: 99 }
     registry.select(other, { ...BINDING, projectId: 'other-project' })
-    expect(await registry.run(() => other, async () => 'old', delivered)).toEqual({
+    expect(
+      await registry.run(
+        () => other,
+        async () => 'old',
+        delivered
+      )
+    ).toEqual({
       status: 'denied'
     })
   })

@@ -20,10 +20,7 @@ import type {
   MainNativeRegistrationLease,
   MainNativeSelectedPrLease
 } from './project-source-native-authorization'
-export type {
-  MainNativeRegistrationLease,
-  MainNativeSelectedPrLease
-} from './project-source-native-authorization'
+export type { MainNativeRegistrationLease, MainNativeSelectedPrLease }
 type Lease = MainNativeRegistrationLease | MainNativeSelectedPrLease
 type RunnerPolicy = Omit<
   ProjectSourceNativeGhOptions,
@@ -73,7 +70,6 @@ function fingerprint(lease: Lease): string {
   })
 }
 
-/** Unwired Main-only composition; neither this class nor enabled=true issues grants. */
 export class MainNativeGitHubTransport {
   private pending: AbortController | null = null
   private epoch = 0
@@ -128,9 +124,7 @@ export class MainNativeGitHubTransport {
       bounded(lease.workspaceId) &&
       bounded(lease.sessionIncarnation) &&
       bounded(lease.actionId) &&
-      positive(lease.selectionRevision) &&
-      positive(lease.bindingRevision) &&
-      positive(lease.grantRevision) &&
+      [lease.selectionRevision, lease.bindingRevision, lease.grantRevision].every(positive) &&
       Number.isFinite(lease.expiresAtMs) &&
       lease.expiresAtMs > now &&
       lease.expiresAtMs <= now + 15 * 60_000 &&
@@ -153,6 +147,7 @@ export class MainNativeGitHubTransport {
     }
     const start = Date.now()
     let initial: string
+    let actionId: string
     try {
       if (
         lease.operation !== operation ||
@@ -163,14 +158,18 @@ export class MainNativeGitHubTransport {
         return { status: 'denied' }
       }
       initial = fingerprint(lease)
-      if (this.consumedActions.has(lease.actionId) || this.consumedActions.size >= 256) {
+      actionId = lease.actionId
+      if (this.consumedActions.has(actionId) || this.consumedActions.size >= 256) {
         return { status: 'denied' }
       }
     } catch {
       return { status: 'denied' }
     }
+    if (this.pending || nativeTransportBusy) {
+      return { status: 'busy' }
+    }
     this.consumed.add(lease)
-    this.consumedActions.add(lease.actionId)
+    this.consumedActions.add(actionId)
     nativeTransportBusy = true
     const epoch = this.epoch
     const controller = new AbortController()
@@ -292,7 +291,12 @@ export class MainNativeGitHubTransport {
       source: {
         projectId: binding.projectId,
         bindingRevision: lease.bindingRevision,
-        repository: binding.repository
+        repository: {
+          host: binding.repository.host,
+          id: binding.repository.id,
+          owner: binding.repository.owner,
+          name: binding.repository.name
+        }
       },
       repositoryNodeId: binding.repository.nodeId,
       prNumber: binding.prNumber

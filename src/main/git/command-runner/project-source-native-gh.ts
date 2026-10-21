@@ -19,6 +19,8 @@ export type {
 } from './project-source-native-gh-contract'
 const MAX_RESPONSE_BYTES = 1024 * 1024
 const MAX_DEADLINE_MS = 15_000
+// Main owns one permit across runner factories, including uncertain child termination.
+const executionLane = { owner: null as symbol | null, idle: Promise.resolve() }
 const ENVIRONMENT_KEYS = new Set([
   'HOME',
   'USERPROFILE',
@@ -57,21 +59,21 @@ export function createProjectSourceNativeGhRunner(
   const authorizationCheck = options.assertAuthorized
   const confinementCheck = options.confinement?.assertConfined
   const enabled = options.enabled === true
-  let busy = false
-  let idle = Promise.resolve()
   return {
-    whenIdle: () => idle,
+    whenIdle: () => executionLane.idle,
     async execute(request) {
       if (!enabled) {
         fail('DISABLED')
       }
-      if (busy) {
+      if (executionLane.owner !== null) {
         fail('BUSY')
       }
-      if (!Number.isFinite(request.deadlineMs) || request.deadlineMs <= Date.now()) {
+      const deadlineMs = request.deadlineMs
+      const signal = request.signal
+      if (!Number.isFinite(deadlineMs) || deadlineMs <= Date.now()) {
         fail('DEADLINE')
       }
-      if (request.signal?.aborted) {
+      if (signal?.aborted) {
         fail('ABORTED')
       }
       const query = fixedQueries[request.operation]
@@ -94,11 +96,19 @@ export function createProjectSourceNativeGhRunner(
       if (Buffer.byteLength(input) > 64 * 1024) {
         fail('INVALID_OPERATION')
       }
+      // Request access may reenter another factory before this acquisition.
+      if (executionLane.owner !== null) {
+        fail('BUSY')
+      }
+      const reservation = Symbol()
+      executionLane.owner = reservation
+      const idle = Promise.withResolvers<void>()
+      executionLane.idle = idle.promise
       const controller = new AbortController()
-      const endAt = Math.min(request.deadlineMs, Date.now() + MAX_DEADLINE_MS)
+      const endAt = Math.min(deadlineMs, Date.now() + MAX_DEADLINE_MS)
       let timedOut = false
       const onAbort = (): void => controller.abort()
-      request.signal?.addEventListener('abort', onAbort, { once: true })
+      signal?.addEventListener('abort', onAbort, { once: true })
       const timer = setTimeout(() => {
         timedOut = true
         controller.abort()
@@ -187,7 +197,6 @@ export function createProjectSourceNativeGhRunner(
           fail('UNTRUSTED_EXECUTABLE')
         }
       }
-      busy = true
       let launched = false
       let terminationVerified = false
       let confirmTermination!: () => void
@@ -266,9 +275,12 @@ export function createProjectSourceNativeGhRunner(
         if (launched) {
           await terminated
         }
-        busy = false
+        if (executionLane.owner === reservation) {
+          executionLane.owner = null
+        }
+        idle.resolve()
       }
-      idle = pending.then(release, release)
+      void pending.then(release, release)
       try {
         const result = await Promise.race([pending, abort])
         check()
@@ -281,7 +293,7 @@ export function createProjectSourceNativeGhRunner(
         fail(processFailureCode(error))
       } finally {
         clearTimeout(timer)
-        request.signal?.removeEventListener('abort', onAbort)
+        signal?.removeEventListener('abort', onAbort)
         if (abortListener) {
           controller.signal.removeEventListener('abort', abortListener)
         }

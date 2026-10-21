@@ -54,6 +54,12 @@ export function attachMainWindowCoreServices(
   ) {
     throw new Error('Main window services must be initialized before attaching')
   }
+  const retireProjectSource = (): void => {
+    state.projectSourceBootstrap?.dispose()
+    state.projectSourceProducer?.dispose()
+    state.projectSourceSelection?.dispose()
+    state.projectSourceCatalog?.invalidate()
+  }
   registerCoreHandlers(
     store,
     runtime,
@@ -82,6 +88,7 @@ export function attachMainWindowCoreServices(
           systemCodexHomePath: resolveHostCodexSessionSourceHome(store.getSettings())
         }),
       onBeforeRelaunch: async () => {
+        retireProjectSource()
         state.isQuitting = true
         state.desktopRelayService?.fenceAndCloseNow()
         await preserveAgentAuthBeforeRestart({
@@ -90,11 +97,17 @@ export function attachMainWindowCoreServices(
           store
         })
       },
-      onOrcaProfileAuthMutation: () => state.desktopRelayService?.authMutated(),
+      onOrcaProfileAuthMutation: () => {
+        retireProjectSource()
+        state.desktopRelayService?.authMutated()
+      },
+      onBeforeOrcaProfileSelectionChange: retireProjectSource,
       // Sign-out is the one fence a paired phone can be told about; quit and
       // relaunch above stay reasonless so a restart never reads as signed out.
-      onBeforeOrcaProfileSignOut: () =>
+      onBeforeOrcaProfileSignOut: () => {
+        retireProjectSource()
         state.desktopRelayService?.fenceAndCloseNow(RELAY_HOST_CLOSE_REASON.SIGNED_OUT)
+      }
     },
     state.pluginService ?? undefined,
     state.pluginMarketplaceService && state.pluginMarketplaceInstaller

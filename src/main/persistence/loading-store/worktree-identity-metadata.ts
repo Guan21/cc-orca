@@ -170,6 +170,43 @@ export function getWorktreeMetaForHost(
   return !legacy?.hostId || legacy.hostId === executionHostId ? legacy : undefined
 }
 
+/** Authorization callers cannot use the listing's newest-winner ambiguity fallback. */
+export function getUnambiguousWorktreeMetaForHost(
+  runtime: MetadataRuntime,
+  scheduling: WriteSchedulingOperations,
+  worktreeId: string,
+  executionHostId: ExecutionHostId
+): WorktreeMeta | undefined {
+  const state = runtime.state
+  const alias = composeWorktreeHostIdentity(executionHostId, worktreeId)
+  if (!Object.hasOwn(state.worktreeIdentityAliases ?? {}, alias)) {
+    if (migrateLegacyWorktreeMetadata(state, worktreeId, executionHostId)) {
+      scheduleSave(scheduling)
+    }
+  }
+  const keys = state.worktreeIdentityAliases?.[alias]
+  if (!Array.isArray(keys) || keys.length !== 1 || typeof keys[0] !== 'string') {
+    return undefined
+  }
+  const identityKey = keys[0]
+  const meta = state.worktreeMetaByIdentity?.[identityKey]
+  if (
+    !meta ||
+    typeof meta.instanceId !== 'string' ||
+    meta.instanceId.length === 0 ||
+    meta.hostId !== executionHostId ||
+    canonicalWorktreeIdentity({ worktreeId, executionHostId, instanceId: meta.instanceId }) !==
+      identityKey
+  ) {
+    return undefined
+  }
+  const legacy = state.worktreeMeta[worktreeId]
+  if (legacy?.hostId === executionHostId && legacy.instanceId !== meta.instanceId) {
+    return undefined
+  }
+  return meta
+}
+
 /** Read-only host projection used by listings that must include canonical-only rows. */
 export function getAllWorktreeMetaForHost(
   runtime: MetadataRuntime,

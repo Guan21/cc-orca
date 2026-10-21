@@ -1,6 +1,10 @@
 import type { BrowserWindow, Tray } from 'electron'
 import { app } from 'electron'
 import type { Store } from '../persistence'
+import type { MainProjectSourceCatalog } from '../github/project-source-main-catalog'
+import type { MainProjectSourceBootstrap } from '../github/project-source-main-bootstrap'
+import type { MainProjectSourceSelection } from '../github/project-source-main-selection'
+import type { MainProjectSelectionProducer } from '../github/project-source-main-producer'
 import type { StatsCollector } from '../stats/collector'
 import type { ClaudeUsageStore } from '../claude-usage/store'
 import type { CodexUsageStore } from '../codex-usage/store'
@@ -51,6 +55,10 @@ export const mainProcessState = {
   /** Whether a manual app.quit() (Cmd+Q) is in progress; lets the close handler skip the running-process confirmation and go straight to close. */
   isQuitting: false,
   store: null as Store | null,
+  projectSourceCatalog: null as MainProjectSourceCatalog | null,
+  projectSourceSelection: null as MainProjectSourceSelection | null,
+  projectSourceProducer: null as MainProjectSelectionProducer | null,
+  projectSourceBootstrap: null as MainProjectSourceBootstrap | null,
   stats: null as StatsCollector | null,
   claudeUsage: null as ClaudeUsageStore | null,
   codexUsage: null as CodexUsageStore | null,

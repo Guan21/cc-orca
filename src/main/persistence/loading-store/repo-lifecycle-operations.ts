@@ -49,7 +49,7 @@ export class RepoLifecycleOperations {
 
   addRepo(repo: Repo): void {
     bumpLocalWorktreeScanGeneration(repo.id)
-    getRepoOrderOperations(this).addRepo(repo)
+    getRepoOrderOperations(this).addRepo(structuredClone(repo))
   }
 
   reorderRepos(orderedIds: string[]): boolean {
@@ -193,7 +193,9 @@ export class RepoLifecycleOperations {
     },
     hostId?: ExecutionHostId
   ): Repo | null {
-    return getRepoUpdateOperations(this).updateRepo(id, updates, hostId)
+    return structuredClone(
+      getRepoUpdateOperations(this).updateRepo(id, structuredClone(updates), hostId)
+    )
   }
 }
 

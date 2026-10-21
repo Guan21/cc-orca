@@ -8,6 +8,8 @@ export const uiStateAndMenuCommandsApi = {
   get: () => ipcRenderer.invoke('ui:get'),
   set: (args) => ipcRenderer.invoke('ui:set', args),
   setWithAck: (args) => ipcRenderer.invoke('ui:set', args),
+  clearProjectSourceSelection: () =>
+    ipcRenderer.sendSync('devCrew:clearProjectSourceSelection') === true,
   recordFeatureInteraction: (id) => ipcRenderer.invoke('ui:recordFeatureInteraction', id),
   onStateChanged: (callback: (ui: PersistedUIState) => void): (() => void) => {
     const listener = (_event: Electron.IpcRendererEvent, ui: PersistedUIState): void => callback(ui)

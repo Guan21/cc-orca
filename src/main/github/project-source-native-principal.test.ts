@@ -13,6 +13,39 @@ const evidence = () => ({
 })
 
 describe('Main native principal retirement', () => {
+  it('rejects evidence when its reader revokes the monitor synchronously', () => {
+    const principal = new MainNativeGitHubPrincipal(() => {
+      principal.revoke()
+      return evidence()
+    })
+    expect(principal.current()).toBeNull()
+  })
+
+  it('rejects evidence when an evidence accessor revokes the monitor', () => {
+    const raw = evidence()
+    const principal = new MainNativeGitHubPrincipal(() => ({
+      ...raw,
+      get policyReviewReceipt() {
+        principal.revoke()
+        return raw.policyReviewReceipt
+      }
+    }))
+    expect(principal.current()).toBeNull()
+  })
+
+  it('snapshots each evidence field once before validation', () => {
+    let reads = 0
+    const principal = new MainNativeGitHubPrincipal(() => ({
+      ...evidence(),
+      get principalId() {
+        reads += 1
+        return reads === 1 ? 'user:123' : 'different-account'
+      }
+    }))
+    expect(principal.current()?.principalId).toBe('user:123')
+    expect(reads).toBe(1)
+  })
+
   it('requires an explicit Main verifier and never reads credentials by default', () => {
     const retire = vi.fn()
     const principal = new MainNativeGitHubPrincipal(undefined, retire)

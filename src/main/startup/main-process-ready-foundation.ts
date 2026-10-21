@@ -13,6 +13,14 @@ import {
 import { browserCertificateTrustController } from '../browser/browser-manager'
 import { ensureActiveOrcaProfile } from '../orca-profiles/profile-index-store'
 import { Store, getCanonicalUserDataPath } from '../persistence'
+import { MainProjectSourceCatalog } from '../github/project-source-main-catalog'
+import { MainProjectSourceBootstrap } from '../github/project-source-main-bootstrap'
+import { MainProjectSourceSelection } from '../github/project-source-main-selection'
+import { MainProjectSelectionProducer } from '../github/project-source-main-producer'
+import { ensureProjectSourceSelectionRetirementResponder } from '../github/project-source-selection-retirement'
+import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
+import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { initializeBrowserClientHostId } from '../browser/browser-client-host-id'
 import { scheduleSecretProtectionGapReport } from '../host/deferred-secret-protection-report'
 import { initSshHostKeyStoreFile } from '../ssh/ssh-host-key-store'
@@ -141,6 +149,33 @@ export async function initializeReadyFoundation(): Promise<void> {
     storageAuthority: state.isServeMode ? 'runtime' : 'desktop'
   })
   state.store = store
+  state.projectSourceBootstrap?.dispose()
+  state.projectSourceProducer?.dispose()
+  state.projectSourceSelection?.dispose()
+  state.projectSourceCatalog?.dispose()
+  state.projectSourceCatalog = new MainProjectSourceCatalog(store)
+  ensureProjectSourceSelectionRetirementResponder()
+  const sourceOptions = {
+    catalog: state.projectSourceCatalog,
+    expectedDocumentUrl: pathToFileURL(join(__dirname, '../renderer/index.html')).href,
+    currentAppProfile: (): 'corporate' | 'personal' | 'development' =>
+      getOrcaBuildProfile() === 'corporate'
+        ? 'corporate'
+        : app.isPackaged
+          ? 'personal'
+          : 'development',
+    currentProfileIdentity: () =>
+      state.store === store && state.activeOrcaProfile === profile ? profile.profile.id : null
+  }
+  state.projectSourceProducer = new MainProjectSelectionProducer(sourceOptions)
+  state.projectSourceSelection = new MainProjectSourceSelection(
+    state.projectSourceCatalog,
+    state.projectSourceProducer
+  )
+  state.projectSourceBootstrap = new MainProjectSourceBootstrap({
+    ...sourceOptions,
+    producer: state.projectSourceProducer
+  })
   // Why: create pending readiness before the guard can observe the default session.
   // Why parked on state instead of awaited here: Dock/Launchpad launches don't inherit shell
   // proxy env vars, so the persisted proxy must land before any app-owned network fetcher runs —

@@ -182,32 +182,40 @@ describe('registerOrcaProfileHandlers', () => {
     const flush = vi.fn(() => {
       throw new Error('flush_failed')
     })
+    const onBeforeProfileSelectionChange = vi.fn()
     getOrcaProfileListStateMock.mockReturnValue({
       activeProfileId: 'local-default',
       profiles: []
     })
-    registerOrcaProfileHandlers(makeStoreMock(flush) as never)
+    registerOrcaProfileHandlers(makeStoreMock(flush) as never, { onBeforeProfileSelectionChange })
 
     await expect(
       Promise.resolve(handlers.get('orcaProfiles:switch')?.(null, { profileId: 'local-work' }))
     ).rejects.toThrow('flush_failed')
 
     expect(setActiveOrcaProfileMock).not.toHaveBeenCalled()
+    expect(onBeforeProfileSelectionChange).toHaveBeenCalledBefore(flush)
     expect(appRelaunchMock).not.toHaveBeenCalled()
   })
 
   it('does not switch profiles when persistence cannot reach quiescence', async () => {
     const flush = vi.fn(() => new Promise<void>(() => {}))
     const onBeforeRelaunch = vi.fn()
+    const onBeforeProfileSelectionChange = vi.fn()
     getOrcaProfileListStateMock.mockReturnValue({
       activeProfileId: 'local-default',
       profiles: []
     })
-    registerOrcaProfileHandlers(makeStoreMock(flush) as never, { onBeforeRelaunch })
+    registerOrcaProfileHandlers(makeStoreMock(flush) as never, {
+      onBeforeRelaunch,
+      onBeforeProfileSelectionChange
+    })
 
     const switchProfile = Promise.resolve(
       handlers.get('orcaProfiles:switch')?.(null, { profileId: 'local-work' })
     )
+    expect(onBeforeProfileSelectionChange).toHaveBeenCalledOnce()
+    expect(onBeforeProfileSelectionChange).toHaveBeenCalledBefore(flush)
     const rejection = expect(switchProfile).rejects.toThrow('orca_profile_persistence_timeout')
     await vi.advanceTimersByTimeAsync(20_000)
     await rejection
@@ -222,7 +230,8 @@ describe('registerOrcaProfileHandlers', () => {
       activeProfileId: 'local-default',
       profiles: []
     })
-    registerOrcaProfileHandlers(makeStoreMock() as never)
+    const onBeforeProfileSelectionChange = vi.fn()
+    registerOrcaProfileHandlers(makeStoreMock() as never, { onBeforeProfileSelectionChange })
 
     await expect(
       Promise.resolve(handlers.get('orcaProfiles:switch')?.(null, { profileId: 'local-default' }))
@@ -230,6 +239,7 @@ describe('registerOrcaProfileHandlers', () => {
 
     expect(setActiveOrcaProfileMock).not.toHaveBeenCalled()
     expect(appRelaunchMock).not.toHaveBeenCalled()
+    expect(onBeforeProfileSelectionChange).not.toHaveBeenCalled()
   })
 
   it('rejects invalid profile ids', async () => {
@@ -284,6 +294,7 @@ describe('registerOrcaProfileHandlers', () => {
   it('moves a project out of the active profile and relaunches into the target profile', async () => {
     const flush = vi.fn()
     const onBeforeRelaunch = vi.fn()
+    const onBeforeProfileSelectionChange = vi.fn()
     const result = {
       status: 'transferred',
       mode: 'move',
@@ -298,7 +309,10 @@ describe('registerOrcaProfileHandlers', () => {
       profiles: []
     })
     transferOrcaProfileProjectMock.mockReturnValue(result)
-    registerOrcaProfileHandlers(makeStoreMock(flush) as never, { onBeforeRelaunch })
+    registerOrcaProfileHandlers(makeStoreMock(flush) as never, {
+      onBeforeRelaunch,
+      onBeforeProfileSelectionChange
+    })
 
     await expect(
       Promise.resolve(
@@ -312,6 +326,7 @@ describe('registerOrcaProfileHandlers', () => {
     ).resolves.toEqual({ ...result, willRelaunch: true })
 
     expect(onBeforeRelaunch).toHaveBeenCalledOnce()
+    expect(onBeforeProfileSelectionChange).toHaveBeenCalledBefore(flush)
     expect(flush).toHaveBeenCalledOnce()
     expect(transferOrcaProfileProjectMock).toHaveBeenCalledWith(
       {

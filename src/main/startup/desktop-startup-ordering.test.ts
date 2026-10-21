@@ -3,6 +3,30 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 describe('startup ordering', () => {
+  it('retires project sources synchronously before profile switches, relaunch and sign-out', () => {
+    const core = readFileSync(
+      join(process.cwd(), 'src/main/startup/main-window-core-services.ts'),
+      'utf8'
+    )
+    const registration = readFileSync(
+      join(process.cwd(), 'src/main/ipc/register-core-handlers/register-core-handlers.ts'),
+      'utf8'
+    )
+    expect(core).toContain('onBeforeOrcaProfileSelectionChange: retireProjectSource')
+    expect(registration).toContain(
+      'onBeforeProfileSelectionChange: lifecycleOptions.onBeforeOrcaProfileSelectionChange'
+    )
+    const retire = core.slice(
+      core.indexOf('const retireProjectSource'),
+      core.indexOf('  registerCoreHandlers(')
+    )
+    expect(retire).toContain('state.projectSourceBootstrap?.dispose()')
+    expect(retire).toContain('state.projectSourceSelection?.dispose()')
+    expect(retire).toContain('state.projectSourceCatalog?.invalidate()')
+    expect(core).toMatch(/onBeforeRelaunch: async \(\) => \{\s+retireProjectSource\(\)/)
+    expect(core).toMatch(/onBeforeOrcaProfileSignOut: \(\) => \{\s+retireProjectSource\(\)/)
+    expect(core).toMatch(/onOrcaProfileAuthMutation: \(\) => \{\s+retireProjectSource\(\)/)
+  })
   it('passes the startup barrier into PTY handlers without blocking window creation', () => {
     const attachSource = readFileSync(
       join(process.cwd(), 'src/main/window/attach-main-window-services.ts'),

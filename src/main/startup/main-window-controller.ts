@@ -150,6 +150,7 @@ export function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}
     }
   })
   recordCrashBreadcrumb('main_window_created')
+  state.projectSourceBootstrap?.attachMainWindow(window)
   logStartupMilestone('window-created')
   const createTray = createSystemTrayDeferred(window, () => logStartupMilestone('tray-created'))
   window.once('ready-to-show', () => {

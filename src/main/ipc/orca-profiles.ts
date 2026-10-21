@@ -49,6 +49,7 @@ import { onOrcaCloudSessionInvalidated } from '../orca-profiles/profile-cloud-se
 import { broadcastOrcaProfileAuthStatusChanged } from './orca-profile-auth-status-broadcast'
 
 type RegisterOrcaProfileHandlersOptions = {
+  onBeforeProfileSelectionChange?: () => void
   onBeforeRelaunch?: () => void | Promise<void>
   onAuthMutation?: () => void
   onBeforeSignOut?: () => void
@@ -203,6 +204,7 @@ export function registerOrcaProfileHandlers(
       if (profileId === current.activeProfileId) {
         return { status: 'already-active' }
       }
+      options.onBeforeProfileSelectionChange?.()
 
       const activeProfile = current.profiles.find(
         (profile) => profile.id === current.activeProfileId
@@ -239,6 +241,7 @@ export function registerOrcaProfileHandlers(
         throw new Error('active_target_orca_profile_transfer_requires_relaunch')
       }
       if (args.mode === 'move' && args.sourceProfileId === current.activeProfileId) {
+        options.onBeforeProfileSelectionChange?.()
         // Why: transfer before any relaunch side effect so a duplicate-target
         // or validation failure cannot strand the app in a quitting state.
         await flushActiveProfileBeforeFileMutation(store)

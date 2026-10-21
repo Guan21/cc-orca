@@ -69,6 +69,20 @@ function setup() {
 }
 
 describe('#152 B3 Main-internal Personal origin+consent composition', () => {
+  it('exposes authenticated Main authority only during one consented operation', async () => {
+    const { authority, event } = setup()
+    expect(authority.attest(event as never)?.profile).toBe('personal-packaged')
+    const load = vi.fn(async () => 'data')
+    const deliver = vi.fn()
+    expect(await authority.run(event as never, load, deliver)).toEqual({ status: 'denied' })
+    authority.selectTrusted(event as never, BINDING)
+    await authority.requestConsent(event as never)
+    expect(await authority.run(event as never, load, deliver)).toEqual({ status: 'delivered' })
+    expect(load.mock.calls[0]).toHaveLength(3)
+    expect(deliver).toHaveBeenCalledExactlyOnceWith('data')
+    expect(await authority.run(event as never, load, deliver)).toEqual({ status: 'denied' })
+  })
+
   beforeEach(() => {
     mocks.isPackaged = true
     mocks.fromWebContents.mockReset()
@@ -97,9 +111,10 @@ describe('#152 B3 Main-internal Personal origin+consent composition', () => {
     const { authority, event } = setup()
     let finish!: (value: { response: number }) => void
     mocks.showMessageBox.mockImplementation(
-      () => new Promise<{ response: number }>((resolve) => {
-        finish = resolve
-      })
+      () =>
+        new Promise<{ response: number }>((resolve) => {
+          finish = resolve
+        })
     )
     expect(authority.selectTrusted(event as never, BINDING)).toBe(true)
     const first = authority.requestConsent(event as never)

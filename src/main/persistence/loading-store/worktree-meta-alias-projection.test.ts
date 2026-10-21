@@ -310,7 +310,7 @@ describe('worktree meta alias projection', () => {
     ])
   })
 
-  it('rebuilds the identity rows as the same objects the locator map holds', () => {
+  it('shares rebuilt rows internally while public Store reads are detached', () => {
     const fixture = buildFixture()
     const dataFile = tempDataFile()
     writeFixture(dataFile, fixture.state)
@@ -318,13 +318,25 @@ describe('worktree meta alias projection', () => {
 
     const store = openStore(dataFile)
     const rebuilt = store.getAllWorktreeMeta()
+    // Inspect internal sharing without making public getters expose writable rows.
+    const internal = Reflect.get(store, 'state') as PersistedState
     // JSON.parse splits the one object the write path shared into two; the rebuild puts it back,
     // worth ~0.46 MB of heap on the measured 3.64 MB profile.
     let shared = 0
     for (let index = 0; index < TWIN_ROWS; index++) {
-      if (store.getWorktreeMetaForHost(worktreeId(index), LOCAL) === rebuilt[worktreeId(index)]) {
+      const id = worktreeId(index)
+      const key = canonicalWorktreeIdentity({
+        worktreeId: id,
+        executionHostId: 'local',
+        instanceId: `instance-${index}`
+      })
+      if (internal.worktreeMetaByIdentity?.[key] === internal.worktreeMeta[id]) {
         shared++
       }
+      const snapshot = store.getWorktreeMetaForHost(id, LOCAL)
+      expect(snapshot).toEqual(rebuilt[id])
+      expect(snapshot).not.toBe(rebuilt[id])
+      expect(snapshot).not.toBe(internal.worktreeMeta[id])
     }
     expect(shared).toBe(TWIN_ROWS)
   })

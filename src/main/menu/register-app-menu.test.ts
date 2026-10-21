@@ -72,6 +72,25 @@ function getSubmenu(
 }
 
 describe('registerAppMenu', () => {
+  it('routes native source selection to the actual invoking window', () => {
+    const onSelectProjectSource = vi.fn()
+    registerAppMenu({ ...buildMenuOptions(), onSelectProjectSource })
+    const item = getSubmenu(getTemplate(), 'View').find(
+      (entry) => entry.label === 'Select GitHub Project Source...'
+    )!
+    const window = { id: 7 } as Electron.BaseWindow
+    item.click!(null as never, window, {} as never)
+    expect(onSelectProjectSource).toHaveBeenCalledWith(window)
+  })
+  it('omits source selection in Corporate menus', () => {
+    globalThis.__ORCA_BUILD_PROFILE__ = 'corporate'
+    registerAppMenu({ ...buildMenuOptions(), onSelectProjectSource: vi.fn() })
+    expect(
+      getSubmenu(getTemplate(), 'View').find(
+        (entry) => entry.label === 'Select GitHub Project Source...'
+      )
+    ).toBeUndefined()
+  })
   it('toggles missing default-on appearance settings from visible to hidden', () => {
     expect(getNextDefaultOnAppearanceSettingValue(undefined)).toBe(false)
     expect(getNextDefaultOnAppearanceSettingValue(true)).toBe(false)

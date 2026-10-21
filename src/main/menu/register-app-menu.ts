@@ -14,6 +14,7 @@ import {
   type AppearanceMenuState
 } from './app-menu-appearance-state'
 import type { RegisterAppMenuOptions } from './app-menu-register-options'
+import { projectSourceSelectionMenuItems } from './app-menu-project-source'
 
 export { getNextDefaultOnAppearanceSettingValue, type AppearanceMenuKey, type AppearanceMenuState }
 
@@ -246,6 +247,7 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
         click: () => reloadFocusedWindow(true)
       },
       { role: 'toggleDevTools' },
+      ...projectSourceSelectionMenuItems(options, isCorporateBuild),
       { type: 'separator' },
       {
         label: `${translateMain('menu.resetSize', 'Reset Size')}\t${shortcutLabel('zoom.reset')}`,
