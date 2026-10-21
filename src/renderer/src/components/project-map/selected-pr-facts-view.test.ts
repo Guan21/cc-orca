@@ -10,11 +10,20 @@ const scope: GitHubProjectFactScope = {
   bindingRevision: 5,
   repository: { host: 'github.com', id: 1001, owner: 'Team', name: 'service' }
 }
-function snapshot(facts: unknown[] = [
-  { kind: 'pull_request', number: 12, headSha: HEAD, state: 'open', updatedAt: '2026-10-21T11:59:00Z' },
-  { kind: 'commit', sha: HEAD },
-  { kind: 'check_run', id: 80, headSha: HEAD, status: 'in_progress', conclusion: null }
-]): unknown {
+
+function snapshot(
+  facts: unknown[] = [
+    {
+      kind: 'pull_request',
+      number: 12,
+      headSha: HEAD,
+      state: 'open',
+      updatedAt: '2026-10-21T11:59:00Z'
+    },
+    { kind: 'commit', sha: HEAD },
+    { kind: 'check_run', id: 80, headSha: HEAD, status: 'in_progress', conclusion: null }
+  ]
+): unknown {
   return {
     version: 1,
     projectId: scope.projectId,
@@ -24,7 +33,11 @@ function snapshot(facts: unknown[] = [
     facts
   }
 }
-function delivered(value: unknown = snapshot(), patch: Record<string, unknown> = {}): SelectedPrUiState {
+
+function delivered(
+  value: unknown = snapshot(),
+  patch: Record<string, unknown> = {}
+): SelectedPrUiState {
   return {
     status: 'ready',
     snapshot: value,
@@ -33,9 +46,21 @@ function delivered(value: unknown = snapshot(), patch: Record<string, unknown> =
     ...patch
   } as SelectedPrUiState
 }
+
 describe('B5b selected PR presentation boundary', () => {
   it('never shows facts when disabled, denied, offline, loading or unavailable', () => {
-    for (const status of ['disabled', 'not_selected', 'loading', 'denied', 'incomplete', 'stale', 'rate_limited', 'unavailable', 'error', 'offline'] as const) {
+    for (const status of [
+      'disabled',
+      'not_selected',
+      'loading',
+      'denied',
+      'incomplete',
+      'stale',
+      'rate_limited',
+      'unavailable',
+      'error',
+      'offline'
+    ] as const) {
       expect(selectedPrFactsView({ status })).toEqual({ status })
     }
   })
@@ -46,9 +71,17 @@ describe('B5b selected PR presentation boundary', () => {
       status: 'ready',
       repository: 'Team/service',
       projectId: 'p',
-      pr: { kind: 'pull_request', number: 12, headSha: HEAD, state: 'open', updatedAt: '2026-10-21T11:59:00Z' },
+      pr: {
+        kind: 'pull_request',
+        number: 12,
+        headSha: HEAD,
+        state: 'open',
+        updatedAt: '2026-10-21T11:59:00Z'
+      },
       commitSha: HEAD,
-      checks: [{ kind: 'check_run', id: 80, headSha: HEAD, status: 'in_progress', conclusion: null }],
+      checks: [
+        { kind: 'check_run', id: 80, headSha: HEAD, status: 'in_progress', conclusion: null }
+      ],
       fetchedAt: '2026-10-21T12:00:00Z'
     })
     expect(JSON.stringify(result)).not.toContain('taskCompletion')
@@ -60,30 +93,107 @@ describe('B5b selected PR presentation boundary', () => {
       { bindingRevision: 4 },
       { repository: { ...scope.repository, id: 999 } }
     ]) {
-      expect(selectedPrFactsView(delivered({ ...(snapshot() as object), ...patch }))).toEqual({ status: 'unavailable' })
+      expect(selectedPrFactsView(delivered({ ...(snapshot() as object), ...patch }))).toEqual({
+        status: 'unavailable'
+      })
     }
-    expect(selectedPrFactsView(delivered(snapshot(), {
-      expected: { scope: { ...scope, repository: { ...scope.repository, host: 'gitlab.com' } }, prNumber: 12, headSha: HEAD }
-    }))).toEqual({ status: 'unavailable' })
-    expect(selectedPrFactsView(delivered(snapshot(), { expected: { scope, prNumber: 13, headSha: HEAD } }))).toEqual({ status: 'incomplete' })
-    expect(selectedPrFactsView(delivered(snapshot(), { expected: { scope, prNumber: 12, headSha: OTHER_HEAD } }))).toEqual({ status: 'incomplete' })
+    expect(
+      selectedPrFactsView(
+        delivered(snapshot(), {
+          expected: {
+            scope: { ...scope, repository: { ...scope.repository, host: 'gitlab.com' } },
+            prNumber: 12,
+            headSha: HEAD
+          }
+        })
+      )
+    ).toEqual({ status: 'unavailable' })
+    expect(
+      selectedPrFactsView(
+        delivered(snapshot(), {
+          expected: {
+            scope: { ...scope, repository: { ...scope.repository, host: 42 } },
+            prNumber: 12,
+            headSha: HEAD
+          }
+        })
+      )
+    ).toEqual({ status: 'unavailable' })
+    expect(
+      selectedPrFactsView(
+        delivered(snapshot(), { expected: { scope, prNumber: 13, headSha: HEAD } })
+      )
+    ).toEqual({ status: 'incomplete' })
+    expect(
+      selectedPrFactsView(
+        delivered(snapshot(), { expected: { scope, prNumber: 12, headSha: OTHER_HEAD } })
+      )
+    ).toEqual({ status: 'incomplete' })
   })
 
   it('rejects stale, empty, malformed and partial PR/commit evidence', () => {
-    expect(selectedPrFactsView(delivered(snapshot(), { nowMs: NOW + 6 * 60_000 }))).toEqual({ status: 'stale' })
+    expect(
+      selectedPrFactsView(delivered(snapshot(), { nowMs: NOW + 6 * 60_000 }))
+    ).toEqual({ status: 'stale' })
     expect(selectedPrFactsView(delivered(snapshot([])))).toEqual({ status: 'incomplete' })
-    expect(selectedPrFactsView(delivered({ ...snapshot() as object, facts: [{ kind: 'commit', sha: HEAD }] }))).toEqual({ status: 'incomplete' })
-    expect(selectedPrFactsView(delivered({ ...snapshot() as object, facts: [{ kind: 'pull_request', number: 12, headSha: HEAD, state: 'open', updatedAt: '2026-10-21T11:59:00Z' }] }))).toEqual({ status: 'incomplete' })
-    expect(selectedPrFactsView(delivered({ ...snapshot() as object, facts: [{ kind: 'check_run', id: 80, status: 'completed', conclusion: 'success', headSha: 'bad' }] }))).toEqual({ status: 'unavailable' })
+    expect(
+      selectedPrFactsView(
+        delivered({ ...(snapshot() as object), facts: [{ kind: 'commit', sha: HEAD }] })
+      )
+    ).toEqual({ status: 'incomplete' })
+    expect(
+      selectedPrFactsView(
+        delivered({
+          ...(snapshot() as object),
+          facts: [
+            {
+              kind: 'pull_request',
+              number: 12,
+              headSha: HEAD,
+              state: 'open',
+              updatedAt: '2026-10-21T11:59:00Z'
+            }
+          ]
+        })
+      )
+    ).toEqual({ status: 'incomplete' })
+    expect(
+      selectedPrFactsView(
+        delivered({
+          ...(snapshot() as object),
+          facts: [
+            {
+              kind: 'check_run',
+              id: 80,
+              status: 'completed',
+              conclusion: 'success',
+              headSha: 'bad'
+            }
+          ]
+        })
+      )
+    ).toEqual({ status: 'unavailable' })
     expect(selectedPrFactsView(delivered(null))).toEqual({ status: 'unavailable' })
   })
 
   it('rejects a cross-HEAD check even when the check is individually well-formed', () => {
     const facts = (snapshot() as { facts: Record<string, unknown>[] }).facts
-    expect(selectedPrFactsView(delivered(snapshot([
-      ...facts.slice(0, 2),
-      { kind: 'check_run', id: 80, headSha: OTHER_HEAD, status: 'completed', conclusion: 'success' }
-    ])))).toEqual({ status: 'incomplete' })
+    expect(
+      selectedPrFactsView(
+        delivered(
+          snapshot([
+            ...facts.slice(0, 2),
+            {
+              kind: 'check_run',
+              id: 80,
+              headSha: OTHER_HEAD,
+              status: 'completed',
+              conclusion: 'success'
+            }
+          ])
+        )
+      )
+    ).toEqual({ status: 'incomplete' })
   })
 
   it('does not upgrade missing check evidence into an all-green CI claim', () => {
