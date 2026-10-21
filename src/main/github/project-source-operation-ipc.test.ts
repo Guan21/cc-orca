@@ -135,6 +135,33 @@ describe('G2-B5a payload-free Main source intent IPC', () => {
     })
   })
 
+  it('retains the operation permit during reentrant readiness callbacks', async () => {
+    const f = fixture()
+    let nested: Promise<unknown> | undefined
+    f.options.isEnabled = () => {
+      nested = invoke(PROJECT_SOURCE_REGISTER_CHANNEL, f.event)
+      return true
+    }
+    expect(await invoke(PROJECT_SOURCE_REGISTER_CHANNEL, f.event)).toEqual({
+      status: 'registered'
+    })
+    expect(await nested).toEqual({ status: 'busy' })
+    expect(f.register).toHaveBeenCalledOnce()
+  })
+
+  it('suppresses completed operations when source enablement changes in flight', async () => {
+    const f = fixture()
+    let enabled = true
+    f.options.isEnabled = () => enabled
+    f.register.mockImplementationOnce(async () => {
+      enabled = false
+      return 'registered'
+    })
+    expect(await invoke(PROJECT_SOURCE_REGISTER_CHANNEL, f.event)).toEqual({
+      status: 'stale'
+    })
+  })
+
   it('allows only one operation at a time for a given owner', async () => {
     const f = fixture()
     let finish!: (value: 'registered') => void
