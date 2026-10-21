@@ -61,6 +61,7 @@ export function selectedPrFactsView(state: SelectedPrUiState): SelectedPrFactsVi
   const { expected } = state
   if (
     !expected ||
+    expected.scope?.repository?.host?.toLowerCase() !== 'github.com' ||
     !Number.isSafeInteger(expected.prNumber) ||
     expected.prNumber <= 0 ||
     typeof expected.headSha !== 'string' ||
