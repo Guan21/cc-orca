@@ -17139,6 +17139,8 @@
         }
       },
       "projectMap": {
+        "githubPrEvidence": "Selected PR evidence",
+        "githubPrReadOnly": "Read-only · selected PR",
         "loading": "Loading Project Map...",
         "error": "Project Map state could not be loaded.",
         "unavailable": "No authorized project-state source is connected. Nothing is shown as live team state.",
