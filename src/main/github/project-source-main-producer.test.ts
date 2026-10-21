@@ -5,13 +5,17 @@ import { MainProjectSourceSelection } from './project-source-main-selection'
 import { MainProjectSelectionProducer } from './project-source-main-producer'
 import { MainProjectSourceBootstrap } from './project-source-main-bootstrap'
 import type { MainProjectSourceIntegration } from './project-source-main-integration'
+import {
+  PROJECT_SOURCE_REFRESH_CHANNEL,
+  PROJECT_SOURCE_REGISTER_CHANNEL
+} from '../../shared/github/project-source-ipc-contract'
 
 const electron = vi.hoisted(() => ({
   window: null as unknown,
   dialog: vi.fn(),
   popup: vi.fn(),
   template: [] as Electron.MenuItemConstructorOptions[],
-  ipc: { on: vi.fn() }
+  ipc: { on: vi.fn(), handle: vi.fn() }
 }))
 vi.mock('electron', () => ({
   app: { isPackaged: true },
@@ -157,6 +161,13 @@ describe('production Main selection producer', () => {
       currentProfileIdentity: () => 'profile-1'
     })
     expect(bootstrap.attachMainWindow(f.window as never)).toBe(true)
+    for (const channel of [PROJECT_SOURCE_REGISTER_CHANNEL, PROJECT_SOURCE_REFRESH_CHANNEL]) {
+      const handler = electron.ipc.handle.mock.calls.find(([name]) => name === channel)![1]
+      expect(await handler({ sender: f.contents, senderFrame: f.frame })).toEqual({
+        status: 'disabled'
+      })
+    }
+    expect(electron.dialog).not.toHaveBeenCalled()
     bootstrap.openSelectionPicker(f.window as never)
     expect(electron.popup).toHaveBeenCalled()
     expect(await f.choose()).toBe(true)
@@ -177,6 +188,8 @@ describe('production Main selection producer', () => {
     expect(f.producer.readCurrent().candidate).toBeNull()
     bootstrap.dispose()
     f.dispose()
+    expect(f.contents.eventNames()).toEqual([])
+    expect(f.window.eventNames()).toEqual([])
   })
   it('starts empty and only native Accept publishes a catalog-validated revision', async () => {
     const f = fixture()

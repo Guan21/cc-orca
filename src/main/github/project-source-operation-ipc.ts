@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron'
+import type { EventEmitter } from 'node:events'
 import type { BrowserWindow, IpcMainInvokeEvent, WebContents } from 'electron'
 import {
   PROJECT_SOURCE_REFRESH_CHANNEL,
@@ -69,11 +70,7 @@ async function handle(
       return { status: 'unavailable' }
     }
     const status = await operationCallback(event)
-    if (
-      generation !== owner.generation ||
-      !verified(owner, event) ||
-      !owner.options.isEnabled()
-    ) {
+    if (generation !== owner.generation || !verified(owner, event) || !owner.options.isEnabled()) {
       return { status: 'stale' }
     }
     // B5a does not carry data, errors, GraphQL responses or arbitrary callback objects.
@@ -107,6 +104,7 @@ export function ensureProjectSourceOperationResponders(): void {
 export function registerProjectSourceOperationOwner(options: Options): () => void {
   ensureProjectSourceOperationResponders()
   const contents = options.window.webContents
+  const lifecycle: Pick<EventEmitter, 'on' | 'removeListener'> = contents
   if (owners.has(contents)) {
     throw new Error('Project source IPC owner already registered')
   }
@@ -142,7 +140,7 @@ export function registerProjectSourceOperationOwner(options: Options): () => voi
       'did-navigate',
       'render-process-gone'
     ] as const) {
-      contents.removeListener(name, name === 'destroyed' ? dispose : invalidate)
+      lifecycle.removeListener(name, name === 'destroyed' ? dispose : invalidate)
     }
   }
   owners.set(contents, owner)
@@ -155,7 +153,7 @@ export function registerProjectSourceOperationOwner(options: Options): () => voi
       'did-navigate',
       'render-process-gone'
     ] as const) {
-      contents.on(name, name === 'destroyed' ? dispose : invalidate)
+      lifecycle.on(name, name === 'destroyed' ? dispose : invalidate)
     }
   } catch {
     dispose()
