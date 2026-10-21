@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import type { GitHubFact } from '../../shared/github/project-facts-read-model'
 import type { SelectedGitHubPrProjection } from '../../shared/github/selected-pr-graphql-projection'
 import {
   MainSelectedPrFactDeliveryFence,
@@ -46,7 +47,7 @@ const head: MainPinnedSelectedPrHead = {
   observedAtMs: NOW - 40_000
 }
 
-function ready(facts: unknown[] = [
+function ready(facts: readonly GitHubFact[] = [
   {
     kind: 'pull_request',
     number: 12,
@@ -65,8 +66,11 @@ function ready(facts: unknown[] = [
       bindingRevision: 8,
       repository: { host: 'github.com', id: 1001, owner: 'Team', name: 'service' },
       fetchedAt: '2026-10-21T12:00:00Z',
-      facts
-    } as Extract<SelectedGitHubPrProjection, { status: 'ready' }>['snapshot']
+      facts,
+      attestation: 'not_verified_by_projection',
+      agentExecution: 'unknown',
+      taskCompletion: 'unknown'
+    }
   }
 }
 function setup(
@@ -144,9 +148,9 @@ describe('#165 B5c Main-only selected-PR final fact delivery fence', () => {
       { ...ready(), snapshot: { ...ready().snapshot, projectId: 'other' } },
       { ...ready(), snapshot: { ...ready().snapshot, bindingRevision: 7 } },
       { ...ready(), snapshot: { ...ready().snapshot, repository: { ...ready().snapshot.repository, id: 1002 } } },
-      ready([{ ...fact.find(x => x.kind === 'pull_request'), number: 99 }, ...fact.filter(x => x.kind !== 'pull_request')]),
-      ready([{ ...fact.find(x => x.kind === 'pull_request'), headSha: OTHER_HEAD }, ...fact.filter(x => x.kind !== 'pull_request')]),
-      ready(fact.map(x => x.kind === 'check_run' ? { ...x, headSha: OTHER_HEAD } : x))
+      ready(fact.map((x) => (x.kind === 'pull_request' ? { ...x, number: 99 } : x))),
+      ready(fact.map((x) => (x.kind === 'pull_request' ? { ...x, headSha: OTHER_HEAD } : x))),
+      ready(fact.map((x) => (x.kind === 'check_run' ? { ...x, headSha: OTHER_HEAD } : x)))
     ]
     for (const projection of scenarios) {
       const f = setup()
@@ -182,7 +186,9 @@ describe('#165 B5c Main-only selected-PR final fact delivery fence', () => {
     const f = setup({
       isAuthorizedNow: () => {
         count += 1
-        if (count >= 2) permitted = false
+        if (count >= 2) {
+          permitted = false
+        }
         return permitted
       }
     })
