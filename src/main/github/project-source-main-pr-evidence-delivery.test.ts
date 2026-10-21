@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import type { SelectedGitHubPrProjection } from '../../shared/github/selected-pr-graphql-projection'
 import {
   MainSelectedPrFactDeliveryFence,
-  type MainPinnedSelectedPrHead
+  type MainPinnedSelectedPrHead,
+  type MainSelectedPrFactPacket
 } from './project-source-main-pr-evidence-delivery'
 
 const HEAD = 'a'.repeat(40)
@@ -74,7 +75,9 @@ function setup(
   const readCurrent = vi.fn((): MainPinnedSelectedPrHead | null => head)
   const isAuthorizedNow = vi.fn(() => true)
   const isEnabled = vi.fn(() => true)
-  const send = vi.fn()
+  const send = vi.fn((packet: MainSelectedPrFactPacket) => {
+    void packet
+  })
   const fence = new MainSelectedPrFactDeliveryFence({
     readCurrent,
     isAuthorizedNow,
