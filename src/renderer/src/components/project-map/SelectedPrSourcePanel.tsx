@@ -124,8 +124,7 @@ export function SelectedPrSourcePanel({ state }: Props): React.JSX.Element {
               <ul className="space-y-1">
                 {view.checks.map((check) => (
                   <li key={check.id} className="break-words text-muted-foreground">
-                    {translate('auto.components.projectMap.githubPrCheck', 'Check')} #{check.id}: {' '}
-                    {check.status} ·{' '}
+                    {translate('auto.components.projectMap.githubPrCheck', 'Check')} #{check.id}: {check.status} ·{' '}
                     {check.conclusion ??
                       translate('auto.components.projectMap.githubPrConclusionUnknown', 'conclusion unknown')}
                   </li>
