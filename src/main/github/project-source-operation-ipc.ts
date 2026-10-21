@@ -53,23 +53,27 @@ async function handle(
   if (owner.pending) {
     return { status: 'busy' }
   }
+  // Acquire before any Main provider callback: providers may synchronously reenter IPC.
+  const generation = owner.generation
+  owner.pending = true
   try {
     if (!owner.options.isEnabled()) {
       return { status: 'disabled' }
     }
-  } catch {
-    return { status: 'unavailable' }
-  }
-  const operationCallback =
-    operation === 'register' ? owner.options.register : owner.options.refresh
-  if (!operationCallback) {
-    return { status: 'unavailable' }
-  }
-  const generation = owner.generation
-  owner.pending = true
-  try {
-    const status = await operationCallback(event)
     if (generation !== owner.generation || !verified(owner, event)) {
+      return { status: 'stale' }
+    }
+    const operationCallback =
+      operation === 'register' ? owner.options.register : owner.options.refresh
+    if (!operationCallback) {
+      return { status: 'unavailable' }
+    }
+    const status = await operationCallback(event)
+    if (
+      generation !== owner.generation ||
+      !verified(owner, event) ||
+      !owner.options.isEnabled()
+    ) {
       return { status: 'stale' }
     }
     // B5a does not carry data, errors, GraphQL responses or arbitrary callback objects.
