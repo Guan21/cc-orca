@@ -94,17 +94,21 @@ describe('#165 B5c Main-only selected-PR final fact delivery fence', () => {
     const fixture = setup()
     expect(fixture.fence.deliver(ready())).toBe(true)
     expect(fixture.send).toHaveBeenCalledOnce()
-    expect(fixture.send.mock.calls[0][0]).toMatchObject({
+    const packet = fixture.send.mock.calls[0][0]
+    expect(packet).toMatchObject({
       version: 1,
       projectId: 'project-1',
       prNumber: 12,
       headSha: HEAD,
-      snapshot: {
-        projectId: 'project-1',
-        facts: [{ kind: 'check_run', id: 80, headSha: HEAD, status: 'in_progress', conclusion: null }]
-      }
+      snapshot: { projectId: 'project-1' }
     })
-    const packet = fixture.send.mock.calls[0][0]
+    expect(packet.snapshot.facts).toContainEqual({
+      kind: 'check_run',
+      id: 80,
+      headSha: HEAD,
+      status: 'in_progress',
+      conclusion: null
+    })
     expect(JSON.stringify(packet)).not.toMatch(/token|rawResponse|accessToken|password/i)
     expect(fixture.fence.deliver(ready())).toBe(false)
     expect(fixture.send).toHaveBeenCalledOnce()
