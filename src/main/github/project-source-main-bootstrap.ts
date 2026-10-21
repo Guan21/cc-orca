@@ -4,6 +4,7 @@ import { MainProjectSourceIntegration } from './project-source-main-integration'
 import type { MainProjectSourceCatalog } from './project-source-main-catalog'
 import type { MainProjectSelectionProducer } from './project-source-main-producer'
 import { registerProjectSourceSelectionRetirement } from './project-source-selection-retirement'
+import { registerProjectSourceOperationOwner } from './project-source-operation-ipc'
 
 type AppProfile = 'personal' | 'corporate' | 'development'
 type Options = Readonly<{
@@ -26,6 +27,7 @@ export class MainProjectSourceBootstrap {
   private contents: WebContents | null = null
   private unsubscribe: (() => void) | null = null
   private retireSelectionIntent: (() => void) | null = null
+  private retireOperationIntent: (() => void) | null = null
   private disposed = false
   private attaching = false
   private readonly retire = (): void => {
@@ -174,6 +176,14 @@ export class MainProjectSourceBootstrap {
           currentAppProfile: () => (this.isCurrentProfile() ? this.appProfile : 'development')
         })
       }
+      this.retireOperationIntent = registerProjectSourceOperationOwner({
+        window,
+        expectedDocumentUrl: this.options.expectedDocumentUrl,
+        currentAppProfile: () => (this.isCurrentProfile() ? this.appProfile : 'development'),
+        // No reviewed live credential, HEAD, confinement or delivery provider exists yet.
+        isEnabled: () => false,
+        register: (event) => integration.register(event)
+      })
       window.on('closed', this.detach)
       contents.on('destroyed', this.detach)
       contents.on('did-start-navigation', this.retireDocument)
@@ -206,6 +216,9 @@ export class MainProjectSourceBootstrap {
     const retireSelectionIntent = this.retireSelectionIntent
     this.retireSelectionIntent = null
     cleanup(() => retireSelectionIntent?.())
+    const retireOperationIntent = this.retireOperationIntent
+    this.retireOperationIntent = null
+    cleanup(() => retireOperationIntent?.())
     cleanup(() => this.options.producer?.detachWindow())
     cleanup(() => integration?.dispose())
     cleanup(() => credential?.dispose())
