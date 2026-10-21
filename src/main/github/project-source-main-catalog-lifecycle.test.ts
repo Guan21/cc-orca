@@ -42,6 +42,7 @@ function fixture() {
   } as WorktreeMeta
   const mutations = new Set<() => void>()
   const store = {
+    getSettings: () => ({ localWindowsRuntimeDefault: { kind: 'windows-host' as const } }),
     getProjects: () => [project],
     getProjectHostSetups: () => [setup],
     getRepos: () => [repo],

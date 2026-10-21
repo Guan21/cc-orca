@@ -56,6 +56,7 @@ export function attachMainWindowCoreServices(
   }
   const retireProjectSource = (): void => {
     state.projectSourceBootstrap?.dispose()
+    state.projectSourceProducer?.dispose()
     state.projectSourceSelection?.dispose()
     state.projectSourceCatalog?.invalidate()
   }

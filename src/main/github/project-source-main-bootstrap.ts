@@ -2,10 +2,13 @@ import type { BrowserWindow, WebContents } from 'electron'
 import { MainCredentialEvidenceProvider } from './project-source-main-credential'
 import { MainProjectSourceIntegration } from './project-source-main-integration'
 import type { MainProjectSourceCatalog } from './project-source-main-catalog'
+import type { MainProjectSelectionProducer } from './project-source-main-producer'
+import { registerProjectSourceSelectionRetirement } from './project-source-selection-retirement'
 
 type AppProfile = 'personal' | 'corporate' | 'development'
 type Options = Readonly<{
   catalog: MainProjectSourceCatalog
+  producer?: MainProjectSelectionProducer
   expectedDocumentUrl: string
   currentAppProfile(): AppProfile
   currentProfileIdentity(): string | null
@@ -22,6 +25,7 @@ export class MainProjectSourceBootstrap {
   private window: BrowserWindow | null = null
   private contents: WebContents | null = null
   private unsubscribe: (() => void) | null = null
+  private retireSelectionIntent: (() => void) | null = null
   private disposed = false
   private attaching = false
   private readonly retire = (): void => {
@@ -161,6 +165,15 @@ export class MainProjectSourceBootstrap {
         return false
       }
       this.integration = integration
+      if (this.options.producer) {
+        this.options.producer.attachMainWindow(window)
+        this.retireSelectionIntent = registerProjectSourceSelectionRetirement({
+          producer: this.options.producer,
+          window,
+          expectedDocumentUrl: this.options.expectedDocumentUrl,
+          currentAppProfile: () => (this.isCurrentProfile() ? this.appProfile : 'development')
+        })
+      }
       window.on('closed', this.detach)
       contents.on('destroyed', this.detach)
       contents.on('did-start-navigation', this.retireDocument)
@@ -190,6 +203,10 @@ export class MainProjectSourceBootstrap {
     this.credential = null
     this.window = null
     this.contents = null
+    const retireSelectionIntent = this.retireSelectionIntent
+    this.retireSelectionIntent = null
+    cleanup(() => retireSelectionIntent?.())
+    cleanup(() => this.options.producer?.detachWindow())
     cleanup(() => integration?.dispose())
     cleanup(() => credential?.dispose())
     if (window) {
@@ -225,6 +242,12 @@ export class MainProjectSourceBootstrap {
       unsubscribe?.()
     } catch {
       /* Authority is already retired. */
+    }
+  }
+
+  openSelectionPicker(window: BrowserWindow): void {
+    if (!this.disposed && this.window === window && this.isCurrentProfile()) {
+      this.options.producer?.openPicker(window)
     }
   }
 }

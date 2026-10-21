@@ -108,6 +108,7 @@ function fixture(enabled = true) {
     updatedAt: 1
   }
   const catalog = new MainProjectSourceCatalog({
+    getSettings: () => ({ localWindowsRuntimeDefault: { kind: 'windows-host' as const } }),
     getProjects: () => [project],
     getProjectHostSetups: () => [setup],
     getRepos: () => [repo],

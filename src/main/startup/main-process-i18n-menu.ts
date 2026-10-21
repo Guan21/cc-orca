@@ -28,6 +28,11 @@ export async function initializeMainProcessI18nAndMenu(): Promise<void> {
   logStartupMilestone('i18n-ready')
   registerAppMenu({
     appMenuLabel: state.devInstanceIdentity?.name ?? app.name,
+    onSelectProjectSource: (window) => {
+      if (window instanceof BrowserWindow) {
+        state.projectSourceBootstrap?.openSelectionPicker(window)
+      }
+    },
     onCheckForUpdates: (options) => {
       ensureAutoUpdaterConfigured()
       runUserInitiatedUpdateCheck(options)

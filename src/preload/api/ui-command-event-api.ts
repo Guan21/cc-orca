@@ -42,6 +42,8 @@ export type UiCommandEventApi = {
    *  swallows transport failures for offline use). The diff writer needs the distinction:
    *  folding an unacked patch into its baseline would silently stop retrying it (STA-5781). */
   setWithAck?: (args: Partial<PersistedUIState>) => Promise<void>
+  /** Desktop-only, synchronous revocation; never selects or authorizes a source. */
+  clearProjectSourceSelection?: () => boolean
   recordFeatureInteraction: (id: FeatureInteractionId) => Promise<PersistedUIState>
   onStateChanged: (callback: (ui: PersistedUIState) => void) => () => void
   onOpenSettings: (callback: () => void) => () => void

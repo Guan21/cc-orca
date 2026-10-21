@@ -3,6 +3,10 @@
 Tracking #152; source #116; security #151; release #148; native QA #153.
 Corporate Source **DISABLED**. V1 **NO-GO**. No live activation is authorized.
 
+Task C continuation: [Trusted Main selection producer](./github-project-source-g2-b4c-task-c.md)
+records the native Main selection entry, producer, runtime validation and lifecycle.
+Historical Task A/B status below applies to their recorded commits.
+
 Task B continuation: [Main selection and coordinator lifecycle](./github-project-source-g2-b4c-task-b.md)
 records the default-disabled foundation/window/profile/relaunch wiring and its
 offline review. The historical Task A records below retain their original scope.

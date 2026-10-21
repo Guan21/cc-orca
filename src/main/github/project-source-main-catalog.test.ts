@@ -43,6 +43,7 @@ function fixture() {
     hostId: 'local'
   } as WorktreeMeta
   const store = {
+    getSettings: () => ({ localWindowsRuntimeDefault: { kind: 'windows-host' as const } }),
     getProjects: () => projects,
     getProjectHostSetups: () => [setup],
     getRepos: () => repos,

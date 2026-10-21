@@ -107,6 +107,8 @@ function installWillQuitHandler(): void {
     }
     state.projectSourceBootstrap?.dispose()
     state.projectSourceBootstrap = null
+    state.projectSourceProducer?.dispose()
+    state.projectSourceProducer = null
     state.projectSourceSelection?.dispose()
     state.projectSourceSelection = null
     state.projectSourceCatalog?.dispose()

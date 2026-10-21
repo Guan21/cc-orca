@@ -11,9 +11,10 @@
  */
 import { randomUUID } from 'node:crypto'
 import type { EventEmitter } from 'node:events'
-import { app, BrowserWindow } from 'electron'
+import { BrowserWindow } from 'electron'
 import type { IpcMainInvokeEvent, Session, WebContents, WebFrameMain } from 'electron'
 import type { VerifiedSourceDocument } from './project-source-grant-registry'
+import { verifyProjectSourceWindowDocument } from './project-source-window-document'
 
 export type VerifiedPersonalGhPrincipal = Readonly<{
   principalId: string
@@ -102,44 +103,13 @@ export class PersonalProjectSourceElectronOrigin {
   }
 
   private attestCurrent(event: IpcMainInvokeEvent): VerifiedSourceDocument | null {
-    if (
-      !app.isPackaged ||
-      this.options.currentAppProfile() !== 'personal' ||
-      !nonempty(this.options.expectedDocumentUrl)
-    ) {
-      return null
-    }
     const sender = event.sender
     const frame = event.senderFrame
-    if (
-      !sender ||
-      sender.isDestroyed() ||
-      sender.isLoadingMainFrame() ||
-      sender.session !== this.options.approvedSession ||
-      !frame ||
-      frame !== sender.mainFrame ||
-      frame.isDestroyed() ||
-      !nonnegative(frame.processId) ||
-      !nonnegative(frame.routingId)
-    ) {
-      return null
-    }
-
-    // Do not turn a packaged window into a credential-capable browser.
-    // Only its exact Main-approved local renderer entry document is accepted.
-    const exactUrl = frame.url.split('#')[0]
-    if (exactUrl !== this.options.expectedDocumentUrl.split('#')[0]) {
+    if (!verifyProjectSourceWindowDocument(this.options, sender, frame) || !frame) {
       return null
     }
     const window = BrowserWindow.fromWebContents(sender)
-    if (
-      !window ||
-      (this.options.approvedWindow !== undefined && window !== this.options.approvedWindow) ||
-      window.isDestroyed() ||
-      window.webContents !== sender ||
-      !nonnegative(window.id) ||
-      !nonnegative(sender.id)
-    ) {
+    if (!window) {
       return null
     }
     const identity = this.options.currentPrincipal()

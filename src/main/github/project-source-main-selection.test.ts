@@ -48,6 +48,7 @@ function fixture() {
     prNumber: 1
   }
   const store = {
+    getSettings: () => ({ localWindowsRuntimeDefault: { kind: 'windows-host' as const } }),
     getProjects: () => [project],
     getRepos: () => [repo],
     getProjectHostSetups: () => [setup],

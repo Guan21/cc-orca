@@ -16,6 +16,8 @@ import { Store, getCanonicalUserDataPath } from '../persistence'
 import { MainProjectSourceCatalog } from '../github/project-source-main-catalog'
 import { MainProjectSourceBootstrap } from '../github/project-source-main-bootstrap'
 import { MainProjectSourceSelection } from '../github/project-source-main-selection'
+import { MainProjectSelectionProducer } from '../github/project-source-main-producer'
+import { ensureProjectSourceSelectionRetirementResponder } from '../github/project-source-selection-retirement'
 import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -148,14 +150,15 @@ export async function initializeReadyFoundation(): Promise<void> {
   })
   state.store = store
   state.projectSourceBootstrap?.dispose()
+  state.projectSourceProducer?.dispose()
   state.projectSourceSelection?.dispose()
   state.projectSourceCatalog?.dispose()
   state.projectSourceCatalog = new MainProjectSourceCatalog(store)
-  state.projectSourceSelection = new MainProjectSourceSelection(state.projectSourceCatalog)
-  state.projectSourceBootstrap = new MainProjectSourceBootstrap({
+  ensureProjectSourceSelectionRetirementResponder()
+  const sourceOptions = {
     catalog: state.projectSourceCatalog,
     expectedDocumentUrl: pathToFileURL(join(__dirname, '../renderer/index.html')).href,
-    currentAppProfile: () =>
+    currentAppProfile: (): 'corporate' | 'personal' | 'development' =>
       getOrcaBuildProfile() === 'corporate'
         ? 'corporate'
         : app.isPackaged
@@ -163,6 +166,15 @@ export async function initializeReadyFoundation(): Promise<void> {
           : 'development',
     currentProfileIdentity: () =>
       state.store === store && state.activeOrcaProfile === profile ? profile.profile.id : null
+  }
+  state.projectSourceProducer = new MainProjectSelectionProducer(sourceOptions)
+  state.projectSourceSelection = new MainProjectSourceSelection(
+    state.projectSourceCatalog,
+    state.projectSourceProducer
+  )
+  state.projectSourceBootstrap = new MainProjectSourceBootstrap({
+    ...sourceOptions,
+    producer: state.projectSourceProducer
   })
   // Why: create pending readiness before the guard can observe the default session.
   // Why parked on state instead of awaited here: Dock/Launchpad launches don't inherit shell

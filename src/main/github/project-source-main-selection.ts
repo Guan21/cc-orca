@@ -18,7 +18,7 @@ export type MainProjectSelectionState = Readonly<{
   selection: MainSelectedRepositoryContext | null
 }>
 
-/** No authoritative application producer exists yet: absence stays unavailable across restarts. */
+/** Accepts only ordered Main-owned events; absence stays unavailable across restarts. */
 export class MainProjectSourceSelection {
   private status: MainProjectSelectionState['status'] = 'unavailable'
   private selection: MainSelectedRepositoryContext | null = null
