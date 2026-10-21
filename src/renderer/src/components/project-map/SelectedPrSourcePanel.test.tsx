@@ -38,7 +38,13 @@ const ready: SelectedPrUiState = {
     repository: { host: 'github.com', id: 101, owner: 'Team', name: 'service' },
     fetchedAt: '2026-10-21T12:00:00Z',
     facts: [
-      { kind: 'pull_request', number: 12, headSha: HEAD, state: 'open', updatedAt: '2026-10-21T11:59:00Z' },
+      {
+        kind: 'pull_request',
+        number: 12,
+        headSha: HEAD,
+        state: 'open',
+        updatedAt: '2026-10-21T11:59:00Z'
+      },
       { kind: 'commit', sha: HEAD },
       { kind: 'check_run', id: 50, headSha: HEAD, status: 'in_progress', conclusion: null }
     ]
@@ -99,7 +105,10 @@ describe('B5b selected PR evidence panel', () => {
       throw new Error('test fixture')
     }
     const candidate = ready.snapshot as { facts: unknown[] }
-    await render({ ...ready, snapshot: { ...(ready.snapshot as object), facts: candidate.facts.slice(0, 2) } })
+    await render({
+      ...ready,
+      snapshot: { ...(ready.snapshot as object), facts: candidate.facts.slice(0, 2) }
+    })
     expect(renderedText()).toContain('CI outcome unknown')
     expect(renderedText()).not.toContain('All checks passed')
   })
