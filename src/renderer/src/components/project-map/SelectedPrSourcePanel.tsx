@@ -11,25 +11,55 @@ type Props = Readonly<{ state: SelectedPrUiState }>
 
 const statusText: Record<SelectedPrUiStatus, () => string> = {
   disabled: () =>
-    translate('auto.components.projectMap.githubPrStatusDisabled', 'GitHub Project Source is disabled. No live PR evidence is available.'),
+    translate(
+      'auto.components.projectMap.githubPrStatusDisabled',
+      'GitHub Project Source is disabled. No live PR evidence is available.'
+    ),
   not_selected: () =>
-    translate('auto.components.projectMap.githubPrStatusNotSelected', 'No Main-confirmed GitHub Project Source is selected. Use View → Select GitHub Project Source.'),
+    translate(
+      'auto.components.projectMap.githubPrStatusNotSelected',
+      'No Main-confirmed GitHub Project Source is selected. Use View → Select GitHub Project Source.'
+    ),
   loading: () =>
-    translate('auto.components.projectMap.githubPrStatusLoading', 'Waiting for authorized selected-PR evidence.'),
+    translate(
+      'auto.components.projectMap.githubPrStatusLoading',
+      'Waiting for authorized selected-PR evidence.'
+    ),
   denied: () =>
-    translate('auto.components.projectMap.githubPrStatusDenied', 'Access to the selected PR was denied. No facts are shown.'),
+    translate(
+      'auto.components.projectMap.githubPrStatusDenied',
+      'Access to the selected PR was denied. No facts are shown.'
+    ),
   incomplete: () =>
-    translate('auto.components.projectMap.githubPrStatusIncomplete', 'Selected-PR evidence is incomplete. Checks and task completion cannot be inferred.'),
+    translate(
+      'auto.components.projectMap.githubPrStatusIncomplete',
+      'Selected-PR evidence is incomplete. Checks and task completion cannot be inferred.'
+    ),
   stale: () =>
-    translate('auto.components.projectMap.githubPrStatusStale', 'Selected-PR evidence has expired. Old facts are hidden.'),
+    translate(
+      'auto.components.projectMap.githubPrStatusStale',
+      'Selected-PR evidence has expired. Old facts are hidden.'
+    ),
   rate_limited: () =>
-    translate('auto.components.projectMap.githubPrStatusRateLimited', 'GitHub source is rate-limited. No previous facts are shown.'),
+    translate(
+      'auto.components.projectMap.githubPrStatusRateLimited',
+      'GitHub source is rate-limited. No previous facts are shown.'
+    ),
   unavailable: () =>
-    translate('auto.components.projectMap.githubPrStatusUnavailable', 'Verified selected-PR evidence is unavailable.'),
+    translate(
+      'auto.components.projectMap.githubPrStatusUnavailable',
+      'Verified selected-PR evidence is unavailable.'
+    ),
   error: () =>
-    translate('auto.components.projectMap.githubPrStatusError', 'Selected-PR evidence could not be loaded. No previous facts are shown.'),
+    translate(
+      'auto.components.projectMap.githubPrStatusError',
+      'Selected-PR evidence could not be loaded. No previous facts are shown.'
+    ),
   offline: () =>
-    translate('auto.components.projectMap.githubPrStatusOffline', 'GitHub Project Source is offline. No live facts are shown.')
+    translate(
+      'auto.components.projectMap.githubPrStatusOffline',
+      'GitHub Project Source is offline. No live facts are shown.'
+    )
 }
 
 /**
@@ -40,7 +70,10 @@ export function SelectedPrSourcePanel({ state }: Props): React.JSX.Element {
   const view = selectedPrFactsView(state)
   return (
     <section
-      aria-label={translate('auto.components.projectMap.githubPrEvidenceAria', 'Selected GitHub PR evidence')}
+      aria-label={translate(
+        'auto.components.projectMap.githubPrEvidenceAria',
+        'Selected GitHub PR evidence'
+      )}
       className="mx-5 mt-4 shrink-0 rounded-lg border border-border bg-card px-4 py-3 md:mx-6"
     >
       <header className="mb-2 flex items-center gap-2">
@@ -77,11 +110,16 @@ export function SelectedPrSourcePanel({ state }: Props): React.JSX.Element {
               <span className="break-all font-mono">{view.commitSha}</span>
             </span>
           </div>
-          <div aria-label={translate('auto.components.projectMap.githubPrChecksAria', 'Observed PR checks')} className="space-y-1">
-            <h3 className="font-medium">{translate(
+          <div
+            aria-label={translate('auto.components.projectMap.githubPrChecksAria', 'Observed PR checks')}
+            className="space-y-1"
+          >
+            <h3 className="font-medium">
+              {translate(
                 'auto.components.projectMap.githubPrChecksHeading',
                 'Observed Checks (not a complete CI attestation)'
-              )}</h3>
+              )}
+            </h3>
             {view.checks.length ? (
               <ul className="space-y-1">
                 {view.checks.map((check) => (
@@ -94,10 +132,12 @@ export function SelectedPrSourcePanel({ state }: Props): React.JSX.Element {
                 ))}
               </ul>
             ) : (
-              <p className="text-muted-foreground">{translate(
+              <p className="text-muted-foreground">
+                {translate(
                   'auto.components.projectMap.githubPrNoChecks',
                   'No check observations; CI outcome unknown.'
-                )}</p>
+                )}
+              </p>
             )}
           </div>
           <p className="text-muted-foreground">
