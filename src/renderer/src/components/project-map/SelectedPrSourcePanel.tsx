@@ -1,3 +1,4 @@
+import type React from 'react'
 import { GitCommit, GitPullRequest, ShieldAlert } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import { selectedPrFactsView, type SelectedPrUiState, type SelectedPrUiStatus } from './selected-pr-facts-view'
