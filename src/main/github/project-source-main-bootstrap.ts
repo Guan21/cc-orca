@@ -175,15 +175,15 @@ export class MainProjectSourceBootstrap {
           expectedDocumentUrl: this.options.expectedDocumentUrl,
           currentAppProfile: () => (this.isCurrentProfile() ? this.appProfile : 'development')
         })
+        this.retireOperationIntent = registerProjectSourceOperationOwner({
+          window,
+          expectedDocumentUrl: this.options.expectedDocumentUrl,
+          currentAppProfile: () => (this.isCurrentProfile() ? this.appProfile : 'development'),
+          // No reviewed live credential, HEAD, confinement or delivery provider exists yet.
+          isEnabled: () => false,
+          register: (event) => integration.register(event)
+        })
       }
-      this.retireOperationIntent = registerProjectSourceOperationOwner({
-        window,
-        expectedDocumentUrl: this.options.expectedDocumentUrl,
-        currentAppProfile: () => (this.isCurrentProfile() ? this.appProfile : 'development'),
-        // No reviewed live credential, HEAD, confinement or delivery provider exists yet.
-        isEnabled: () => false,
-        register: (event) => integration.register(event)
-      })
       window.on('closed', this.detach)
       contents.on('destroyed', this.detach)
       contents.on('did-start-navigation', this.retireDocument)
