@@ -132,7 +132,30 @@ function packetFor(
   h: MainPinnedSelectedPrHead,
   now: number
 ): MainSelectedPrFactPacket | null {
-  const facts = projectGitHubFacts(projection.snapshot, scopeFor(h), now, MAX_EVIDENCE_AGE_MS)
+  const candidate = projection.snapshot
+  // G1 returns a normalized snapshot with three non-authorization disclaimers.
+  // Its input parser deliberately accepts only the six raw fact fields. Re-parse
+  // an explicit allowlist, never drop a malformed/missing disclaimer silently.
+  if (
+    candidate?.attestation !== 'not_verified_by_projection' ||
+    candidate.agentExecution !== 'unknown' ||
+    candidate.taskCompletion !== 'unknown'
+  ) {
+    return null
+  }
+  const facts = projectGitHubFacts(
+    {
+      version: candidate.version,
+      projectId: candidate.projectId,
+      bindingRevision: candidate.bindingRevision,
+      repository: candidate.repository,
+      fetchedAt: candidate.fetchedAt,
+      facts: candidate.facts
+    },
+    scopeFor(h),
+    now,
+    MAX_EVIDENCE_AGE_MS
+  )
   if (facts.status !== 'ready') {
     return null
   }
