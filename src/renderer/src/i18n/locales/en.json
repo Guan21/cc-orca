@@ -17189,7 +17189,26 @@
         "titlebar": {
           "close": "Close DevCrew Project Map",
           "title": "DevCrew Project Map"
-        }
+        },
+        "githubPrStatusDisabled": "GitHub Project Source is disabled. No live PR evidence is available.",
+        "githubPrStatusNotSelected": "No Main-confirmed GitHub Project Source is selected. Use View → Select GitHub Project Source.",
+        "githubPrStatusLoading": "Waiting for authorized selected-PR evidence.",
+        "githubPrStatusDenied": "Access to the selected PR was denied. No facts are shown.",
+        "githubPrStatusIncomplete": "Selected-PR evidence is incomplete. Checks and task completion cannot be inferred.",
+        "githubPrStatusStale": "Selected-PR evidence has expired. Old facts are hidden.",
+        "githubPrStatusRateLimited": "GitHub source is rate-limited. No previous facts are shown.",
+        "githubPrStatusUnavailable": "Verified selected-PR evidence is unavailable.",
+        "githubPrStatusError": "Selected-PR evidence could not be loaded. No previous facts are shown.",
+        "githubPrStatusOffline": "GitHub Project Source is offline. No live facts are shown.",
+        "githubPrEvidenceAria": "Selected GitHub PR evidence",
+        "githubPrFetched": "fetched",
+        "githubPrNumber": "PR",
+        "githubPrChecksAria": "Observed PR checks",
+        "githubPrChecksHeading": "Observed Checks (not a complete CI attestation)",
+        "githubPrCheck": "Check",
+        "githubPrConclusionUnknown": "conclusion unknown",
+        "githubPrNoChecks": "No check observations; CI outcome unknown.",
+        "githubPrProjectionLimit": "Projection only. Agent execution, task completion and overall CI completeness are not verified."
       },
       "changeImpact": {
         "lifecycle": {
