@@ -1,7 +1,11 @@
 import type React from 'react'
 import { GitCommit, GitPullRequest, ShieldAlert } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
-import { selectedPrFactsView, type SelectedPrUiState, type SelectedPrUiStatus } from './selected-pr-facts-view'
+import {
+  selectedPrFactsView,
+  type SelectedPrUiState,
+  type SelectedPrUiStatus
+} from './selected-pr-facts-view'
 
 type Props = Readonly<{ state: SelectedPrUiState }>
 
@@ -39,7 +43,11 @@ export function SelectedPrSourcePanel({ state }: Props): React.JSX.Element {
         </span>
       </header>
       {view.status !== 'ready' ? (
-        <div role="status" data-source-status={view.status} className="flex gap-2 text-xs text-muted-foreground">
+        <div
+          role="status"
+          data-source-status={view.status}
+          className="flex gap-2 text-xs text-muted-foreground"
+        >
           <ShieldAlert aria-hidden="true" className="size-4 shrink-0" />
           <p>{statusText[view.status]}</p>
         </div>
@@ -49,7 +57,9 @@ export function SelectedPrSourcePanel({ state }: Props): React.JSX.Element {
             {view.projectId} · {view.repository} · fetched {view.fetchedAt}
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            <strong className="text-sm">PR #{view.pr.number} · {view.pr.state}</strong>
+            <strong className="text-sm">
+              PR #{view.pr.number} · {view.pr.state}
+            </strong>
             <span className="flex min-w-0 items-center gap-1 text-muted-foreground">
               <GitCommit aria-hidden="true" className="size-3.5 shrink-0" />
               <span className="break-all font-mono">{view.commitSha}</span>
