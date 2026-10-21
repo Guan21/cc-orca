@@ -133,7 +133,13 @@ describe('#165 B5c Main-only selected-PR final fact delivery fence', () => {
       { ...head, document: { ...head.document, profile: 'corporate' } },
       { ...head, document: { ...head.document, executionRealm: 'remote' } },
       { ...head, binding: { ...head.binding, workspaceKind: 'folder' } },
-      { ...head, binding: { ...head.binding, repository: { ...head.binding.repository, host: 'gitlab.com' } } },
+      {
+        ...head,
+        binding: {
+          ...head.binding,
+          repository: { ...head.binding.repository, host: 'gitlab.com' }
+        }
+      },
       { ...head, document: { ...head.document, documentId: '' } }
     ]) {
       const f = setup({ readCurrent: () => altered as MainPinnedSelectedPrHead | null })
@@ -147,7 +153,13 @@ describe('#165 B5c Main-only selected-PR final fact delivery fence', () => {
     const scenarios = [
       { ...ready(), snapshot: { ...ready().snapshot, projectId: 'other' } },
       { ...ready(), snapshot: { ...ready().snapshot, bindingRevision: 7 } },
-      { ...ready(), snapshot: { ...ready().snapshot, repository: { ...ready().snapshot.repository, id: 1002 } } },
+      {
+        ...ready(),
+        snapshot: {
+          ...ready().snapshot,
+          repository: { ...ready().snapshot.repository, id: 1002 }
+        }
+      },
       ready(fact.map((x) => (x.kind === 'pull_request' ? { ...x, number: 99 } : x))),
       ready(fact.map((x) => (x.kind === 'pull_request' ? { ...x, headSha: OTHER_HEAD } : x))),
       ready(fact.map((x) => (x.kind === 'check_run' ? { ...x, headSha: OTHER_HEAD } : x)))
@@ -173,7 +185,7 @@ describe('#165 B5c Main-only selected-PR final fact delivery fence', () => {
     for (const altered of updated) {
       let reads = 0
       const f = setup({
-        readCurrent: () => ++reads === 1 ? head : altered as MainPinnedSelectedPrHead
+        readCurrent: () => (++reads === 1 ? head : (altered as MainPinnedSelectedPrHead))
       })
       expect(f.fence.deliver(ready())).toBe(false)
       expect(f.send).not.toHaveBeenCalled()
@@ -232,11 +244,15 @@ describe('#165 B5c Main-only selected-PR final fact delivery fence', () => {
     const facts = ready().snapshot.facts.filter(x => x.kind !== 'check_run')
     const f = setup()
     expect(f.fence.deliver(ready(facts))).toBe(true)
-    expect(f.send.mock.calls[0][0].snapshot.facts.every((x: { kind: string }) => x.kind !== 'check_run')).toBe(true)
+    expect(
+      f.send.mock.calls[0][0].snapshot.facts.every((x) => x.kind !== 'check_run')
+    ).toBe(true)
   })
 
   it('does not retry a failed Main synchronous send or expose thrown sink errors', () => {
-    const sink = vi.fn(() => { throw new Error('secret') })
+    const sink = vi.fn(() => {
+      throw new Error('secret')
+    })
     const f = setup({ send: sink })
     expect(f.fence.deliver(ready())).toBe(false)
     expect(f.fence.deliver(ready())).toBe(false)
