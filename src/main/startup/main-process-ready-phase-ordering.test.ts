@@ -90,6 +90,18 @@ describe('ready-phase concurrency', () => {
   })
 })
 
+describe('project source startup responders', () => {
+  it('installs deny-if-unowned responders before profile-gated window ownership', () => {
+    const foundation = readFileSync(
+      join(process.cwd(), 'src/main/startup/main-process-ready-foundation.ts'),
+      'utf8'
+    )
+    const responders = foundation.indexOf('ensureProjectSourceOperationResponders()')
+    expect(responders).toBeGreaterThanOrEqual(0)
+    expect(responders).toBeLessThan(foundation.indexOf('new MainProjectSourceBootstrap('))
+  })
+})
+
 describe('initial proxy application ordering', () => {
   const readStartupSource = (file: string): string =>
     readFileSync(join(process.cwd(), 'src/main/startup', file), 'utf8')

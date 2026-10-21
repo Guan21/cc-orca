@@ -1,10 +1,14 @@
 import { EventEmitter } from 'node:events'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { IpcMainInvokeEvent } from 'electron'
 import { MainProjectSourceCatalog } from './project-source-main-catalog'
 import { MainProjectSourceSelection } from './project-source-main-selection'
 import { MainProjectSelectionProducer } from './project-source-main-producer'
 import { MainProjectSourceBootstrap } from './project-source-main-bootstrap'
 import type { MainProjectSourceIntegration } from './project-source-main-integration'
+import { MainCredentialEvidenceProvider } from './project-source-main-credential'
+import { MainNativeGitHubTransport } from './project-source-native-transport'
+import * as nativeGh from '../git/command-runner/project-source-native-gh'
 import {
   PROJECT_SOURCE_REFRESH_CHANNEL,
   PROJECT_SOURCE_REGISTER_CHANNEL
@@ -15,6 +19,7 @@ const electron = vi.hoisted(() => ({
   dialog: vi.fn(),
   popup: vi.fn(),
   template: [] as Electron.MenuItemConstructorOptions[],
+  handlers: new Map<string, (event: IpcMainInvokeEvent, ...args: unknown[]) => unknown>(),
   ipc: { on: vi.fn(), handle: vi.fn() }
 }))
 vi.mock('electron', () => ({
@@ -147,8 +152,18 @@ function fixture() {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  electron.ipc.handle.mockImplementation(
+    (channel: string, handler: (event: IpcMainInvokeEvent, ...args: unknown[]) => unknown) => {
+      if (electron.handlers.has(channel)) {
+        throw new Error('Handler registered twice')
+      }
+      electron.handlers.set(channel, handler)
+    }
+  )
   electron.dialog.mockResolvedValue({ response: 1 })
 })
+
+afterEach(() => vi.restoreAllMocks())
 
 describe('production Main selection producer', () => {
   it('wires the real bootstrap, producer, consumer and coordinator without granting API access', async () => {
@@ -161,19 +176,33 @@ describe('production Main selection producer', () => {
       currentProfileIdentity: () => 'profile-1'
     })
     expect(bootstrap.attachMainWindow(f.window as never)).toBe(true)
+    const integration = (bootstrap as unknown as { integration: MainProjectSourceIntegration })
+      .integration
+    const register = vi.spyOn(integration, 'register')
+    const refresh = vi.spyOn(integration, 'refresh')
+    const credential = vi.spyOn(MainCredentialEvidenceProvider.prototype, 'current')
+    const apiRegister = vi.spyOn(MainNativeGitHubTransport.prototype, 'register')
+    const apiRead = vi.spyOn(MainNativeGitHubTransport.prototype, 'readSelected')
+    const runner = vi
+      .spyOn(nativeGh, 'createProjectSourceNativeGhRunner')
+      .mockImplementation(() => {
+        throw new Error('Native gh is forbidden in offline bootstrap tests')
+      })
     for (const channel of [PROJECT_SOURCE_REGISTER_CHANNEL, PROJECT_SOURCE_REFRESH_CHANNEL]) {
-      const handler = electron.ipc.handle.mock.calls.find(([name]) => name === channel)![1]
-      expect(await handler({ sender: f.contents, senderFrame: f.frame })).toEqual({
+      const handler = electron.handlers.get(channel)!
+      expect(await handler({ sender: f.contents, senderFrame: f.frame } as never)).toEqual({
         status: 'disabled'
       })
     }
+    for (const callback of [register, refresh, credential, apiRegister, apiRead, runner]) {
+      expect(callback).not.toHaveBeenCalled()
+    }
+    expect(electron.handlers.size).toBe(2)
     expect(electron.dialog).not.toHaveBeenCalled()
     bootstrap.openSelectionPicker(f.window as never)
     expect(electron.popup).toHaveBeenCalled()
     expect(await f.choose()).toBe(true)
     expect(f.consumer.readCurrent().status).toBe('selected')
-    const integration = (bootstrap as unknown as { integration: MainProjectSourceIntegration })
-      .integration
     expect(await integration.register({ sender: f.contents, senderFrame: f.frame } as never)).toBe(
       'denied'
     )

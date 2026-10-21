@@ -18,6 +18,7 @@ import { MainProjectSourceBootstrap } from '../github/project-source-main-bootst
 import { MainProjectSourceSelection } from '../github/project-source-main-selection'
 import { MainProjectSelectionProducer } from '../github/project-source-main-producer'
 import { ensureProjectSourceSelectionRetirementResponder } from '../github/project-source-selection-retirement'
+import { ensureProjectSourceOperationResponders } from '../github/project-source-operation-ipc'
 import { getOrcaBuildProfile } from '../../shared/corporate-build-profile'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -155,6 +156,7 @@ export async function initializeReadyFoundation(): Promise<void> {
   state.projectSourceCatalog?.dispose()
   state.projectSourceCatalog = new MainProjectSourceCatalog(store)
   ensureProjectSourceSelectionRetirementResponder()
+  ensureProjectSourceOperationResponders()
   const sourceOptions = {
     catalog: state.projectSourceCatalog,
     expectedDocumentUrl: pathToFileURL(join(__dirname, '../renderer/index.html')).href,

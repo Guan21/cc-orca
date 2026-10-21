@@ -1,5 +1,4 @@
 import { ipcMain } from 'electron'
-import type { EventEmitter } from 'node:events'
 import type { BrowserWindow, IpcMainInvokeEvent, WebContents } from 'electron'
 import {
   PROJECT_SOURCE_REFRESH_CHANNEL,
@@ -34,6 +33,10 @@ type Owner = {
 const owners = new Map<WebContents, Owner>()
 let handlersInstalled = false
 
+function current(owner: Owner, event: IpcMainInvokeEvent, generation: number): boolean {
+  return !owner.retired && owners.get(event.sender) === owner && owner.generation === generation
+}
+
 function verified(owner: Owner, event: IpcMainInvokeEvent): boolean {
   return (
     !owner.retired &&
@@ -48,20 +51,30 @@ async function handle(
   args: unknown[]
 ): Promise<ProjectSourceOperationReply> {
   const owner = owners.get(event.sender)
-  if (!owner || args.length !== 0 || !verified(owner, event)) {
+  if (!owner || args.length !== 0) {
     return { status: 'denied' }
   }
   if (owner.pending) {
     return { status: 'busy' }
   }
-  // Acquire before any Main provider callback: providers may synchronously reenter IPC.
+  // Document and readiness providers may synchronously reenter or retire this owner.
   const generation = owner.generation
   owner.pending = true
   try {
-    if (!owner.options.isEnabled()) {
+    if (!verified(owner, event)) {
+      return { status: 'denied' }
+    }
+    if (!current(owner, event, generation)) {
+      return { status: 'stale' }
+    }
+    const enabled = owner.options.isEnabled()
+    if (!current(owner, event, generation)) {
+      return { status: 'stale' }
+    }
+    if (!enabled) {
       return { status: 'disabled' }
     }
-    if (generation !== owner.generation || !verified(owner, event)) {
+    if (!verified(owner, event) || !current(owner, event, generation)) {
       return { status: 'stale' }
     }
     const operationCallback =
@@ -70,7 +83,12 @@ async function handle(
       return { status: 'unavailable' }
     }
     const status = await operationCallback(event)
-    if (generation !== owner.generation || !verified(owner, event) || !owner.options.isEnabled()) {
+    if (
+      !current(owner, event, generation) ||
+      !owner.options.isEnabled() ||
+      !verified(owner, event) ||
+      !current(owner, event, generation)
+    ) {
       return { status: 'stale' }
     }
     // B5a does not carry data, errors, GraphQL responses or arbitrary callback objects.
@@ -104,7 +122,6 @@ export function ensureProjectSourceOperationResponders(): void {
 export function registerProjectSourceOperationOwner(options: Options): () => void {
   ensureProjectSourceOperationResponders()
   const contents = options.window.webContents
-  const lifecycle: Pick<EventEmitter, 'on' | 'removeListener'> = contents
   if (owners.has(contents)) {
     throw new Error('Project source IPC owner already registered')
   }
@@ -133,28 +150,20 @@ export function registerProjectSourceOperationOwner(options: Options): () => voi
       owners.delete(contents)
     }
     options.window.removeListener('closed', dispose)
-    for (const name of [
-      'destroyed',
-      'did-start-navigation',
-      'will-navigate',
-      'did-navigate',
-      'render-process-gone'
-    ] as const) {
-      lifecycle.removeListener(name, name === 'destroyed' ? dispose : invalidate)
-    }
+    contents.removeListener('destroyed', dispose)
+    contents.removeListener('did-start-navigation', invalidate)
+    contents.removeListener('will-navigate', invalidate)
+    contents.removeListener('did-navigate', invalidate)
+    contents.removeListener('render-process-gone', invalidate)
   }
   owners.set(contents, owner)
   try {
     options.window.on('closed', dispose)
-    for (const name of [
-      'destroyed',
-      'did-start-navigation',
-      'will-navigate',
-      'did-navigate',
-      'render-process-gone'
-    ] as const) {
-      lifecycle.on(name, name === 'destroyed' ? dispose : invalidate)
-    }
+    contents.on('destroyed', dispose)
+    contents.on('did-start-navigation', invalidate)
+    contents.on('will-navigate', invalidate)
+    contents.on('did-navigate', invalidate)
+    contents.on('render-process-gone', invalidate)
   } catch {
     dispose()
     throw new Error('Project source IPC lifecycle unavailable')
