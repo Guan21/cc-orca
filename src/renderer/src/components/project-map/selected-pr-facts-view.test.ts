@@ -62,6 +62,9 @@ describe('B5b selected PR presentation boundary', () => {
     ]) {
       expect(selectedPrFactsView(delivered({ ...(snapshot() as object), ...patch }))).toEqual({ status: 'unavailable' })
     }
+    expect(selectedPrFactsView(delivered(snapshot(), {
+      expected: { scope: { ...scope, repository: { ...scope.repository, host: 'gitlab.com' } }, prNumber: 12, headSha: HEAD }
+    }))).toEqual({ status: 'unavailable' })
     expect(selectedPrFactsView(delivered(snapshot(), { expected: { scope, prNumber: 13, headSha: HEAD } }))).toEqual({ status: 'incomplete' })
     expect(selectedPrFactsView(delivered(snapshot(), { expected: { scope, prNumber: 12, headSha: OTHER_HEAD } }))).toEqual({ status: 'incomplete' })
   })
