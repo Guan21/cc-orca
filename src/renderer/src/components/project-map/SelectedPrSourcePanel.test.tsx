@@ -45,7 +45,9 @@ const ready: SelectedPrUiState = {
   }
 }
 afterEach(async () => {
-  if (root) await act(async () => root?.unmount())
+  if (root) {
+    await act(async () => root?.unmount())
+  }
   root = null
   container?.remove()
   container = null
@@ -84,14 +86,18 @@ describe('B5b selected PR evidence panel', () => {
   })
 
   it('does not display foreign project or PR facts', async () => {
-    if (ready.status !== 'ready') throw new Error('test fixture')
+    if (ready.status !== 'ready') {
+      throw new Error('test fixture')
+    }
     await render({ ...ready, expected: { ...ready.expected, prNumber: 99 } })
     expect(container?.querySelector('[data-source-status="incomplete"]')).not.toBeNull()
     expect(renderedText()).not.toContain('PR #12')
   })
 
   it('shows unknown CI rather than success when there are no observed checks', async () => {
-    if (ready.status !== 'ready') throw new Error('test fixture')
+    if (ready.status !== 'ready') {
+      throw new Error('test fixture')
+    }
     const candidate = ready.snapshot as { facts: unknown[] }
     await render({ ...ready, snapshot: { ...(ready.snapshot as object), facts: candidate.facts.slice(0, 2) } })
     expect(renderedText()).toContain('CI outcome unknown')
