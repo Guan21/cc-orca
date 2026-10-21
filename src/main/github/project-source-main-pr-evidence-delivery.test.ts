@@ -180,6 +180,23 @@ describe('#165 B5c Main-only selected-PR final fact delivery fence', () => {
     }
   })
 
+  it('rejects missing or altered projection disclaimers instead of silently treating them as trusted', () => {
+    for (const tampered of [
+      { attestation: 'verified' },
+      { agentExecution: 'verified' },
+      { taskCompletion: 'completed' }
+    ]) {
+      const valid = ready()
+      const candidate = {
+        ...valid,
+        snapshot: { ...valid.snapshot, ...tampered }
+      } as unknown as ReturnType<typeof ready>
+      const f = setup()
+      expect(f.fence.deliver(candidate)).toBe(false)
+      expect(f.send).not.toHaveBeenCalled()
+    }
+  })
+
   it('denies native authority revocation immediately before the synchronous send', () => {
     let permitted = true
     let count = 0
