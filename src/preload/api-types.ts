@@ -46,6 +46,7 @@ import type {
 import type { PetApi } from './api/pet-api'
 import type { PluginsApi } from './api/plugin-host-api'
 import type { PreflightApi } from './api/preflight-api'
+import type { ProjectSourceApi } from './api/project-source-api'
 import type { PtyApi } from './api/pty-api'
 import type { ProjectGroupsApi, ProjectsApi, RepositoryApi } from './api/repository-api'
 import type { RuntimeApi } from './api/runtime-api'
@@ -72,6 +73,7 @@ export type PreloadApi = {
   e2e: E2EApi
   repos: RepositoryApi
   projects: ProjectsApi
+  projectSource: ProjectSourceApi
   projectGroups: ProjectGroupsApi
   folderWorkspaces: FolderWorkspacesApi
   sparsePresets: SparsePresetsApi
