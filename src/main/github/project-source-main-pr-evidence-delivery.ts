@@ -13,23 +13,12 @@ import {
   type GitHubProjectFactScope
 } from '../../shared/github/project-facts-read-model'
 import type { SelectedGitHubPrProjection } from '../../shared/github/selected-pr-graphql-projection'
-import type {
-  TrustedSelectedPrBinding,
-  VerifiedSourceDocument
-} from './project-source-grant-registry'
-
-export type MainPinnedSelectedPrHead = Readonly<{
-  document: VerifiedSourceDocument
-  binding: TrustedSelectedPrBinding
-  /** The same revision used for the G1 fact scope. */
-  bindingRevision: number
-  selectionRevision: number
-  grantRevision: number
-  sessionIncarnation: string
-  /** Main-verified GitHub selected PR HEAD, NOT Renderer or local git HEAD. */
-  headSha: string
-  observedAtMs: number
-}>
+import {
+  MAX_SELECTED_PR_HEAD_AGE_MS,
+  validMainSelectedPrHead,
+  type MainPinnedSelectedPrHead
+} from './project-source-main-pr-head-contract'
+export type { MainPinnedSelectedPrHead } from './project-source-main-pr-head-contract'
 
 export type MainSelectedPrFactPacket = Readonly<{
   version: 1
@@ -51,68 +40,6 @@ type Options = Readonly<{
   /** Main-owned synchronous WebContents delivery, never a promise-returning sink. */
   send: (packet: MainSelectedPrFactPacket) => void
 }>
-
-const MAX_EVIDENCE_AGE_MS = 5 * 60_000
-const HEX_SHA = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/i
-const SMALL = (x: unknown): x is string =>
-  typeof x === 'string' &&
-  x.length > 0 &&
-  x.length <= 256 &&
-  x.trim() === x &&
-  ![...x].some((c) => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)
-const POSITIVE = (x: unknown): x is number =>
-  typeof x === 'number' && Number.isSafeInteger(x) && x > 0
-const NONNEGATIVE = (x: unknown): x is number =>
-  typeof x === 'number' && Number.isSafeInteger(x) && x >= 0
-
-function validDocument(d: VerifiedSourceDocument): boolean {
-  return (
-    d?.profile === 'personal-packaged' &&
-    d.executionRealm === 'native' &&
-    SMALL(d.installationId) &&
-    POSITIVE(d.windowId) &&
-    POSITIVE(d.webContentsId) &&
-    NONNEGATIVE(d.frameProcessId) &&
-    NONNEGATIVE(d.frameRoutingId) &&
-    SMALL(d.documentId) &&
-    SMALL(d.sessionPartition) &&
-    SMALL(d.principalId) &&
-    NONNEGATIVE(d.credentialGeneration)
-  )
-}
-
-function validBinding(b: TrustedSelectedPrBinding): boolean {
-  return (
-    SMALL(b?.projectId) &&
-    b.workspaceKind === 'worktree' &&
-    SMALL(b.workspaceId) &&
-    SMALL(b.hostSetupId) &&
-    SMALL(b.executionHostId) &&
-    b.repository?.host === 'github.com' &&
-    POSITIVE(b.repository.id) &&
-    SMALL(b.repository.nodeId) &&
-    SMALL(b.repository.owner) &&
-    SMALL(b.repository.name) &&
-    POSITIVE(b.prNumber)
-  )
-}
-
-function validHead(h: MainPinnedSelectedPrHead, now: number): boolean {
-  return (
-    validDocument(h?.document) &&
-    validBinding(h.binding) &&
-    POSITIVE(h.bindingRevision) &&
-    POSITIVE(h.selectionRevision) &&
-    POSITIVE(h.grantRevision) &&
-    SMALL(h.sessionIncarnation) &&
-    typeof h.headSha === 'string' &&
-    HEX_SHA.test(h.headSha) &&
-    Number.isFinite(now) &&
-    Number.isFinite(h.observedAtMs) &&
-    h.observedAtMs <= now &&
-    now - h.observedAtMs <= MAX_EVIDENCE_AGE_MS
-  )
-}
 
 function scopeFor(h: MainPinnedSelectedPrHead): GitHubProjectFactScope {
   return {
@@ -154,7 +81,7 @@ function packetFor(
     },
     scopeFor(h),
     now,
-    MAX_EVIDENCE_AGE_MS
+    MAX_SELECTED_PR_HEAD_AGE_MS
   )
   if (facts.status !== 'ready') {
     return null
@@ -203,7 +130,7 @@ export class MainSelectedPrFactDeliveryFence {
       }
       const head = structuredClone(this.options.readCurrent())
       const now = this.options.nowMs()
-      if (!head || !validHead(head, now)) {
+      if (!head || !validMainSelectedPrHead(head, now)) {
         return false
       }
       const expected = JSON.stringify(head)
@@ -218,7 +145,7 @@ export class MainSelectedPrFactDeliveryFence {
       const stillCurrent = structuredClone(this.options.readCurrent())
       if (
         !stillCurrent ||
-        !validHead(stillCurrent, this.options.nowMs()) ||
+        !validMainSelectedPrHead(stillCurrent, this.options.nowMs()) ||
         JSON.stringify(stillCurrent) !== expected
       ) {
         return false
