@@ -47,17 +47,19 @@ const head: MainPinnedSelectedPrHead = {
   observedAtMs: NOW - 40_000
 }
 
-function ready(facts: readonly GitHubFact[] = [
-  {
-    kind: 'pull_request',
-    number: 12,
-    headSha: HEAD,
-    state: 'open',
-    updatedAt: '2026-10-21T11:59:00Z'
-  },
-  { kind: 'commit', sha: HEAD },
-  { kind: 'check_run', id: 80, headSha: HEAD, status: 'in_progress', conclusion: null }
-]): Extract<SelectedGitHubPrProjection, { status: 'ready' }> {
+function ready(
+  facts: readonly GitHubFact[] = [
+    {
+      kind: 'pull_request',
+      number: 12,
+      headSha: HEAD,
+      state: 'open',
+      updatedAt: '2026-10-21T11:59:00Z'
+    },
+    { kind: 'commit', sha: HEAD },
+    { kind: 'check_run', id: 80, headSha: HEAD, status: 'in_progress', conclusion: null }
+  ]
+): Extract<SelectedGitHubPrProjection, { status: 'ready' }> {
   return {
     status: 'ready',
     snapshot: {
@@ -209,20 +211,41 @@ describe('#165 B5c Main-only selected-PR final fact delivery fence', () => {
     }
   })
 
-  it('denies native authority revocation immediately before the synchronous send', () => {
-    let permitted = true
-    let count = 0
+  it('rejects an A-to-B-to-A selection with a newer authority revision', () => {
+    let current = head
+    let reads = 0
     const f = setup({
-      isAuthorizedNow: () => {
-        count += 1
-        if (count >= 2) {
-          permitted = false
+      readCurrent: () => {
+        if (++reads === 2) {
+          current = { ...current, headSha: OTHER_HEAD, selectionRevision: 10 }
+          current = { ...current, headSha: HEAD, selectionRevision: 11 }
         }
-        return permitted
+        return current
       }
     })
     expect(f.fence.deliver(ready())).toBe(false)
+    expect(current.headSha).toBe(HEAD)
+    expect(current.selectionRevision).toBe(11)
     expect(f.send).not.toHaveBeenCalled()
+  })
+
+  it('denies native authority revocation immediately before the synchronous send', () => {
+    for (const revokedAt of [2, 3]) {
+      let permitted = true
+      let count = 0
+      const f = setup({
+        isAuthorizedNow: () => {
+          count += 1
+          if (count >= revokedAt) {
+            permitted = false
+          }
+          return permitted
+        }
+      })
+      expect(f.fence.deliver(ready())).toBe(false)
+      expect(count).toBe(revokedAt)
+      expect(f.send).not.toHaveBeenCalled()
+    }
   })
 
   it('uses an early single-use permit against synchronous reentrant authority callbacks', () => {
@@ -241,12 +264,10 @@ describe('#165 B5c Main-only selected-PR final fact delivery fence', () => {
   })
 
   it('preserves unknown CI when checks are absent, never inventing all-green claims', () => {
-    const facts = ready().snapshot.facts.filter(x => x.kind !== 'check_run')
+    const facts = ready().snapshot.facts.filter((x) => x.kind !== 'check_run')
     const f = setup()
     expect(f.fence.deliver(ready(facts))).toBe(true)
-    expect(
-      f.send.mock.calls[0][0].snapshot.facts.every((x) => x.kind !== 'check_run')
-    ).toBe(true)
+    expect(f.send.mock.calls[0][0].snapshot.facts.every((x) => x.kind !== 'check_run')).toBe(true)
   })
 
   it('does not retry a failed Main synchronous send or expose thrown sink errors', () => {
