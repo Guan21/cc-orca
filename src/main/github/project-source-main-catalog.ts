@@ -1,4 +1,4 @@
-import type { Store } from '../persistence'
+import type { CatalogStore } from './project-source-catalog-store'
 import { splitWorktreeId } from '../../shared/worktree/id'
 import { resolveProjectExecutionRuntime } from '../../shared/project-execution-runtime'
 import { isWslUncPath } from '../../shared/wsl-paths'
@@ -8,13 +8,6 @@ import type {
   MainSelectedRepositoryContext
 } from './project-source-main-repository-registration'
 
-type CatalogStore = Pick<
-  Store,
-  'getProjects' | 'getProjectHostSetups' | 'getRepos' | 'subscribeMutations'
-> &
-  Partial<Pick<Store, 'getUnambiguousWorktreeMetaForHost' | 'getAllWorktreeMetaForHost'>> & {
-    getSettings?: () => Pick<ReturnType<Store['getSettings']>, 'localWindowsRuntimeDefault'>
-  }
 type SelectionCandidate = Omit<MainSelectedRepositoryContext, 'selectionRevision'>
 
 /** Main-only Store adapter. Selection is a selector, never repository/read authorization.
@@ -28,6 +21,7 @@ export class MainProjectSourceCatalog {
   private disposed = false
   private invalidating = false
   private unsubscribeStore: (() => void) | undefined
+  private unsubscribeBefore: (() => void) | undefined
   private readonly listeners = new Set<() => void>()
 
   constructor(
@@ -38,6 +32,12 @@ export class MainProjectSourceCatalog {
       this.listeners.add(onInvalidate)
     }
     try {
+      if (store.subscribeBeforeMutations) {
+        this.unsubscribeBefore = store.subscribeBeforeMutations(() => this.invalidate())
+        if (typeof this.unsubscribeBefore !== 'function') {
+          throw new Error('Source unavailable')
+        }
+      }
       const unsubscribe = store.subscribeMutations(() => this.invalidate())
       if (typeof unsubscribe !== 'function') {
         this.disposed = true
@@ -56,15 +56,15 @@ export class MainProjectSourceCatalog {
     }
   }
 
-  invalidate(): void {
+  invalidate(): boolean {
     this.selected = null
     this.fingerprint = null
-    this.revision += 1
+    const revision = ++this.revision
     if (!Number.isSafeInteger(this.revision)) {
       this.disposed = true
     }
     if (this.invalidating) {
-      return
+      return false
     }
     this.invalidating = true
     const listeners = [...this.listeners]
@@ -80,16 +80,20 @@ export class MainProjectSourceCatalog {
     } finally {
       this.invalidating = false
     }
+    return !this.disposed && this.revision === revision
   }
 
   dispose(): void {
     this.disposed = true
-    const unsubscribe = this.unsubscribeStore
+    const subscriptions = [this.unsubscribeStore, this.unsubscribeBefore]
     this.unsubscribeStore = undefined
-    try {
-      unsubscribe?.()
-    } catch {
-      // Disposal must still notify every dependent authority.
+    this.unsubscribeBefore = undefined
+    for (const unsubscribe of subscriptions) {
+      try {
+        unsubscribe?.()
+      } catch {
+        // Disposal must still notify every dependent authority.
+      }
     }
     this.invalidate()
     this.listeners.clear()
@@ -97,7 +101,7 @@ export class MainProjectSourceCatalog {
 
   readCatalog(): MainRepositoryCatalog {
     try {
-      if (this.disposed) {
+      if (this.disposed || this.store.isMutationInProgress?.()) {
         throw new Error('Main project catalog unavailable')
       }
       return structuredClone({
@@ -190,11 +194,10 @@ export class MainProjectSourceCatalog {
 
   /** Called only by a trusted Main selection owner; renderer identifiers remain untrusted. */
   selectCurrent(candidate: SelectionCandidate): boolean {
-    if (this.invalidating) {
+    if (this.invalidating || this.store.isMutationInProgress?.()) {
       return false
     }
-    this.invalidate()
-    if (this.disposed || !Number.isSafeInteger(this.revision)) {
+    if (!this.invalidate()) {
       return false
     }
     const next = Object.freeze({ ...candidate, selectionRevision: this.revision })

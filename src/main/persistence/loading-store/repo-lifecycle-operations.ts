@@ -23,7 +23,7 @@ import { getRepoIdFromWorktreeId } from '../../../shared/worktree/id'
 
 import type { StoreRuntimeState } from './store-runtime-state'
 import type { WriteSchedulingOperations } from './write-scheduling'
-import { scheduleSave } from './write-scheduling'
+import { mutateBeforePublication, scheduleSave } from './write-scheduling'
 
 type RepoLifecycleOperationsRuntime = Pick<
   StoreRuntimeState,
@@ -193,8 +193,10 @@ export class RepoLifecycleOperations {
     },
     hostId?: ExecutionHostId
   ): Repo | null {
-    return structuredClone(
-      getRepoUpdateOperations(this).updateRepo(id, structuredClone(updates), hostId)
+    return mutateBeforePublication(this[repoLifecycleOperationsContext].scheduling, () =>
+      structuredClone(
+        getRepoUpdateOperations(this).updateRepo(id, structuredClone(updates), hostId)
+      )
     )
   }
 }

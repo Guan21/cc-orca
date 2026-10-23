@@ -26,7 +26,7 @@ import {
   updateIndependentProjectHostSetup,
   pruneMobileClientTabSelections
 } from './repo-lifecycle-operations'
-import { scheduleSave } from './write-scheduling'
+import { mutateBeforePublication, scheduleSave } from './write-scheduling'
 import { removeWorkspaceLineageForFolderParent } from './metadata-lineage-operations'
 import { bumpLocalWorktreeScanGeneration } from '../../local-worktree-scan-generation'
 
@@ -68,8 +68,8 @@ export class ProjectCollectionOperations {
   }
 
   updateProject(id: string, updates: ProjectUpdateArgs['updates']): Project | null {
-    return structuredClone(
-      getProjectHostOperations(this).updateProject(id, structuredClone(updates))
+    return mutateBeforePublication(this[projectCollectionOperationsContext].scheduling, () =>
+      structuredClone(getProjectHostOperations(this).updateProject(id, structuredClone(updates)))
     )
   }
 

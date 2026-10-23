@@ -41,7 +41,16 @@ function fixture() {
     hostId: 'local'
   } as WorktreeMeta
   const mutations = new Set<() => void>()
+  const beforeMutations = new Set<() => void>()
+  let mutating = false
   const store = {
+    isMutationInProgress: () => mutating,
+    subscribeBeforeMutations: (listener: () => void) => {
+      beforeMutations.add(listener)
+      return () => {
+        beforeMutations.delete(listener)
+      }
+    },
     getSettings: () => ({ localWindowsRuntimeDefault: { kind: 'windows-host' as const } }),
     getProjects: () => [project],
     getProjectHostSetups: () => [setup],
@@ -70,10 +79,58 @@ function fixture() {
       listener()
     }
   }
-  return { catalog, store, mutations, mutate, selection, project, repo, setup, meta }
+  const beforeMutation = (write: () => void) => {
+    mutating = true
+    try {
+      for (const listener of beforeMutations) {
+        listener()
+      }
+      write()
+    } finally {
+      mutating = false
+    }
+  }
+  return {
+    catalog,
+    store,
+    mutations,
+    beforeMutations,
+    beforeMutation,
+    mutate,
+    selection,
+    project,
+    repo,
+    setup,
+    meta
+  }
 }
 
 describe('Task A native catalog lifecycle and real workspace identity', () => {
+  it('rejects the outer selection when a retirement callback revokes it again', () => {
+    const f = fixture()
+    f.catalog.subscribe(() => f.catalog.invalidate())
+    expect(f.catalog.selectCurrent(f.selection)).toBe(false)
+    expect(f.catalog.readSelection()).toBeNull()
+    f.catalog.dispose()
+  })
+
+  it('retires before Store publication and denies replacement throughout the write', () => {
+    const f = fixture()
+    expect(f.catalog.selectCurrent(f.selection)).toBe(true)
+    const observed: unknown[] = []
+    f.catalog.subscribe(() => observed.push(f.project.displayName))
+    f.beforeMutation(() => {
+      expect(observed).toEqual(['same label'])
+      expect(f.catalog.readSelection()).toBeNull()
+      expect(f.catalog.selectCurrent(f.selection)).toBe(false)
+      expect(() => f.catalog.readCatalog()).toThrow()
+      f.project.displayName = 'replacement'
+    })
+    expect(f.catalog.readSelection()).toBeNull()
+    f.catalog.dispose()
+    expect(f.beforeMutations.size).toBe(0)
+  })
+
   it('bounds nested retirement and still visits independent listeners', () => {
     const f = fixture()
     const nested = vi.fn(() => f.catalog.invalidate())

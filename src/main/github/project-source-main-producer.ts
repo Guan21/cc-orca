@@ -29,6 +29,7 @@ export class MainProjectSelectionProducer implements MainProjectSelectionSource 
   private readonly profile: string | null
   private disposed = false
   private publishing = false
+  private clearing = false
   private catalogEvents = 0
   private readonly listeners = new Set<(snapshot: MainProjectSelectionSnapshot) => void>()
   private readonly unsubscribe: () => void
@@ -93,6 +94,7 @@ export class MainProjectSelectionProducer implements MainProjectSelectionSource 
     try {
       return (
         !this.disposed &&
+        !this.clearing &&
         this.window === window &&
         this.session !== null &&
         this.profile !== null &&
@@ -132,18 +134,26 @@ export class MainProjectSelectionProducer implements MainProjectSelectionSource 
   }
 
   clear(): void {
-    this.pending?.abort()
-    this.pending = null
-    this.fingerprint = null
-    this.frame = null
-    this.publish(null)
+    if (this.clearing) {
+      return
+    }
+    this.clearing = true
+    const pending = this.pending
+    try {
+      this.pending = null
+      this.fingerprint = null
+      this.frame = null
+      this.publish(null)
+      pending?.abort()
+    } finally {
+      this.clearing = false
+    }
   }
 
   private publish(candidate: MainProjectSelectionCandidate | null): void {
     if (this.disposed) {
       return
     }
-    this.candidate = candidate
     if (this.publishing || this.revision === Number.MAX_SAFE_INTEGER) {
       this.disposed = true
       this.candidate = null
@@ -154,6 +164,15 @@ export class MainProjectSelectionProducer implements MainProjectSelectionSource 
     this.publishing = true
     this.catalogEvents = 0
     try {
+      this.candidate = null
+      if (!this.options.catalog.invalidate() || this.disposed) {
+        return
+      }
+      if (candidate && !this.options.catalog.inspectSelectionCandidate(candidate)) {
+        return
+      }
+      this.catalogEvents = 0
+      this.candidate = candidate
       const snapshot = this.readCurrent()
       const listeners = [...this.listeners]
       for (const listener of listeners) {
