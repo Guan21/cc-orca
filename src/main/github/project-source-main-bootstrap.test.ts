@@ -136,17 +136,22 @@ describe('default-disabled Main project-source bootstrap', () => {
     expect(f.sender.eventNames()).toHaveLength(0)
     expect(f.listeners.size).toBe(0)
   })
-  it.each(['did-start-navigation', 'will-navigate', 'did-navigate', 'render-process-gone'])(
-    'synchronously revokes on %s',
-    (event) => {
-      const f = fixture()
-      f.bootstrap.attachMainWindow(f.window as never)
-      f.sender.emit(event)
-      expect(mocks.revoke).toHaveBeenCalledTimes(1)
-      expect(f.catalog.invalidate).toHaveBeenCalledTimes(1)
-      f.bootstrap.dispose()
-    }
-  )
+  it.each([
+    'did-start-navigation',
+    'will-navigate',
+    'will-frame-navigate',
+    'did-frame-navigate',
+    'frame-created',
+    'did-navigate',
+    'render-process-gone'
+  ])('synchronously revokes on %s', (event) => {
+    const f = fixture()
+    f.bootstrap.attachMainWindow(f.window as never)
+    f.sender.emit(event)
+    expect(mocks.revoke).toHaveBeenCalledTimes(1)
+    expect(f.catalog.invalidate).toHaveBeenCalledTimes(1)
+    f.bootstrap.dispose()
+  })
   it.each(['closed', 'destroyed'])('disposes on %s without listener leaks', (event) => {
     const f = fixture()
     f.bootstrap.attachMainWindow(f.window as never)

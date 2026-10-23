@@ -26,6 +26,7 @@ export class MainProjectSourceCatalog {
   private fingerprint: string | null = null
   private revision = 0
   private disposed = false
+  private invalidating = false
   private unsubscribeStore: (() => void) | undefined
   private readonly listeners = new Set<() => void>()
 
@@ -62,14 +63,22 @@ export class MainProjectSourceCatalog {
     if (!Number.isSafeInteger(this.revision)) {
       this.disposed = true
     }
+    if (this.invalidating) {
+      return
+    }
+    this.invalidating = true
     const listeners = [...this.listeners]
-    for (const listener of listeners) {
-      try {
-        listener()
-      } catch {
-        // Failed revocation cannot authorize another operation in this incarnation.
-        this.disposed = true
+    try {
+      for (const listener of listeners) {
+        try {
+          listener()
+        } catch {
+          // Failed revocation cannot authorize another operation in this incarnation.
+          this.disposed = true
+        }
       }
+    } finally {
+      this.invalidating = false
     }
   }
 
@@ -181,6 +190,9 @@ export class MainProjectSourceCatalog {
 
   /** Called only by a trusted Main selection owner; renderer identifiers remain untrusted. */
   selectCurrent(candidate: SelectionCandidate): boolean {
+    if (this.invalidating) {
+      return false
+    }
     this.invalidate()
     if (this.disposed || !Number.isSafeInteger(this.revision)) {
       return false

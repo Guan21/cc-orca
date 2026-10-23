@@ -74,6 +74,39 @@ function fixture() {
 }
 
 describe('Task A native catalog lifecycle and real workspace identity', () => {
+  it('bounds nested retirement and still visits independent listeners', () => {
+    const f = fixture()
+    const nested = vi.fn(() => f.catalog.invalidate())
+    const independent = vi.fn()
+    f.catalog.subscribe(nested)
+    f.catalog.subscribe(independent)
+    f.catalog.invalidate()
+    expect(nested).toHaveBeenCalledOnce()
+    expect(independent).toHaveBeenCalledOnce()
+    expect(f.catalog.readSelection()).toBeNull()
+    f.catalog.dispose()
+  })
+
+  it('cannot publish a replacement selection from inside a retirement listener', () => {
+    const f = fixture()
+    expect(f.catalog.selectCurrent(f.selection)).toBe(true)
+    let attempted = false
+    let accepted: boolean | undefined
+    f.catalog.subscribe(() => {
+      if (!attempted) {
+        attempted = true
+        accepted = f.catalog.selectCurrent({ ...f.selection, prNumber: 99 })
+      }
+    })
+    const observed: unknown[] = []
+    f.catalog.subscribe(() => observed.push(f.catalog.readSelection()))
+    f.catalog.invalidate()
+    expect(accepted).toBe(false)
+    expect(observed.every((value) => value === null)).toBe(true)
+    expect(f.catalog.readSelection()).toBeNull()
+    f.catalog.dispose()
+  })
+
   it('denies a Store that cannot synchronously publish mutation invalidation', () => {
     const f = fixture()
     Reflect.deleteProperty(f.store, 'subscribeMutations')
