@@ -19,6 +19,7 @@ function bounded(value: unknown): value is string {
 export class MainNativeGitHubPrincipal {
   private pinned: Readonly<MainNativePrincipalEvidence> | null = null
   private retired = false
+  private verifying = false
 
   constructor(
     private readonly verify?: () => unknown,
@@ -38,6 +39,10 @@ export class MainNativeGitHubPrincipal {
     if (this.retired || !this.verify) {
       return null
     }
+    if (this.verifying) {
+      return this.reject()
+    }
+    this.verifying = true
     try {
       const raw = this.verify()
       if (this.retired || typeof raw !== 'object' || raw === null) {
@@ -86,6 +91,8 @@ export class MainNativeGitHubPrincipal {
       return evidence
     } catch {
       return this.reject()
+    } finally {
+      this.verifying = false
     }
   }
 

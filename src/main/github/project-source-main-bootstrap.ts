@@ -32,6 +32,7 @@ export class MainProjectSourceBootstrap {
   private retireOperationIntent: (() => void) | null = null
   private disposed = false
   private attaching = false
+  private detaching = false
   private readonly retire = (): void => {
     try {
       this.integration?.revoke()
@@ -89,7 +90,7 @@ export class MainProjectSourceBootstrap {
 
   /** Only the explicit Main window factory calls this, before loading its document. */
   attachMainWindow(window: BrowserWindow): boolean {
-    if (this.attaching) {
+    if (this.attaching || this.detaching) {
       return false
     }
     this.attaching = true
@@ -203,7 +204,24 @@ export class MainProjectSourceBootstrap {
     }
   }
 
+  /** Retire before the Main factory creates a replacement WebContents/Session. */
+  retireMainWindow(): void {
+    this.detachWindow()
+  }
+
   private detachWindow(): void {
+    if (this.detaching) {
+      return
+    }
+    this.detaching = true
+    try {
+      this.releaseWindow()
+    } finally {
+      this.detaching = false
+    }
+  }
+
+  private releaseWindow(): void {
     const cleanup = (action: () => void): void => {
       try {
         action()

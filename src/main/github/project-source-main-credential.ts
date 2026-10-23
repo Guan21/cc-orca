@@ -90,13 +90,13 @@ export class MainCredentialEvidenceProvider {
     this.retired = true
     const unsubscribe = this.unsubscribe
     this.unsubscribe = null
-    if (unsubscribe) {
-      this.notify(unsubscribe)
-    }
     const listeners = [...this.listeners]
     this.listeners.clear()
     for (const listener of listeners) {
       this.notify(listener)
+    }
+    if (unsubscribe) {
+      this.notify(unsubscribe)
     }
   }
 

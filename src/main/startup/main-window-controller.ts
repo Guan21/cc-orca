@@ -93,6 +93,7 @@ export function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}
       noteWindowsInstallDirAclProbePending()
     }
   }
+  state.projectSourceBootstrap?.retireMainWindow()
   const window = createMainWindow(store, {
     getIsQuitting: () => state.isQuitting,
     onQuitAborted: () => {

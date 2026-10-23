@@ -161,6 +161,7 @@ export class MainTrustedSelectedPrHeadProvider {
       ) &&
       validMainSelectedPrAuthority(latest) &&
       same(copyMainSelectedPrAuthority(latest), authority) &&
+      context.isCurrent() &&
       this.local(epoch, signal)
     )
   }
