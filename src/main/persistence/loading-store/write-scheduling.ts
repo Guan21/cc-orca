@@ -21,13 +21,33 @@ type WriteSchedulingOperationsContext = {
   runtime: WriteSchedulingOperationsRuntime
   writes: PrimaryStateWriteOperations
   mutationListeners: Set<() => void>
+  beforeMutationListeners: Set<() => void>
+  mutationInProgress: boolean
 }
 
 export class WriteSchedulingOperations {
   readonly [writeSchedulingOperationsContext]: WriteSchedulingOperationsContext
 
   constructor(runtime: WriteSchedulingOperationsRuntime, writes: PrimaryStateWriteOperations) {
-    this[writeSchedulingOperationsContext] = { runtime, writes, mutationListeners: new Set() }
+    this[writeSchedulingOperationsContext] = {
+      runtime,
+      writes,
+      mutationListeners: new Set(),
+      beforeMutationListeners: new Set(),
+      mutationInProgress: false
+    }
+  }
+
+  subscribeBeforeMutations(listener: () => void): () => void {
+    const listeners = this[writeSchedulingOperationsContext].beforeMutationListeners
+    listeners.add(listener)
+    return () => {
+      listeners.delete(listener)
+    }
+  }
+
+  isMutationInProgress(): boolean {
+    return this[writeSchedulingOperationsContext].mutationInProgress
   }
 
   subscribeMutations(listener: () => void): () => void {
@@ -43,6 +63,32 @@ export class WriteSchedulingOperations {
       this[writeSchedulingOperationsContext].runtime.pendingWrite,
       this[writeSchedulingOperationsContext].runtime.activeViewPreference.waitForPendingWrite()
     ])
+  }
+}
+
+/** Only explicitly wrapped producers have a before-publication guarantee. */
+export function mutateBeforePublication<T>(owner: WriteSchedulingOperations, write: () => T): T {
+  const context = owner[writeSchedulingOperationsContext]
+  if (context.mutationInProgress) {
+    throw new Error('Store mutation in progress')
+  }
+  context.mutationInProgress = true
+  try {
+    const failures: unknown[] = []
+    const listeners = [...context.beforeMutationListeners]
+    for (const listener of listeners) {
+      try {
+        listener()
+      } catch (error) {
+        failures.push(error)
+      }
+    }
+    if (failures.length > 0) {
+      throw failures[0]
+    }
+    return write()
+  } finally {
+    context.mutationInProgress = false
   }
 }
 

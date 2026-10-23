@@ -14,7 +14,7 @@ import type { StoreRuntimeState } from './store-runtime-state'
 import type { WriteSchedulingOperations } from './write-scheduling'
 import type { SessionHostPartitionOperations } from './session-host-partitions'
 import { invalidateLocalWorktreeMetadataPruneInputs } from '../../local-worktree-metadata-prune-gate'
-import { scheduleSave } from './write-scheduling'
+import { mutateBeforePublication, scheduleSave } from './write-scheduling'
 import {
   hasPersistedWorkspaceSession,
   partitionOwnsWorktreeTabs,
@@ -55,12 +55,8 @@ export class MetadataLineageOperations {
     scheduling: WriteSchedulingOperations,
     sessions: SessionHostPartitionOperations
   ) {
-    this[metadataLineageOperationsContext] = {
-      runtime,
-      scheduling,
-      sessions,
-      scans: new WorktreeScanOwnership()
-    }
+    const scans = new WorktreeScanOwnership()
+    this[metadataLineageOperationsContext] = { runtime, scheduling, sessions, scans }
   }
   getWorktreeMeta(worktreeId: string): WorktreeMeta | undefined {
     return structuredClone(
@@ -94,13 +90,15 @@ export class MetadataLineageOperations {
     meta: Partial<WorktreeMeta>
   ): WorktreeMeta {
     const { runtime, scheduling } = this[metadataLineageOperationsContext]
-    return structuredClone(
-      setWorktreeMetaForHostOperation(
-        runtime,
-        scheduling,
-        worktreeId,
-        executionHostId,
-        structuredClone(meta)
+    return mutateBeforePublication(scheduling, () =>
+      structuredClone(
+        setWorktreeMetaForHostOperation(
+          runtime,
+          scheduling,
+          worktreeId,
+          executionHostId,
+          structuredClone(meta)
+        )
       )
     )
   }

@@ -166,6 +166,86 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks())
 
 describe('production Main selection producer', () => {
+  it('does not resurrect a candidate after nested catalog retirement during publication', async () => {
+    const f = fixture()
+    let accepting = false
+    electron.dialog.mockImplementationOnce(async () => {
+      accepting = true
+      return { response: 1 }
+    })
+    f.catalog.subscribe(() => {
+      if (accepting) {
+        accepting = false
+        f.catalog.invalidate()
+      }
+    })
+    expect(await f.choose()).toBe(false)
+    expect(f.producer.readCurrent().candidate).toBeNull()
+    expect(f.catalog.readSelection()).toBeNull()
+    f.dispose()
+  })
+
+  it('clears selection before cancellation callbacks and denies reentrant confirmation', async () => {
+    const f = fixture()
+    let attempted: Promise<boolean> | undefined
+    electron.dialog.mockImplementationOnce((_window, options) => {
+      options.signal.addEventListener('abort', () => {
+        expect(f.producer.readCurrent().candidate).toBeNull()
+        expect(f.catalog.readSelection()).toBeNull()
+        attempted = f.choose()
+      })
+      return new Promise(() => {})
+    })
+    const pending = f.choose()
+    f.producer.clear()
+    expect(await pending).toBe(false)
+    expect(await attempted).toBe(false)
+    expect(electron.dialog).toHaveBeenCalledOnce()
+    f.dispose()
+  })
+
+  it('retires catalog dependents before a replacement candidate becomes observable', async () => {
+    const f = fixture()
+    const observed: unknown[] = []
+    f.catalog.subscribe(() => observed.push(f.producer.readCurrent().candidate))
+    expect(await f.choose()).toBe(true)
+    // The first retirement precedes candidate publication; consumer selection retires again.
+    expect(observed.length).toBeGreaterThanOrEqual(3)
+    expect(observed.slice(0, 2)).toEqual([null, null])
+    expect(f.catalog.readSelection()).toMatchObject(f.candidate)
+    f.dispose()
+  })
+
+  it('rejects nested clear during the before-publication retirement', async () => {
+    const f = fixture()
+    let accepting = false
+    electron.dialog.mockImplementationOnce(async () => {
+      accepting = true
+      return { response: 1 }
+    })
+    f.catalog.subscribe(() => {
+      if (accepting) {
+        accepting = false
+        f.producer.clear()
+      }
+    })
+    expect(await f.choose()).toBe(false)
+    expect(f.producer.readCurrent().candidate).toBeNull()
+    expect(f.catalog.readSelection()).toBeNull()
+    f.dispose()
+  })
+
+  it('does not publish after a before-publication retirement listener fails', async () => {
+    const f = fixture()
+    f.catalog.subscribe(() => {
+      throw new Error('retirement unavailable')
+    })
+    expect(await f.choose()).toBe(false)
+    expect(f.producer.readCurrent().candidate).toBeNull()
+    expect(f.catalog.readSelection()).toBeNull()
+    f.dispose()
+  })
+
   it('wires the real bootstrap, producer, consumer and coordinator without granting API access', async () => {
     const f = fixture()
     const bootstrap = new MainProjectSourceBootstrap({

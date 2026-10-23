@@ -11,6 +11,14 @@
  * only after consent and must pin the approved Personal/native GitHub transport.
  */
 import { randomUUID } from 'node:crypto'
+import {
+  positive,
+  validDocument,
+  validBinding,
+  copyDocument,
+  copyBinding,
+  sameDocument
+} from './project-source-grant-validation'
 
 export type VerifiedSourceDocument = Readonly<{
   profile: 'personal-packaged'
@@ -76,81 +84,6 @@ export type MainSelectedPrOperationContext = Readonly<{
 
 const MAX_GRANT_MS = 15 * 60_000
 
-function bounded(value: unknown): value is string {
-  return (
-    typeof value === 'string' &&
-    value.length > 0 &&
-    value.length <= 256 &&
-    value.trim() === value &&
-    ![...value].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
-  )
-}
-
-function positive(value: unknown): value is number {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0
-}
-
-function nonnegative(value: unknown): value is number {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0
-}
-
-function validDocument(value: VerifiedSourceDocument | null): value is VerifiedSourceDocument {
-  return (
-    value !== null &&
-    value.profile === 'personal-packaged' &&
-    value.executionRealm === 'native' &&
-    positive(value.windowId) &&
-    positive(value.webContentsId) &&
-    nonnegative(value.frameProcessId) &&
-    nonnegative(value.frameRoutingId) &&
-    nonnegative(value.credentialGeneration) &&
-    bounded(value.installationId) &&
-    bounded(value.documentId) &&
-    bounded(value.sessionPartition) &&
-    bounded(value.principalId)
-  )
-}
-
-function validBinding(value: TrustedSelectedPrBinding): boolean {
-  return (
-    bounded(value.projectId) &&
-    (value.workspaceKind === 'folder' || value.workspaceKind === 'worktree') &&
-    bounded(value.workspaceId) &&
-    bounded(value.hostSetupId) &&
-    bounded(value.executionHostId) &&
-    value.repository?.host === 'github.com' &&
-    positive(value.repository.id) &&
-    bounded(value.repository.nodeId) &&
-    bounded(value.repository.owner) &&
-    bounded(value.repository.name) &&
-    positive(value.prNumber)
-  )
-}
-
-function copyDocument(d: VerifiedSourceDocument): VerifiedSourceDocument {
-  return Object.freeze({ ...d })
-}
-
-function copyBinding(b: TrustedSelectedPrBinding): TrustedSelectedPrBinding {
-  return Object.freeze({ ...b, repository: Object.freeze({ ...b.repository }) })
-}
-
-function sameDocument(a: VerifiedSourceDocument, b: VerifiedSourceDocument): boolean {
-  return (
-    a.profile === b.profile &&
-    a.executionRealm === b.executionRealm &&
-    a.installationId === b.installationId &&
-    a.windowId === b.windowId &&
-    a.webContentsId === b.webContentsId &&
-    a.frameProcessId === b.frameProcessId &&
-    a.frameRoutingId === b.frameRoutingId &&
-    a.documentId === b.documentId &&
-    a.sessionPartition === b.sessionPartition &&
-    a.principalId === b.principalId &&
-    a.credentialGeneration === b.credentialGeneration
-  )
-}
-
 /**
  * The registry owns ALL binding/grant revisions and abort signals. One active
  * Project/PR binding per authenticated WebContents. Old grants never reappear
@@ -160,6 +93,7 @@ export class MainSelectedPrGrantRegistry {
   private readonly incarnation = randomUUID()
   private readonly states = new Map<number, SelectionState>()
   private revision = 0
+  private retirementDepth = 0
 
   constructor(
     private readonly confirmUser: (scope: TrustedSelectedPrBinding) => Promise<boolean>,
@@ -174,8 +108,11 @@ export class MainSelectedPrGrantRegistry {
     return this.revision
   }
 
-  private current(document: VerifiedSourceDocument | null): SelectionState | null {
-    if (!validDocument(document)) {
+  private current(
+    document: VerifiedSourceDocument | null,
+    retiring = false
+  ): SelectionState | null {
+    if ((!retiring && this.retirementDepth) || !validDocument(document)) {
       return null
     }
     const state = this.states.get(document.webContentsId)
@@ -188,6 +125,9 @@ export class MainSelectedPrGrantRegistry {
    * The immutable repository nodeId must already have trusted provenance.
    */
   select(document: VerifiedSourceDocument, binding: TrustedSelectedPrBinding): boolean {
+    if (this.retirementDepth) {
+      return false
+    }
     if (!validDocument(document) || !validBinding(binding)) {
       // A rejected switch must also revoke any old read authority for this
       // WebContents; retaining a previously authorized Project is unsafe.
@@ -196,7 +136,11 @@ export class MainSelectedPrGrantRegistry {
       }
       return false
     }
+    const expectedRevision = this.revision + 1
     this.retireWebContents(document.webContentsId)
+    if (this.revision !== expectedRevision) {
+      return false
+    }
     const scope: Scope = Object.freeze({
       document: copyDocument(document),
       binding: copyBinding(binding),
@@ -224,7 +168,12 @@ export class MainSelectedPrGrantRegistry {
       return false
     }
     const now = this.now()
-    if (!Number.isFinite(now)) {
+    if (
+      !Number.isFinite(now) ||
+      before.scope !== bound ||
+      before.granted ||
+      this.states.get(bound.document.webContentsId) !== before
+    ) {
       return false
     }
     const grantRevision = this.nextRevision()
@@ -235,30 +184,45 @@ export class MainSelectedPrGrantRegistry {
   }
 
   revoke(document: VerifiedSourceDocument): void {
-    const state = this.current(document)
+    const grantRevision = this.nextRevision()
+    const state = this.current(document, true)
     if (!state) {
       return
     }
-    state.pending?.abort()
+    const pending = state.pending
     state.pending = undefined
     state.granted = undefined
     state.scope = Object.freeze({
       ...state.scope,
-      grantRevision: this.nextRevision()
+      grantRevision
     })
+    this.abortRetired([pending])
   }
 
   /** Called on navigation, renderer termination, window close and logout. */
   retireWebContents(webContentsId: number): void {
+    this.nextRevision()
     const previous = this.states.get(webContentsId)
-    previous?.pending?.abort()
     this.states.delete(webContentsId)
+    this.abortRetired([previous?.pending])
   }
 
   /** Called on account/credential replacement or policy/repository changes. */
   retireAll(): void {
-    for (const key of this.states.keys()) {
-      this.retireWebContents(key)
+    this.nextRevision()
+    const pending = [...this.states.values()].map((state) => state.pending)
+    this.states.clear()
+    this.abortRetired(pending)
+  }
+
+  private abortRetired(pending: (AbortController | undefined)[]): void {
+    this.retirementDepth += 1
+    try {
+      for (const operation of pending) {
+        operation?.abort()
+      }
+    } finally {
+      this.retirementDepth -= 1
     }
   }
 
@@ -281,12 +245,14 @@ export class MainSelectedPrGrantRegistry {
       return { status: 'denied' }
     }
     const grant = before.granted
-    if (this.now() >= grant.expiresAt) {
-      this.revoke(grant.scope.document)
-      return { status: 'expired' }
-    }
     const pending = new AbortController()
     before.pending = pending
+    const ownsOperation = (): boolean =>
+      !this.retirementDepth &&
+      !pending.signal.aborted &&
+      before.pending === pending &&
+      before.granted === grant &&
+      this.states.get(grant.scope.document.webContentsId) === before
     const context: MainSelectedPrOperationContext = Object.freeze({
       document: grant.scope.document,
       bindingRevision: grant.scope.bindingRevision,
@@ -295,12 +261,11 @@ export class MainSelectedPrGrantRegistry {
       expiresAtMs: grant.expiresAt,
       isCurrent: () => {
         try {
+          const attested = this.current(verifiedNow())
           const now = this.now()
           if (
-            !pending.signal.aborted &&
-            before.pending === pending &&
-            before.granted === grant &&
-            this.current(verifiedNow()) === before &&
+            attested === before &&
+            ownsOperation() &&
             Number.isFinite(now) &&
             now < grant.expiresAt
           ) {
@@ -314,20 +279,29 @@ export class MainSelectedPrGrantRegistry {
       }
     })
     try {
-      const value = await load(copyBinding(grant.scope.binding), pending.signal, context)
-      const after = this.current(verifiedNow())
-      if (pending.signal.aborted || after !== before || after.granted !== grant) {
+      const startedAt = this.now()
+      if (!ownsOperation()) {
         return { status: 'revoked' }
       }
-      if (this.now() >= grant.expiresAt) {
+      if (!Number.isFinite(startedAt) || startedAt >= grant.expiresAt) {
         this.revoke(grant.scope.document)
         return { status: 'expired' }
       }
-      // deliver is synchronous, so there is no await between final ACL fence
-      // and the actual Main->Renderer delivery callback.
-      if (this.current(verifiedNow()) !== before) {
+      const value = await load(copyBinding(grant.scope.binding), pending.signal, context)
+      const after = this.current(verifiedNow())
+      if (after !== before || !ownsOperation()) {
         return { status: 'revoked' }
       }
+      const finalDocument = this.current(verifiedNow())
+      const finishedAt = this.now()
+      if (finalDocument !== before || !ownsOperation()) {
+        return { status: 'revoked' }
+      }
+      if (!Number.isFinite(finishedAt) || finishedAt >= grant.expiresAt) {
+        this.revoke(grant.scope.document)
+        return { status: 'expired' }
+      }
+      // No callbacks or awaits intervene between final ownership/expiry checks and delivery.
       deliver(value)
       return { status: 'delivered' }
     } finally {
