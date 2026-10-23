@@ -5,6 +5,7 @@ import type { MainProjectSourceCatalog } from './project-source-main-catalog'
 import type { MainProjectSelectionProducer } from './project-source-main-producer'
 import { registerProjectSourceSelectionRetirement } from './project-source-selection-retirement'
 import { registerProjectSourceOperationOwner } from './project-source-operation-ipc'
+import { MainProjectSourceLifecycleBridge } from './project-source-production-lifecycle'
 
 type AppProfile = 'personal' | 'corporate' | 'development'
 type Options = Readonly<{
@@ -23,6 +24,7 @@ export class MainProjectSourceBootstrap {
   private readonly appProfile: AppProfile
   private integration: MainProjectSourceIntegration | null = null
   private credential: MainCredentialEvidenceProvider | null = null
+  private lifecycle: MainProjectSourceLifecycleBridge | null = null
   private window: BrowserWindow | null = null
   private contents: WebContents | null = null
   private unsubscribe: (() => void) | null = null
@@ -33,14 +35,6 @@ export class MainProjectSourceBootstrap {
   private readonly retire = (): void => {
     try {
       this.integration?.revoke()
-    } catch {
-      this.dispose()
-    }
-  }
-  private readonly retireDocument = (): void => {
-    this.retire()
-    try {
-      this.options.catalog.invalidate()
     } catch {
       this.dispose()
     }
@@ -62,7 +56,11 @@ export class MainProjectSourceBootstrap {
         if (!this.isCurrentProfile()) {
           this.dispose()
         } else {
-          this.retire()
+          if (this.lifecycle) {
+            this.lifecycle.invalidate()
+          } else {
+            this.retire()
+          }
         }
       })
       if (typeof unsubscribe !== 'function') {
@@ -167,6 +165,18 @@ export class MainProjectSourceBootstrap {
         return false
       }
       this.integration = integration
+      const lifecycle = new MainProjectSourceLifecycleBridge({
+        window,
+        credential,
+        catalog: this.options.catalog,
+        retire: this.retire
+      })
+      if (this.disposed || this.window !== window || this.contents !== contents) {
+        lifecycle.dispose()
+        this.detachWindow()
+        return false
+      }
+      this.lifecycle = lifecycle
       if (this.options.producer) {
         this.options.producer.attachMainWindow(window)
         this.retireSelectionIntent = registerProjectSourceSelectionRetirement({
@@ -186,10 +196,6 @@ export class MainProjectSourceBootstrap {
       }
       window.on('closed', this.detach)
       contents.on('destroyed', this.detach)
-      contents.on('did-start-navigation', this.retireDocument)
-      contents.on('will-navigate', this.retireDocument)
-      contents.on('did-navigate', this.retireDocument)
-      contents.on('render-process-gone', this.retireDocument)
       return true
     } catch {
       this.detachWindow()
@@ -207,6 +213,8 @@ export class MainProjectSourceBootstrap {
     }
     const integration = this.integration
     const credential = this.credential
+    const lifecycle = this.lifecycle
+    this.lifecycle = null
     const window = this.window
     const contents = this.contents
     this.integration = null
@@ -220,6 +228,7 @@ export class MainProjectSourceBootstrap {
     this.retireOperationIntent = null
     cleanup(() => retireOperationIntent?.())
     cleanup(() => this.options.producer?.detachWindow())
+    cleanup(() => lifecycle?.dispose())
     cleanup(() => integration?.dispose())
     cleanup(() => credential?.dispose())
     if (window) {
@@ -233,10 +242,6 @@ export class MainProjectSourceBootstrap {
     }
     if (contents) {
       cleanup(() => contents.removeListener('destroyed', this.detach))
-      cleanup(() => contents.removeListener('did-start-navigation', this.retireDocument))
-      cleanup(() => contents.removeListener('will-navigate', this.retireDocument))
-      cleanup(() => contents.removeListener('did-navigate', this.retireDocument))
-      cleanup(() => contents.removeListener('render-process-gone', this.retireDocument))
       if (contentsOwners.get(contents) === this) {
         contentsOwners.delete(contents)
       }
