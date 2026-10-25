@@ -23,9 +23,13 @@ const positive = (x: unknown): x is number =>
 
 /** Accessor-backed, exotic or extended envelopes never cross the preload boundary. */
 function fields(value: unknown, keys: readonly string[]): value is Record<string, unknown> {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false
+  }
   const proto: unknown = Object.getPrototypeOf(value)
-  if (proto !== Object.prototype && proto !== null) return false
+  if (proto !== Object.prototype && proto !== null) {
+    return false
+  }
   const properties = Object.getOwnPropertyDescriptors(value)
   return Object.keys(properties).every((key) =>
     keys.includes(key) && Object.hasOwn(properties[key], 'value')
@@ -34,7 +38,9 @@ function fields(value: unknown, keys: readonly string[]): value is Record<string
 
 export function readSelectedPrViewClear(input: unknown): SelectedPrViewClear | null {
   try {
-    if (!fields(input, ['revision']) || !safeRevision(input.revision)) return null
+    if (!fields(input, ['revision']) || !safeRevision(input.revision)) {
+      return null
+    }
     return { revision: input.revision }
   } catch {
     return null
@@ -51,7 +57,9 @@ export function readSelectedPrViewFacts(
       !fields(input, ['revision', 'packet']) ||
       !safeRevision(input.revision) ||
       !fields(input.packet, ['version', 'projectId', 'prNumber', 'headSha', 'snapshot'])
-    ) return null
+    ) {
+      return null
+    }
     const { packet } = input
     if (
       packet.version !== 1 ||
@@ -62,7 +70,9 @@ export function readSelectedPrViewFacts(
         'version', 'projectId', 'bindingRevision', 'repository', 'fetchedAt',
         'facts', 'attestation', 'agentExecution', 'taskCompletion'
       ])
-    ) return null
+    ) {
+      return null
+    }
     const s = packet.snapshot
     if (
       s.version !== 1 ||
@@ -70,7 +80,9 @@ export function readSelectedPrViewFacts(
       s.attestation !== 'not_verified_by_projection' ||
       s.agentExecution !== 'unknown' ||
       s.taskCompletion !== 'unknown'
-    ) return null
+    ) {
+      return null
+    }
     const projected = projectGitHubFacts(
       {
         version: s.version,
@@ -88,7 +100,9 @@ export function readSelectedPrViewFacts(
       nowMs,
       MAX_AGE_MS
     )
-    if (projected.status !== 'ready') return null
+    if (projected.status !== 'ready') {
+      return null
+    }
     const facts = projected.snapshot.facts
     const prs = facts.filter((fact) => fact.kind === 'pull_request')
     const commits = facts.filter((fact) => fact.kind === 'commit')
@@ -100,7 +114,9 @@ export function readSelectedPrViewFacts(
       commits.length !== 1 ||
       commits[0].sha !== normalizedHead ||
       facts.some((fact) => fact.kind === 'check_run' && fact.headSha !== normalizedHead)
-    ) return null
+    ) {
+      return null
+    }
     return {
       revision: input.revision,
       packet: {
