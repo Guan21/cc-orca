@@ -19,6 +19,10 @@ vi.mock('../git/command-runner/exec-file-capture', () => ({
 }))
 
 import { MainProjectSourceIntegration } from './project-source-main-integration'
+import {
+  SOURCE_LIFECYCLE_DOMAINS,
+  SOURCE_READINESS_GATES
+} from './project-source-composition-contract'
 import { MainProjectSourceCatalog } from './project-source-main-catalog'
 import { MainCredentialEvidenceProvider } from './project-source-main-credential'
 import type { Project, ProjectHostSetup } from '../../shared/project-types'
@@ -165,6 +169,12 @@ function fixture(enabled = true) {
   const path = resolve('trusted-gh.exe')
   const options = {
     enabled,
+    composition: {
+      readiness: Object.fromEntries(SOURCE_READINESS_GATES.map((gate) => [gate, () => true])),
+      lifecycle: Object.fromEntries(
+        SOURCE_LIFECYCLE_DOMAINS.map((domain) => [domain, () => () => {}])
+      )
+    },
     approvedWebContents: sender as never,
     catalog,
     credential,

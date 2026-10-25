@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import type { IpcMainInvokeEvent, WebContents } from 'electron'
 import type { SelectedGitHubPrProjection } from '../../shared/github/selected-pr-graphql-projection'
 import type { ElectronSourceOriginOptions } from './project-source-electron-origin'
-import type { SourceOperationResult, VerifiedSourceDocument } from './project-source-grant-registry'
+import type { SourceOperationResult } from './project-source-grant-registry'
 import type { MainProjectSourceCatalog } from './project-source-main-catalog'
 import type { MainCredentialEvidenceProvider } from './project-source-main-credential'
 import {
@@ -12,6 +12,12 @@ import {
 import { MainNativeGitHubTransport } from './project-source-native-transport'
 import { MainPersonalProjectSourceAuthority } from './project-source-personal-authority'
 import { confirmProjectSourceRegistration } from './project-source-registration-consent'
+import {
+  MainProjectSourceAdmission,
+  type MainSourceOperationAdmission
+} from './project-source-main-admission'
+import { refreshMainSelectedPr } from './project-source-main-selected-refresh'
+import type { MainSelectedPrFactPacket } from './project-source-main-pr-evidence-delivery'
 
 type Options = Readonly<{
   enabled?: boolean
@@ -21,21 +27,15 @@ type Options = Readonly<{
   credential: Pick<MainCredentialEvidenceProvider, 'current' | 'principal' | 'subscribeRevocation'>
   origin: Omit<ElectronSourceOriginOptions, 'currentPrincipal' | 'revokeWebContents'>
   runner: ConstructorParameters<typeof MainNativeGitHubTransport>[0]['runner']
-}>
-
-type Fence = Readonly<{
-  document: VerifiedSourceDocument
-  selectionRevision: number
-  projectId: string
-  workspaceId: string
-  epoch: number
-  isCurrent(): boolean
+  executeRaw?: ConstructorParameters<typeof MainNativeGitHubTransport>[0]['executeRaw']
+  composition?: MainSourceOperationAdmission
 }>
 
 /** Main-only composition. Bootstrap/selection mutation wiring and live providers remain gated. */
 export class MainProjectSourceIntegration {
   private readonly authority: MainPersonalProjectSourceAuthority
   private readonly transport: MainNativeGitHubTransport
+  private readonly admission: MainProjectSourceAdmission
   private readonly incarnation = randomUUID()
   private readonly unsubscribe: (() => void)[] = []
   private pending = new AbortController()
@@ -52,8 +52,14 @@ export class MainProjectSourceIntegration {
     this.transport = new MainNativeGitHubTransport({
       enabled: options.enabled,
       principal: options.credential.principal,
-      runner: options.runner
+      runner: options.runner,
+      executeRaw: options.executeRaw
     })
+    this.admission = new MainProjectSourceAdmission(
+      options.enabled === true,
+      options.composition,
+      () => this.revoke()
+    )
     try {
       this.subscribe(
         (listener) => options.catalog.subscribe?.(listener),
@@ -100,7 +106,7 @@ export class MainProjectSourceIntegration {
     this.authority.retireAll()
   }
 
-  private fence(event: IpcMainInvokeEvent): Fence | null {
+  private fence(event: IpcMainInvokeEvent) {
     if (this.disposed || this.options.enabled !== true || !this.options.catalog.subscribe) {
       return null
     }
@@ -120,13 +126,18 @@ export class MainProjectSourceIntegration {
       if (this.disposed || this.epoch !== epoch) {
         return false
       }
+      if (!this.admission.ready()) {
+        this.revoke()
+        return false
+      }
       try {
         const latest = this.authority.attest(event)
         const current = this.options.catalog.readSelection()
         if (
           latest &&
           current &&
-          JSON.stringify([latest, current, this.options.catalog.readCatalog()]) === snapshot
+          JSON.stringify([latest, current, this.options.catalog.readCatalog()]) === snapshot &&
+          this.epoch === epoch
         ) {
           return true
         }
@@ -152,7 +163,7 @@ export class MainProjectSourceIntegration {
     }
     this.registering = true
     try {
-      if (this.options.enabled !== true || this.disposed) {
+      if (this.options.enabled !== true || this.disposed || !this.admission.ready()) {
         return 'denied'
       }
       this.revoke()
@@ -168,7 +179,7 @@ export class MainProjectSourceIntegration {
         readPrincipal: () => this.options.credential.current(),
         isCurrentWorktree: (selection) => this.options.catalog.isCurrentWorktree(selection),
         verifyRepository: async (repository, registrationSignal) => {
-          if (!fence.isCurrent()) {
+          if (!fence.isCurrent() || !this.admission.ready()) {
             return null
           }
           const accepted = await confirmProjectSourceRegistration(
@@ -178,7 +189,7 @@ export class MainProjectSourceIntegration {
             fence.isCurrent,
             AbortSignal.any([signal, registrationSignal])
           )
-          if (!accepted || !fence.isCurrent()) {
+          if (!accepted || !fence.isCurrent() || !this.admission.ready()) {
             return null
           }
           const result = await this.transport.register({
@@ -234,51 +245,54 @@ export class MainProjectSourceIntegration {
     headSha: string,
     deliver: (result: Extract<SelectedGitHubPrProjection, { status: 'ready' }>) => void
   ): Promise<SourceOperationResult | { status: 'unavailable' }> {
+    const result = await this.refreshSelected(
+      event,
+      (packet) => deliver({ status: 'ready', snapshot: packet.snapshot }),
+      headSha
+    )
+    return result.status === 'delivered' || result.status === 'denied'
+      ? { status: result.status }
+      : { status: 'unavailable' }
+  }
+
+  /** No Renderer HEAD or fact sender is accepted by operation IPC. */
+  async refreshSelected(
+    event: IpcMainInvokeEvent,
+    send?: (packet: MainSelectedPrFactPacket) => void,
+    expectedHead?: string
+  ) {
     if (this.refreshing || this.registering) {
-      return { status: 'denied' }
+      return { status: 'denied' as const }
     }
     this.refreshing = true
     try {
       const fence = this.fence(event)
-      if (!fence || !this.activeRegistration?.currentBinding()) {
-        return { status: 'denied' }
+      const binding = this.activeRegistration?.currentBinding()
+      if (!send || !fence || !binding || !this.admission.ready()) {
+        return { status: 'denied' as const }
       }
-      if (!(await this.authority.requestConsent(event)) || !fence.isCurrent()) {
-        return { status: 'denied' }
+      if (
+        !this.authority.selectTrusted(event, binding, this.pending.signal) ||
+        !fence.isCurrent()
+      ) {
+        return { status: 'denied' as const }
       }
-      return await this.authority.run(
+      return await refreshMainSelectedPr({
         event,
-        async (binding, signal, context) => {
-          const result = await this.transport.readSelected({
-            ...context,
-            operation: 'selectedPrRead',
-            projectId: fence.projectId,
-            workspaceId: fence.workspaceId,
-            selectionRevision: fence.selectionRevision,
-            actionId: randomUUID(),
-            binding,
-            headSha,
-            signal: AbortSignal.any([signal, this.pending.signal]),
-            isCurrent: () =>
-              fence.isCurrent() &&
-              context.isCurrent() &&
-              JSON.stringify(this.activeRegistration?.currentBinding()) === JSON.stringify(binding)
-          })
-          if (!fence.isCurrent() || !context.isCurrent() || result.status !== 'ready') {
-            throw new Error('SOURCE_UNAVAILABLE')
-          }
-          return result
-        },
-        (result) => {
-          if (!fence.isCurrent()) {
-            throw new Error('SOURCE_UNAVAILABLE')
-          }
-          deliver(result)
-        }
-      )
+        authority: this.authority,
+        transport: this.transport,
+        admission: this.admission,
+        selectionRevision: fence.selectionRevision,
+        signal: this.pending.signal,
+        expectedHead,
+        isCurrent: () =>
+          fence.isCurrent() &&
+          JSON.stringify(this.activeRegistration?.currentBinding()) === JSON.stringify(binding),
+        send
+      })
     } catch {
       this.revoke()
-      return { status: 'unavailable' }
+      return { status: 'unavailable' as const }
     } finally {
       this.refreshing = false
     }
@@ -290,6 +304,7 @@ export class MainProjectSourceIntegration {
     }
     this.disposed = true
     this.revoke()
+    this.admission.dispose()
     this.transport.retireAll()
     this.authority.dispose()
     for (const unsubscribe of this.unsubscribe.splice(0)) {

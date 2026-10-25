@@ -192,7 +192,16 @@ export class MainProjectSourceBootstrap {
           currentAppProfile: () => (this.isCurrentProfile() ? this.appProfile : 'development'),
           // No reviewed live credential, HEAD, confinement or delivery provider exists yet.
           isEnabled: () => false,
-          register: (event) => integration.register(event)
+          register: (event) => integration.register(event),
+          // A reviewed scoped sender/clearer is absent; this seam cannot deliver facts.
+          refresh: async (event) => {
+            const result = await integration.refreshSelected(event)
+            return result.status === 'delivered'
+              ? 'refreshed'
+              : result.status === 'denied' || result.status === 'stale'
+                ? result.status
+                : 'unavailable'
+          }
         })
       }
       window.on('closed', this.detach)
