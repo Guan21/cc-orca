@@ -168,12 +168,14 @@ export class MainSelectedPrRendererFactSink {
         commits[0].sha !== head.headSha.toLowerCase() ||
         facts.some((fact) => fact.kind === 'check_run' && fact.headSha !== head.headSha.toLowerCase()) ||
         !this.current(epoch) ||
-        !validMainSelectedPrHead(this.readCurrent(), this.nowMs()) ||
+        JSON.stringify(this.readCurrent()) !== JSON.stringify(head) ||
         !this.current(epoch)
       ) {
         return false
       }
-      // No await or external code between the final authority check and send.
+      // Mark it visible first: synchronous, reentrant retirement must be able
+      // to enqueue CLEAR *after* this FACT. No await between final gate and send.
+      this.displayed = true
       this.contents.send(PROJECT_SOURCE_FACT_CHANNEL, {
         revision: epoch,
         packet: {
@@ -184,9 +186,10 @@ export class MainSelectedPrRendererFactSink {
           snapshot: projection.snapshot
         }
       })
-      this.displayed = true
-      return true
+      return this.epoch === epoch
     } catch {
+      // If a transport partially sent, retire and try to clear the old view.
+      this.retire()
       return false
     } finally {
       this.sending = false
