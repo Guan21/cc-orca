@@ -31,12 +31,14 @@ export function createVolatileSelectedPrView(nowMs: () => number = Date.now) {
   const observers = new Set<() => void>()
 
   const notify = (): void => {
-    for (const observer of [...observers]) {
+    for (const observer of observers) {
       try { observer() } catch { /* continue releasing independent listeners */ }
     }
   }
   const clear = (): void => {
-    if (!visible) return
+    if (!visible) {
+      return
+    }
     visible = null
     notify()
   }
@@ -44,13 +46,17 @@ export function createVolatileSelectedPrView(nowMs: () => number = Date.now) {
   return {
     /** Changing even A->B->A always synchronously forgets prior facts. */
     select(next: SelectedPrViewScope | null): void {
-      if (disposed) return
+      if (disposed) {
+        return
+      }
       clear()
       scope = validScope(next) ? { ...next } : null
     },
     /** A safe packet is never a replacement for Main consent or a credential attestation. */
     receive(message: SelectedPrViewFacts): boolean {
-      if (disposed || !validScope(scope)) return false
+      if (disposed || !validScope(scope)) {
+        return false
+      }
       const input = readSelectedPrViewFacts(message, nowMs())
       if (!input || input.revision <= maxRevision) {
         clear()
@@ -81,12 +87,16 @@ export function createVolatileSelectedPrView(nowMs: () => number = Date.now) {
       return visible ? structuredClone(visible) : null
     },
     subscribe(listener: () => void): () => void {
-      if (disposed) return () => undefined
+      if (disposed) {
+        return () => undefined
+      }
       observers.add(listener)
       return () => { observers.delete(listener) }
     },
     dispose(): void {
-      if (disposed) return
+      if (disposed) {
+        return
+      }
       clear()
       disposed = true
       scope = null
