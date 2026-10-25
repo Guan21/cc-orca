@@ -94,7 +94,7 @@ describe('G2-C3 Preload receiver remains opt-in and default-off', () => {
 
   it('handles reentrant teardown from the fact callback', () => {
     const f = fixture()
-    let stop = () => undefined
+    let stop: () => void = () => undefined
     const onFacts = vi.fn(() => stop())
     stop = installSelectedPrPreloadReceiver(f.ipc, {
       enabled: true, onFacts, onClear: f.cleared, nowMs: () => NOW
