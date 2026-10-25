@@ -146,19 +146,23 @@ export function planEngineeringManagerSuggestions(
 
     // The Activity Graph event timestamp is not necessarily on this machine's clock.
     // Only a separately trusted, matching local receipt can justify a freshness check.
-    const receipt = options.trustedReceipts?.find(
-      (entry) =>
-        entry.projectId === snapshot.projectId &&
-        entry.taskId === task.taskId &&
-        entry.clockId === options.clockId
-    )
+    const freshestReceiptAt = (options.trustedReceipts ?? []).reduce((latest, entry) => {
+      if (
+        entry.projectId !== snapshot.projectId ||
+        entry.taskId !== task.taskId ||
+        entry.clockId !== options.clockId ||
+        !Number.isFinite(entry.receivedAtMs) ||
+        entry.receivedAtMs < 0 ||
+        entry.receivedAtMs > options.nowMs
+      ) {
+        return latest
+      }
+      return Math.max(latest, entry.receivedAtMs)
+    }, Number.NEGATIVE_INFINITY)
     if (
       task.lifecycle === 'started' &&
-      receipt &&
-      Number.isFinite(receipt.receivedAtMs) &&
-      receipt.receivedAtMs >= 0 &&
-      options.nowMs >= receipt.receivedAtMs &&
-      options.nowMs - receipt.receivedAtMs > options.staleAfterMs
+      Number.isFinite(freshestReceiptAt) &&
+      options.nowMs - freshestReceiptAt > options.staleAfterMs
     ) {
       propose(task, 'activity_freshness_needs_confirmation')
     }
