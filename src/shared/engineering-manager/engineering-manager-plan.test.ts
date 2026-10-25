@@ -124,6 +124,22 @@ describe('AI Engineering Manager M0 — inert diagnostic planning', () => {
     expect(result.suggestions[0].explanation).toContain('not proof that the Agent stopped')
   })
 
+  it('prefers the most recent comparable receipt to avoid stale false positives', () => {
+    const plan = planEngineeringManagerSuggestions(snapshot([task()]), {
+      ...options,
+      trustedReceipts: [
+        { projectId: 'project-a', taskId: 'task-1', receivedAtMs: 1, clockId: options.clockId },
+        {
+          projectId: 'project-a',
+          taskId: 'task-1',
+          receivedAtMs: 49_000,
+          clockId: options.clockId
+        }
+      ]
+    })
+    expect(plan.suggestions).toEqual([])
+  })
+
   it('ignores future receipts, completed tasks and cross-project task records', () => {
     const tasks = [
       task({ taskId: 'done', lifecycle: 'completed', reviews: { requested: 1, completed: 0 } }),
