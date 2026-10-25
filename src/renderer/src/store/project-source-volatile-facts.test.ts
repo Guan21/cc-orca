@@ -24,7 +24,9 @@ function packet(revision = 0) {
     }
   }
   const parsed = readSelectedPrViewFacts(event, NOW)
-  if (!parsed) throw new Error('offline test packet malformed')
+  if (!parsed) {
+    throw new Error('offline test packet malformed')
+  }
   return parsed
 }
 
@@ -68,7 +70,9 @@ describe('G2-C3 volatile Renderer view — no persisted protected facts', () => 
     model.select(scope)
     expect(model.receive(packet(1))).toBe(true)
     const observed = model.snapshot()
-    if (!observed) throw new Error('missing test snapshot')
+    if (!observed) {
+      throw new Error('missing test snapshot')
+    }
     ;(observed as { projectId: string }).projectId = 'tampered'
     expect(model.snapshot()?.projectId).toBe('p')
     model.retire()
