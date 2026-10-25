@@ -187,7 +187,7 @@ export class MainSelectedPrSourceComposition {
     const copy = copyMainSelectedPrAuthority(latest)
     return (
       same(copy, captured) &&
-      same(binding, captured.binding) &&
+      same(copyMainSelectedPrAuthority({ ...captured, binding }).binding, captured.binding) &&
       same(context.document, captured.document) &&
       context.bindingRevision === captured.bindingRevision &&
       context.grantRevision === captured.grantRevision &&

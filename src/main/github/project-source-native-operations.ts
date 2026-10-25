@@ -90,6 +90,15 @@ export function selectedPrVariables(
   selected: SelectedGitHubPrScope,
   expectedHeadSha: string
 ): Readonly<{ repositoryId: string; prNumber: number }> | null {
+  return typeof expectedHeadSha === 'string' &&
+    /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/i.test(expectedHeadSha)
+    ? selectedPrSnapshotVariables(selected)
+    : null
+}
+
+export function selectedPrSnapshotVariables(
+  selected: SelectedGitHubPrScope
+): Readonly<{ repositoryId: string; prNumber: number }> | null {
   const repository = selected?.source?.repository
   if (
     !repository ||
@@ -98,9 +107,7 @@ export function selectedPrVariables(
     !repositoryRegistrationVariables(repository) ||
     !nodeId(selected.repositoryNodeId) ||
     !positive(selected.prNumber) ||
-    selected.prNumber > 2_147_483_647 ||
-    typeof expectedHeadSha !== 'string' ||
-    !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/i.test(expectedHeadSha)
+    selected.prNumber > 2_147_483_647
   ) {
     return null
   }
@@ -238,4 +245,20 @@ export function parseSelectedPrResponse(
     }
   }
   return projected
+}
+
+/** Derive PR HEAD exclusively from the same fully linked, bounded response. */
+export function parseSelectedPrSnapshotResponse(
+  input: unknown,
+  selected: SelectedGitHubPrScope,
+  nowMs: number
+): SelectedGitHubPrProjection {
+  const projected = projectSelectedGitHubPrResponse(input, selected, nowMs)
+  if (projected.status !== 'ready') {
+    return projected
+  }
+  const pr = projected.snapshot.facts.find((fact) => fact.kind === 'pull_request')
+  return pr?.kind === 'pull_request'
+    ? parseSelectedPrResponse(input, selected, pr.headSha, nowMs)
+    : { status: 'invalid' }
 }

@@ -29,3 +29,4 @@ export type MainNativeSelectedPrLease = MainNativeSourceLease & {
   binding: TrustedSelectedPrBinding
   headSha: string
 }
+export type MainNativeSelectedPrSnapshotLease = Omit<MainNativeSelectedPrLease, 'headSha'>

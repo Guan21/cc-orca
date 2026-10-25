@@ -11,17 +11,31 @@ import {
   GITHUB_SELECTED_PR_QUERY,
   parseRepositoryRegistrationResponse,
   parseSelectedPrResponse,
+  parseSelectedPrSnapshotResponse,
   repositoryRegistrationVariables,
-  selectedPrVariables
+  selectedPrVariables,
+  selectedPrSnapshotVariables
 } from './project-source-native-operations'
 import type { SelectedGitHubPrProjection } from '../../shared/github/selected-pr-graphql-projection'
 
 import type {
   MainNativeRegistrationLease,
-  MainNativeSelectedPrLease
+  MainNativeSelectedPrLease,
+  MainNativeSelectedPrSnapshotLease
 } from './project-source-native-authorization'
-export type { MainNativeRegistrationLease, MainNativeSelectedPrLease }
-type Lease = MainNativeRegistrationLease | MainNativeSelectedPrLease
+import {
+  nativeSelectedPrScope,
+  nativeSourceLeaseFingerprint as fingerprint,
+  validNativeSourceLease,
+  type MainNativeSourceLease as Lease
+} from './project-source-native-lease'
+import { executeMainFixedRead, type MainNativeFixedReadExecutor } from './project-source-fixed-read'
+export type { MainNativeFixedReadRequest } from './project-source-fixed-read'
+export type {
+  MainNativeRegistrationLease,
+  MainNativeSelectedPrLease,
+  MainNativeSelectedPrSnapshotLease
+}
 type RunnerPolicy = Omit<
   ProjectSourceNativeGhOptions,
   | 'enabled'
@@ -37,39 +51,6 @@ type Failure =
 type Registration = { status: 'registered'; identity: MainVerifiedRepositoryIdentity } | Failure
 let nativeTransportBusy = false
 
-function positive(value: number): boolean {
-  return Number.isSafeInteger(value) && value > 0
-}
-function bounded(value: string): boolean {
-  return (
-    typeof value === 'string' &&
-    value.length > 0 &&
-    value.length <= 256 &&
-    value.trim() === value &&
-    ![...value].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
-  )
-}
-function fingerprint(lease: Lease): string {
-  return JSON.stringify({
-    operation: lease.operation,
-    document: lease.document,
-    projectId: lease.projectId,
-    workspaceId: lease.workspaceId,
-    selectionRevision: lease.selectionRevision,
-    bindingRevision: lease.bindingRevision,
-    grantRevision: lease.grantRevision,
-    sessionIncarnation: lease.sessionIncarnation,
-    actionId: lease.actionId,
-    expiresAtMs: lease.expiresAtMs,
-    ...(lease.operation === 'repositoryRegistration'
-      ? {
-          repository: lease.repository,
-          expectedIdentity: lease.expectedIdentity
-        }
-      : { binding: lease.binding, headSha: lease.headSha })
-  })
-}
-
 export class MainNativeGitHubTransport {
   private pending: AbortController | null = null
   private epoch = 0
@@ -79,14 +60,18 @@ export class MainNativeGitHubTransport {
   private readonly enabled: boolean
   private readonly principal: MainNativeGitHubPrincipal
   private readonly policy: RunnerPolicy
+  private readonly executeRaw?: MainNativeFixedReadExecutor
 
   constructor(options: {
     enabled?: boolean
     principal: MainNativeGitHubPrincipal
     runner: RunnerPolicy
+    /** Main-only injection; production bootstrap never supplies this source. */
+    executeRaw?: MainNativeFixedReadExecutor
   }) {
     this.enabled = options.enabled === true
     this.principal = options.principal
+    this.executeRaw = options.executeRaw
     this.policy = Object.freeze({
       ...options.runner,
       executable: Object.freeze({ ...options.runner.executable }),
@@ -101,36 +86,7 @@ export class MainNativeGitHubTransport {
   }
 
   private valid(lease: Lease): boolean {
-    const current = this.principal.current()
-    const d = lease.document
-    const now = Date.now()
-    return (
-      !this.retired &&
-      current !== null &&
-      d?.profile === 'personal-packaged' &&
-      d.executionRealm === 'native' &&
-      positive(d.windowId) &&
-      positive(d.webContentsId) &&
-      Number.isSafeInteger(d.frameProcessId) &&
-      d.frameProcessId >= 0 &&
-      Number.isSafeInteger(d.frameRoutingId) &&
-      d.frameRoutingId >= 0 &&
-      bounded(d.installationId) &&
-      bounded(d.documentId) &&
-      bounded(d.sessionPartition) &&
-      d.principalId === current.principalId &&
-      d.credentialGeneration === current.credentialGeneration &&
-      bounded(lease.projectId) &&
-      bounded(lease.workspaceId) &&
-      bounded(lease.sessionIncarnation) &&
-      bounded(lease.actionId) &&
-      [lease.selectionRevision, lease.bindingRevision, lease.grantRevision].every(positive) &&
-      Number.isFinite(lease.expiresAtMs) &&
-      lease.expiresAtMs > now &&
-      lease.expiresAtMs <= now + 15 * 60_000 &&
-      !lease.signal.aborted &&
-      lease.isCurrent() === true
-    )
+    return validNativeSourceLease(lease, this.principal, this.retired)
   }
 
   private async run<T>(
@@ -187,30 +143,54 @@ export class MainNativeGitHubTransport {
       }
     }
     let runner: ProjectSourceNativeGhRunner | undefined
+    let rawIdle: Promise<void> | undefined
     try {
       assertCurrent()
       const principal = this.principal.current()
       if (!principal) {
         return { status: 'revoked' }
       }
-      runner = createProjectSourceNativeGhRunner({
-        ...this.policy,
-        enabled: true,
-        fixedQueries: {
-          repositoryRegistration: GITHUB_REGISTRATION_QUERY,
-          selectedPrRead: GITHUB_SELECTED_PR_QUERY
-        },
-        expectedPrincipalId: principal.principalId,
-        expectedCredentialGeneration: principal.credentialGeneration,
-        readCredentialAttestation: () => this.principal.current(),
-        assertAuthorized: assertCurrent
-      })
-      const response = await runner.execute({
+      const request = {
         operation,
         variables: { ...variables },
         deadlineMs: Math.min(start + 15_000, lease.expiresAtMs),
         signal: controller.signal
-      })
+      }
+      let response: string
+      if (this.executeRaw) {
+        response = await executeMainFixedRead(
+          {
+            ...request,
+            query:
+              operation === 'repositoryRegistration'
+                ? GITHUB_REGISTRATION_QUERY
+                : GITHUB_SELECTED_PR_QUERY
+          },
+          (boundedRequest) => {
+            assertCurrent()
+            const executing = Promise.resolve(this.executeRaw!(boundedRequest))
+            rawIdle = executing.then(
+              () => undefined,
+              () => undefined
+            )
+            return executing
+          }
+        )
+      } else {
+        runner = createProjectSourceNativeGhRunner({
+          ...this.policy,
+          enabled: true,
+          fixedQueries: {
+            repositoryRegistration: GITHUB_REGISTRATION_QUERY,
+            selectedPrRead: GITHUB_SELECTED_PR_QUERY
+          },
+          expectedPrincipalId: principal.principalId,
+          expectedCredentialGeneration: principal.credentialGeneration,
+          readCredentialAttestation: () => this.principal.current(),
+          assertAuthorized: assertCurrent
+        })
+        response = await runner.execute(request)
+      }
       assertCurrent()
       if (Date.now() >= start + 15_000) {
         return { status: 'transport_error', code: 'DEADLINE' }
@@ -243,6 +223,8 @@ export class MainNativeGitHubTransport {
       }
       if (runner) {
         void runner.whenIdle().then(release, release)
+      } else if (rawIdle) {
+        void rawIdle.then(release, release)
       } else {
         release()
       }
@@ -278,31 +260,27 @@ export class MainNativeGitHubTransport {
   async readSelected(
     lease: MainNativeSelectedPrLease
   ): Promise<SelectedGitHubPrProjection | Failure> {
-    const binding = lease.binding
-    if (
-      !binding ||
-      binding.projectId !== lease.projectId ||
-      binding.workspaceId !== lease.workspaceId ||
-      binding.executionHostId !== 'local'
-    ) {
+    const scope = nativeSelectedPrScope(lease)
+    if (!scope) {
       return { status: 'denied' }
-    }
-    const scope = {
-      source: {
-        projectId: binding.projectId,
-        bindingRevision: lease.bindingRevision,
-        repository: {
-          host: binding.repository.host,
-          id: binding.repository.id,
-          owner: binding.repository.owner,
-          name: binding.repository.name
-        }
-      },
-      repositoryNodeId: binding.repository.nodeId,
-      prNumber: binding.prNumber
     }
     return this.run(lease, 'selectedPrRead', selectedPrVariables(scope, lease.headSha), (input) =>
       parseSelectedPrResponse(input, scope, lease.headSha, Date.now())
+    )
+  }
+
+  async readSelectedSnapshot(
+    lease: MainNativeSelectedPrSnapshotLease
+  ): Promise<SelectedGitHubPrProjection | Failure> {
+    if (!this.enabled) {
+      return { status: 'disabled' }
+    }
+    const scope = nativeSelectedPrScope(lease)
+    if (!scope) {
+      return { status: 'denied' }
+    }
+    return this.run(lease, 'selectedPrRead', selectedPrSnapshotVariables(scope), (input) =>
+      parseSelectedPrSnapshotResponse(input, scope, Date.now())
     )
   }
 }
