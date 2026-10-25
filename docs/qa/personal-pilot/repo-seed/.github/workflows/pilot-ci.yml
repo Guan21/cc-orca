@@ -1,0 +1,24 @@
+name: Pilot PR checks
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+permissions:
+  contents: read
+jobs:
+  pr-positive-check:
+    name: PR positive check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Execute Node built-in tests
+        run: node --test
+  pr-controlled-failure:
+    name: PR controlled failure
+    if: contains(github.event.pull_request.title, '[CI-FAIL]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Intentionally fail negative scenario
+        run: exit 1
