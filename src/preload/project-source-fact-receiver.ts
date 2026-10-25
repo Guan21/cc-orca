@@ -33,7 +33,9 @@ export function installSelectedPrPreloadReceiver(ipc: IpcEvents, options: Option
   let clearedRevision = -1
   let notifying = false
   const clear = (): void => {
-    if (notifying) return
+    if (notifying) {
+      return
+    }
     notifying = true
     try {
       options.onClear()
@@ -48,19 +50,25 @@ export function installSelectedPrPreloadReceiver(ipc: IpcEvents, options: Option
     try { ipc.removeListener(CLEAR_CHANNEL, onClear) } catch { /* fail closed */ }
   }
   const retire = (): void => {
-    if (retired) return
+    if (retired) {
+      return
+    }
     retired = true
     remove()
     clear()
   }
   const onFacts: Listener = (_event, raw) => {
-    if (retired || notifying) return
+    if (retired || notifying) {
+      return
+    }
     const message = readSelectedPrViewFacts(raw, (options.nowMs ?? Date.now)())
     if (!message) {
       retire()
       return
     }
-    if (message.revision <= deliveredRevision || message.revision <= clearedRevision) return
+    if (message.revision <= deliveredRevision || message.revision <= clearedRevision) {
+      return
+    }
     deliveredRevision = message.revision
     try {
       options.onFacts(message)
@@ -69,13 +77,17 @@ export function installSelectedPrPreloadReceiver(ipc: IpcEvents, options: Option
     }
   }
   const onClear: Listener = (_event, raw) => {
-    if (retired) return
+    if (retired) {
+      return
+    }
     const message = readSelectedPrViewClear(raw)
     if (!message) {
       retire()
       return
     }
-    if (message.revision < deliveredRevision || message.revision <= clearedRevision) return
+    if (message.revision < deliveredRevision || message.revision <= clearedRevision) {
+      return
+    }
     clearedRevision = message.revision
     clear()
   }
