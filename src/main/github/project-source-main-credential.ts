@@ -31,12 +31,20 @@ export class MainCredentialEvidenceProvider {
       this.listeners.add(options.onRevoke)
     }
     const adapter = options.adapter
+    let readEvidence: (() => unknown) | undefined
     this.principal = new MainNativeGitHubPrincipal(
-      adapter ? () => adapter.readEvidence() : undefined,
+      adapter ? () => readEvidence?.() : undefined,
       () => this.retire()
     )
     if (adapter) {
       try {
+        // Bind the reviewed reader once; a mutable adapter cannot replace its provenance.
+        const reader = adapter.readEvidence
+        if (typeof reader !== 'function' || this.retired) {
+          this.revoke()
+          return
+        }
+        readEvidence = () => Reflect.apply(reader, adapter, [])
         const unsubscribe = adapter.subscribeChanges(() => this.revoke())
         if (typeof unsubscribe !== 'function') {
           this.revoke()
