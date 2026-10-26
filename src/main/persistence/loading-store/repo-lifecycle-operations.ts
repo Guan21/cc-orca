@@ -63,9 +63,7 @@ export class RepoLifecycleOperations {
   removeProject(id: string): void {
     mutateBeforePublication(this[repoLifecycleOperationsContext].scheduling, () => {
       const state = this[repoLifecycleOperationsContext].runtime.state
-      const repoRemoved = state.repos.some(
-        (repo) => repo.id === id
-      )
+      const repoRemoved = state.repos.some((repo) => repo.id === id)
       state.repos = state.repos.filter((r) => r.id !== id)
       if (repoRemoved) {
         bumpLocalWorktreeScanGeneration(id)
@@ -75,16 +73,11 @@ export class RepoLifecycleOperations {
       delete state.sparsePresetsByRepo[id]
       delete state.retiredWorktreeNamesByRepo?.[id]
       pruneWorktreeStateForRepo(this, id, null)
-      state.workspaceSession =
-        removeRepoFromWorkspaceSession(
-          state.workspaceSession,
-          id
-        )
-      state.workspaceSessionsByHostId =
-        removeRepoFromHostWorkspaceSessions(
-          state.workspaceSessionsByHostId,
-          id
-        )
+      state.workspaceSession = removeRepoFromWorkspaceSession(state.workspaceSession, id)
+      state.workspaceSessionsByHostId = removeRepoFromHostWorkspaceSessions(
+        state.workspaceSessionsByHostId,
+        id
+      )
       scheduleSave(this[repoLifecycleOperationsContext].scheduling)
     })
   }
@@ -95,13 +88,13 @@ export class RepoLifecycleOperations {
       const repoRemoved = state.repos.some(
         (repo) => repo.id === id && getRepoExecutionHostId(repo) === hostId
       )
-      state.repos = state.repos.filter((r) => !(r.id === id && getRepoExecutionHostId(r) === hostId))
+      state.repos = state.repos.filter(
+        (r) => !(r.id === id && getRepoExecutionHostId(r) === hostId)
+      )
       if (repoRemoved) {
         bumpLocalWorktreeScanGeneration(id)
       }
-      const idStillPresent = state.repos.some(
-        (r) => r.id === id
-      )
+      const idStillPresent = state.repos.some((r) => r.id === id)
       // Why: presets and retirements are repo-id-scoped (not host-scoped); drop them only when the last host's copy is gone.
       if (!idStillPresent) {
         delete state.sparsePresetsByRepo[id]
@@ -111,19 +104,13 @@ export class RepoLifecycleOperations {
       // Why: prune only this host's worktree metas if the id survives elsewhere; otherwise prune everything (matches removeProject).
       pruneWorktreeStateForRepo(this, id, idStillPresent ? hostId : null)
       if (!idStillPresent) {
-        state.workspaceSession =
-          removeRepoFromWorkspaceSession(
-            state.workspaceSession,
-            id
-          )
-        state.workspaceSessionsByHostId =
-          removeRepoFromHostWorkspaceSessions(
-            state.workspaceSessionsByHostId,
-            id
-          )
+        state.workspaceSession = removeRepoFromWorkspaceSession(state.workspaceSession, id)
+        state.workspaceSessionsByHostId = removeRepoFromHostWorkspaceSessions(
+          state.workspaceSessionsByHostId,
+          id
+        )
       } else if (parseExecutionHostId(hostId)?.kind === 'runtime') {
-        const session =
-          state.workspaceSessionsByHostId?.[hostId]
+        const session = state.workspaceSessionsByHostId?.[hostId]
         if (session) {
           state.workspaceSessionsByHostId = {
             ...state.workspaceSessionsByHostId,
