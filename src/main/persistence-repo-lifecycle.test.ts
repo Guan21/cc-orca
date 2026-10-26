@@ -253,6 +253,69 @@ describe('Store', () => {
 
   // ── 6. removeProject cleans up worktree meta ──────────────────────────
 
+  it.each(['removeProject', 'removeProjectForHost'] as const)(
+    '%s retires protected repository identity before data publication',
+    async (operation) => {
+      const store = await createStore()
+      const repoId = 'source-retirement-repo'
+      store.addRepo(makeRepo({ id: repoId, path: '/source-retirement-repo' }))
+      const observed: { stage: string; exists: boolean; mutating: boolean }[] = []
+      const unsubscribeBefore = store.subscribeBeforeMutations(() => {
+        observed.push({
+          stage: 'before',
+          exists: store.getRepo(repoId) !== undefined,
+          mutating: store.isMutationInProgress()
+        })
+      })
+      const unsubscribeAfter = store.subscribeMutations(() => {
+        observed.push({
+          stage: 'after',
+          exists: store.getRepo(repoId) !== undefined,
+          mutating: store.isMutationInProgress()
+        })
+      })
+      if (operation === 'removeProject') {
+        store.removeProject(repoId)
+      } else {
+        store.removeProjectForHost(repoId, 'local')
+      }
+      expect(observed).toEqual([
+        { stage: 'before', exists: true, mutating: true },
+        { stage: 'after', exists: false, mutating: true }
+      ])
+      expect(store.getRepo(repoId)).toBeUndefined()
+      expect(store.isMutationInProgress()).toBe(false)
+      unsubscribeBefore()
+      unsubscribeAfter()
+    }
+  )
+
+  it.each(['removeProject', 'removeProjectForHost'] as const)(
+    '%s fails closed if a before-publication subscriber rejects the deletion',
+    async (operation) => {
+      const store = await createStore()
+      const repoId = 'reject-removal-before-publication'
+      store.addRepo(makeRepo({ id: repoId, path: '/reject-removal-before-publication' }))
+      const unsubscribe = store.subscribeBeforeMutations(() => {
+        expect(store.getRepo(repoId)).toBeDefined()
+        throw new Error('DENIED_BEFORE_PUBLICATION')
+      })
+      const remove = (): void => {
+        if (operation === 'removeProject') {
+          store.removeProject(repoId)
+        } else {
+          store.removeProjectForHost(repoId, 'local')
+        }
+      }
+      expect(remove).toThrow('DENIED_BEFORE_PUBLICATION')
+      expect(store.getRepo(repoId)).toBeDefined()
+      expect(store.isMutationInProgress()).toBe(false)
+      unsubscribe()
+      remove()
+      expect(store.getRepo(repoId)).toBeUndefined()
+    }
+  )
+
   it('removeProject deletes the repo and its worktree meta', async () => {
     const store = await createStore()
     store.addRepo(makeRepo({ id: 'r1' }))
