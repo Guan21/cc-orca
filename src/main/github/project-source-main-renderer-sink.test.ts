@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { installSelectedPrPreloadReceiver } from '../../preload/project-source-fact-receiver'
 import type { MainSelectedPrFactPacket } from './project-source-main-pr-evidence-delivery'
 import { MainSelectedPrRendererFactSink, PROJECT_SOURCE_CLEAR_CHANNEL, PROJECT_SOURCE_FACT_CHANNEL } from './project-source-main-renderer-sink'
 
@@ -152,7 +153,7 @@ describe('G2-C2 private Main -> Renderer sink (inert, offline)', () => {
     expect(f.send).toHaveBeenCalledTimes(1)
     const [channel, payload] = f.send.mock.calls[0]
     expect(channel).toBe(PROJECT_SOURCE_FACT_CHANNEL)
-    expect(payload).toMatchObject({ revision: 0, packet: { projectId: 'p', prNumber: 42, headSha: HEAD } })
+    expect(payload).toMatchObject({ revision: 1, packet: { projectId: 'p', prNumber: 42, headSha: HEAD } })
     expect(payload.packet.snapshot.agentExecution).toBe('unknown')
     f.sink.dispose()
   })
@@ -198,8 +199,75 @@ describe('G2-C2 private Main -> Renderer sink (inert, offline)', () => {
       PROJECT_SOURCE_FACT_CHANNEL,
       PROJECT_SOURCE_CLEAR_CHANNEL
     ])
-    expect(f.send.mock.calls[1][1]).toEqual({ revision: 1 })
+    expect(f.send.mock.calls[1][1]).toEqual({ revision: 2 })
     expect(f.sink.publish(packet())).toBe(false)
+    f.sink.dispose()
+  })
+
+  it('can deliver FACT -> CLEAR -> FACT after a fresh valid authorization', () => {
+    const f = create()
+    const facts: number[] = []
+    const cleared = vi.fn()
+    const listeners = new Map<string, (_event: unknown, payload: unknown) => void>()
+    const stop = installSelectedPrPreloadReceiver(
+      {
+        on: (channel, listener) => {
+          listeners.set(channel, listener)
+        },
+        removeListener: (channel) => {
+          listeners.delete(channel)
+        }
+      },
+      {
+        enabled: true,
+        nowMs: () => NOW,
+        onFacts: (message) => {
+          facts.push(message.revision)
+        },
+        onClear: cleared
+      }
+    )
+    f.send.mockImplementation((channel: string, payload: unknown) => {
+      listeners.get(channel)?.({}, payload)
+    })
+
+    expect(f.sink.publish(packet())).toBe(true)
+    f.setAuthorized(false)
+    f.change()
+    // A stale event with the same revision as the preceding FACT cannot revive it.
+    listeners.get(PROJECT_SOURCE_FACT_CHANNEL)?.({}, {
+      revision: 1,
+      packet: packet()
+    })
+    f.setAuthorized(true)
+    expect(f.sink.publish(packet())).toBe(true)
+    expect(facts).toEqual([1, 3])
+    expect(cleared).toHaveBeenCalledTimes(1)
+    expect(f.send.mock.calls.map((call) => [call[0], call[1].revision])).toEqual([
+      [PROJECT_SOURCE_FACT_CHANNEL, 1],
+      [PROJECT_SOURCE_CLEAR_CHANNEL, 2],
+      [PROJECT_SOURCE_FACT_CHANNEL, 3]
+    ])
+    stop()
+    f.sink.dispose()
+  })
+
+  it('issues newer revisions for consecutive successful refreshes and each retirement', () => {
+    const f = create()
+    expect(f.sink.publish(packet())).toBe(true)
+    expect(f.sink.publish(packet())).toBe(true)
+    f.change()
+    expect(f.sink.publish(packet())).toBe(true)
+    expect(f.send.mock.calls.map((call) => call[1].revision)).toEqual([1, 2, 3, 4])
+    f.sink.dispose()
+  })
+
+  it('denies revision overflow without delivering a wrapped or nonnumeric FACT', () => {
+    const f = create()
+    const internal = f.sink as unknown as { epoch: number }
+    internal.epoch = Number.MAX_SAFE_INTEGER
+    expect(f.sink.publish(packet())).toBe(false)
+    expect(f.send).not.toHaveBeenCalled()
     f.sink.dispose()
   })
 
