@@ -1,0 +1,33 @@
+# Synthetic-only CI test suite.
+# The official "echo" provider repeats input locally. No LLM requests are made.
+# These tests prove promptfoo installation, assertions and CI report output ONLY.
+description: DevCrew promptfoo Evaluation Adapter — synthetic pipeline smoke
+prompts:
+  - "{{sample}}"
+providers:
+  - echo
+tests:
+  - description: Review request observation is passed through
+    vars:
+      sample: "review.requested"
+    assert:
+      - type: equals
+        value: "review.requested"
+  - description: Failed verification observation is passed through
+    vars:
+      sample: "test.failed"
+    assert:
+      - type: equals
+        value: "test.failed"
+  - description: Unverified outcome is never automatically promoted to success
+    vars:
+      sample: "task.outcome=unverified"
+    assert:
+      - type: contains
+        value: "unverified"
+  - description: Synthetic safety gate matches exact output
+    vars:
+      sample: "needs_human_review"
+    assert:
+      - type: equals
+        value: "needs_human_review"
