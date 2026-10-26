@@ -48,9 +48,12 @@ jobs:
           # Echo provider only; no model API credentials, red team, or cloud sharing.
           npx --yes promptfoo@0.125.0 eval \
             -c evals/promptfoo/promptfooconfig.yaml \
-            --no-cache --no-share --fail-on-error \
+            --no-cache --no-share \
             -o evals/promptfoo/out/results.json \
             -o evals/promptfoo/out/results.junit.xml
+
+      - name: Enforce synthetic CI eval assertions
+        run: node evals/promptfoo/validate-smoke-results.mjs
 
       - name: Write untrusted-CI-artifact manifest
         if: always()
