@@ -1,0 +1,73 @@
+name: DevCrew promptfoo Evaluation PoC
+
+# Deliberately separate from the required V1 PR Checks workflow.
+on:
+  pull_request:
+    branches:
+      - company-work
+    paths:
+      - 'evals/promptfoo/**'
+      - '.github/workflows/devcrew-promptfoo-eval.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devcrew-promptfoo-smoke-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  echo-smoke:
+    name: promptfoo synthetic-only evaluation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (do not persist GitHub credentials)
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Check manifest contract
+        run: node --test evals/promptfoo/evidence-manifest.test.mjs
+
+      - name: Run pinned promptfoo echo evaluation
+        id: eval
+        env:
+          PROMPTFOO_DISABLE_TELEMETRY: '1'
+          PROMPTFOO_DISABLE_UPDATE: '1'
+          PROMPTFOO_CONFIG_DIR: ${{ runner.temp }}/devcrew-promptfoo
+        run: |
+          set -euo pipefail
+          mkdir -p evals/promptfoo/out
+          # Echo provider only; no model API credentials, red team, or cloud sharing.
+          npx --yes promptfoo@0.125.0 eval \
+            -c evals/promptfoo/promptfooconfig.yaml \
+            --no-cache --no-share --fail-on-error \
+            -o evals/promptfoo/out/results.json \
+            -o evals/promptfoo/out/results.junit.xml
+
+      - name: Write untrusted-CI-artifact manifest
+        if: always()
+        env:
+          EVAL_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVAL_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          EVAL_STEP_OUTCOME: ${{ steps.eval.outcome }}
+        run: node evals/promptfoo/write-evidence-manifest.mjs
+
+      - name: Upload synthetic evaluation artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: devcrew-promptfoo-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            evals/promptfoo/out/evidence-manifest.json
+            evals/promptfoo/out/results.json
+            evals/promptfoo/out/results.junit.xml
+          if-no-files-found: warn
+          retention-days: 7
