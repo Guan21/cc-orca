@@ -77,6 +77,17 @@ export class MainSelectedPrRendererFactSink {
     }
   }
 
+  /** Every FACT and CLEAR must have a strictly greater revision than its predecessor. */
+  private nextRevision(): number | null {
+    const next = this.epoch + 1
+    if (!Number.isSafeInteger(next)) {
+      this.available = false
+      return null
+    }
+    this.epoch = next
+    return next
+  }
+
   /** Identity verification is Main-only. No renderer-provided frame or ID. */
   private validDocument(): boolean {
     return verifyProjectSourceWindowDocument(
@@ -173,11 +184,17 @@ export class MainSelectedPrRendererFactSink {
       ) {
         return false
       }
+      // One monotonic revision for EACH outgoing event, not only retirement.
+      // A FACT after CLEAR must be newer than that CLEAR or Preload rejects it.
+      const revision = this.nextRevision()
+      if (revision === null) {
+        return false
+      }
       // Mark it visible first: synchronous, reentrant retirement must be able
       // to enqueue CLEAR *after* this FACT. No await between final gate and send.
       this.displayed = true
       this.contents.send(PROJECT_SOURCE_FACT_CHANNEL, {
-        revision: epoch,
+        revision,
         packet: {
           version: 1,
           projectId: head.binding.projectId,
@@ -186,7 +203,7 @@ export class MainSelectedPrRendererFactSink {
           snapshot: projection.snapshot
         }
       })
-      return this.epoch === epoch
+      return this.epoch === revision
     } catch {
       // If a transport partially sent, retire and try to clear the old view.
       this.retire()
@@ -202,18 +219,15 @@ export class MainSelectedPrRendererFactSink {
    * native and Renderer clearing proof; this contract cannot prove that.
    */
   retire(): void {
-    this.epoch += 1
-    if (!Number.isSafeInteger(this.epoch)) {
-      this.available = false
-    }
+    const revision = this.nextRevision()
     if (!this.displayed || this.clearing) {
       return
     }
     this.displayed = false
     this.clearing = true
     try {
-      if (this.validDocument()) {
-        this.contents.send(PROJECT_SOURCE_CLEAR_CHANNEL, { revision: this.epoch })
+      if (revision !== null && this.validDocument()) {
+        this.contents.send(PROJECT_SOURCE_CLEAR_CHANNEL, { revision })
       }
     } catch {
       // Do not throw from a source lifecycle revocation callback.
