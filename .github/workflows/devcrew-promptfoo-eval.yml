@@ -34,7 +34,7 @@ jobs:
           node-version: '24'
 
       - name: Check manifest contract
-        run: node --test evals/promptfoo/evidence-manifest.test.mjs
+        run: node --test evals/promptfoo/*.test.mjs
 
       - name: Run pinned promptfoo echo evaluation
         id: eval
