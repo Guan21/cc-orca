@@ -33,12 +33,13 @@ authorization, or security-policy compliance**.
 ## Run on a machine with Node.js 24
 
 ```sh
-node --test evals/promptfoo/evidence-manifest.test.mjs
+node --test evals/promptfoo/*.test.mjs
 npx --yes promptfoo@0.125.0 eval \
   -c evals/promptfoo/promptfooconfig.yaml \
-  --no-cache --no-share --fail-on-error \
+  --no-cache --no-share \
   -o evals/promptfoo/out/results.json \
   -o evals/promptfoo/out/results.junit.xml
+node evals/promptfoo/validate-smoke-results.mjs
 ```
 
 No secrets are needed. The output directory is gitignored.
