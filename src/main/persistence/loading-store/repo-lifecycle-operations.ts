@@ -61,76 +61,65 @@ export class RepoLifecycleOperations {
   }
 
   removeProject(id: string): void {
-    const repoRemoved = this[repoLifecycleOperationsContext].runtime.state.repos.some(
-      (repo) => repo.id === id
-    )
-    this[repoLifecycleOperationsContext].runtime.state.repos = this[
-      repoLifecycleOperationsContext
-    ].runtime.state.repos.filter((r) => r.id !== id)
-    if (repoRemoved) {
-      bumpLocalWorktreeScanGeneration(id)
-    }
-    syncProjectHostSetupCompatibilityState(this)
-    // Why: presets are repo-scoped and unreachable once the repo is gone, so drop them with it.
-    delete this[repoLifecycleOperationsContext].runtime.state.sparsePresetsByRepo[id]
-    delete this[repoLifecycleOperationsContext].runtime.state.retiredWorktreeNamesByRepo?.[id]
-    pruneWorktreeStateForRepo(this, id, null)
-    this[repoLifecycleOperationsContext].runtime.state.workspaceSession =
-      removeRepoFromWorkspaceSession(
-        this[repoLifecycleOperationsContext].runtime.state.workspaceSession,
+    mutateBeforePublication(this[repoLifecycleOperationsContext].scheduling, () => {
+      const state = this[repoLifecycleOperationsContext].runtime.state
+      const repoRemoved = state.repos.some((repo) => repo.id === id)
+      state.repos = state.repos.filter((r) => r.id !== id)
+      if (repoRemoved) {
+        bumpLocalWorktreeScanGeneration(id)
+      }
+      syncProjectHostSetupCompatibilityState(this)
+      // Why: presets are repo-scoped and unreachable once the repo is gone, so drop them with it.
+      delete state.sparsePresetsByRepo[id]
+      delete state.retiredWorktreeNamesByRepo?.[id]
+      pruneWorktreeStateForRepo(this, id, null)
+      state.workspaceSession = removeRepoFromWorkspaceSession(state.workspaceSession, id)
+      state.workspaceSessionsByHostId = removeRepoFromHostWorkspaceSessions(
+        state.workspaceSessionsByHostId,
         id
       )
-    this[repoLifecycleOperationsContext].runtime.state.workspaceSessionsByHostId =
-      removeRepoFromHostWorkspaceSessions(
-        this[repoLifecycleOperationsContext].runtime.state.workspaceSessionsByHostId,
-        id
-      )
-    scheduleSave(this[repoLifecycleOperationsContext].scheduling)
+      scheduleSave(this[repoLifecycleOperationsContext].scheduling)
+    })
   }
 
   removeProjectForHost(id: string, hostId: ExecutionHostId): void {
-    const repoRemoved = this[repoLifecycleOperationsContext].runtime.state.repos.some(
-      (repo) => repo.id === id && getRepoExecutionHostId(repo) === hostId
-    )
-    this[repoLifecycleOperationsContext].runtime.state.repos = this[
-      repoLifecycleOperationsContext
-    ].runtime.state.repos.filter((r) => !(r.id === id && getRepoExecutionHostId(r) === hostId))
-    if (repoRemoved) {
-      bumpLocalWorktreeScanGeneration(id)
-    }
-    const idStillPresent = this[repoLifecycleOperationsContext].runtime.state.repos.some(
-      (r) => r.id === id
-    )
-    // Why: presets and retirements are repo-id-scoped (not host-scoped); drop them only when the last host's copy is gone.
-    if (!idStillPresent) {
-      delete this[repoLifecycleOperationsContext].runtime.state.sparsePresetsByRepo[id]
-      delete this[repoLifecycleOperationsContext].runtime.state.retiredWorktreeNamesByRepo?.[id]
-    }
-    syncProjectHostSetupCompatibilityState(this)
-    // Why: prune only this host's worktree metas if the id survives elsewhere; otherwise prune everything (matches removeProject).
-    pruneWorktreeStateForRepo(this, id, idStillPresent ? hostId : null)
-    if (!idStillPresent) {
-      this[repoLifecycleOperationsContext].runtime.state.workspaceSession =
-        removeRepoFromWorkspaceSession(
-          this[repoLifecycleOperationsContext].runtime.state.workspaceSession,
+    mutateBeforePublication(this[repoLifecycleOperationsContext].scheduling, () => {
+      const state = this[repoLifecycleOperationsContext].runtime.state
+      const repoRemoved = state.repos.some(
+        (repo) => repo.id === id && getRepoExecutionHostId(repo) === hostId
+      )
+      state.repos = state.repos.filter(
+        (r) => !(r.id === id && getRepoExecutionHostId(r) === hostId)
+      )
+      if (repoRemoved) {
+        bumpLocalWorktreeScanGeneration(id)
+      }
+      const idStillPresent = state.repos.some((r) => r.id === id)
+      // Why: presets and retirements are repo-id-scoped (not host-scoped); drop them only when the last host's copy is gone.
+      if (!idStillPresent) {
+        delete state.sparsePresetsByRepo[id]
+        delete state.retiredWorktreeNamesByRepo?.[id]
+      }
+      syncProjectHostSetupCompatibilityState(this)
+      // Why: prune only this host's worktree metas if the id survives elsewhere; otherwise prune everything (matches removeProject).
+      pruneWorktreeStateForRepo(this, id, idStillPresent ? hostId : null)
+      if (!idStillPresent) {
+        state.workspaceSession = removeRepoFromWorkspaceSession(state.workspaceSession, id)
+        state.workspaceSessionsByHostId = removeRepoFromHostWorkspaceSessions(
+          state.workspaceSessionsByHostId,
           id
         )
-      this[repoLifecycleOperationsContext].runtime.state.workspaceSessionsByHostId =
-        removeRepoFromHostWorkspaceSessions(
-          this[repoLifecycleOperationsContext].runtime.state.workspaceSessionsByHostId,
-          id
-        )
-    } else if (parseExecutionHostId(hostId)?.kind === 'runtime') {
-      const session =
-        this[repoLifecycleOperationsContext].runtime.state.workspaceSessionsByHostId?.[hostId]
-      if (session) {
-        this[repoLifecycleOperationsContext].runtime.state.workspaceSessionsByHostId = {
-          ...this[repoLifecycleOperationsContext].runtime.state.workspaceSessionsByHostId,
-          [hostId]: removeRepoFromWorkspaceSession(session, id)
+      } else if (parseExecutionHostId(hostId)?.kind === 'runtime') {
+        const session = state.workspaceSessionsByHostId?.[hostId]
+        if (session) {
+          state.workspaceSessionsByHostId = {
+            ...state.workspaceSessionsByHostId,
+            [hostId]: removeRepoFromWorkspaceSession(session, id)
+          }
         }
       }
-    }
-    scheduleSave(this[repoLifecycleOperationsContext].scheduling)
+      scheduleSave(this[repoLifecycleOperationsContext].scheduling)
+    })
   }
 
   /**
